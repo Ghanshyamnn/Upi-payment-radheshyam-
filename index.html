@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>लाइव प्रीव्यू: UPI भुगतान</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+    }
+    iframe {
+      border: none;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+
+  <iframe id="liveFrame"></iframe>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    // यह Firebase कॉन्फ़िगरेशन ऑब्जेक्ट है, इसे न बदलें।
+    const firebaseConfig = {
+      "apiKey": "AIzaSyDQmhMSrbRs3FbWZkAgs_XbTMsB_ADzy2k",
+      "authDomain": "tic-tac-toe-game-3668f.firebaseapp.com",
+      "databaseURL": "https://tic-tac-toe-game-3668f-default-rtdb.firebaseio.com",
+      "projectId": "tic-tac-toe-game-3668f",
+      "storageBucket": "tic-tac-toe-game-3668f.appspot.com",
+      "messagingSenderId": "963811735838",
+      "appId": "1:963811735838:android:37c7c2234f78e33a25310f"
+    };
+
+    // Firebase को शुरू करें
+    firebase.initializeApp(firebaseConfig);
+
+    // डेटाबेस का रेफरेंस प्राप्त करें
+    const db = firebase.database();
+
+    // 'UPI payment' पथ पर डेटा में बदलाव को सुनें
+    db.ref("UPI payment").on("value", s => {
+      // iframe में डेटा दिखाएं, अगर डेटा नहीं है तो संदेश दिखाएं
+      document.getElementById('liveFrame').srcdoc = s.val() || "<p>सामग्री नहीं मिली।</p>";
+    });
+  </script>
+
+</body>
+</html>
