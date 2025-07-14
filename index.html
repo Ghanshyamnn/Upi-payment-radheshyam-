@@ -1,51 +1,177 @@
-<!DOCTYPE html>
-<html lang="hi">
+<!DOCTYPE html><html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>लाइव प्रीव्यू: UPI भुगतान</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR कूपन A4 (Mobile Friendly)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body {
+      font-family: Arial, sans-serif;
+      background: #eee;
+      padding: 10px;
       margin: 0;
-      font-family: sans-serif;
-    }
-    iframe {
-      border: none;
-      width: 100vw;
-      height: 100vh;
-    }
+    }h3 {
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+#status {
+  background: #fff;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.page-wrapper {
+  margin-bottom: 30px;
+  border: 1px solid #ddd;
+  padding: 5px;
+  background: #fff;
+  border-radius: 6px;
+}
+
+.page {
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 5px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.coupon {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 5px;
+  text-align: center;
+  font-size: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #fafafa;
+}
+
+.coupon canvas {
+  margin-top: 4px;
+}
+
+.coupon-code {
+  word-break: break-word;
+}
+
+.download-btn {
+  background: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 10px auto;
+  display: block;
+  max-width: 90%;
+}
+
   </style>
 </head>
-<body>
+<body>  <h3>📄 Download Status</h3>
+  <div id="status">
+    <p>✅ Downloaded Pages: <span id="downloadedList">None</span></p>
+    <p>⏳ Not Downloaded Pages: <span id="notDownloadedList"></span></p>
+  </div>  <div id="allPages"></div>  <script>
+    const totalCoupons = 250;
+    const couponsPerPage = 96;
+    const allPages = document.getElementById("allPages");
 
-  <iframe id="liveFrame"></iframe>
+    let downloadedPages = [];
+    let totalPages = Math.ceil(totalCoupons / couponsPerPage);
+    let notDownloadedPages = Array.from({length: totalPages}, (_, i) => i + 1);
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script>
-    // यह Firebase कॉन्फ़िगरेशन ऑब्जेक्ट है, इसे न बदलें।
-    const firebaseConfig = {
-      "apiKey": "AIzaSyDQmhMSrbRs3FbWZkAgs_XbTMsB_ADzy2k",
-      "authDomain": "tic-tac-toe-game-3668f.firebaseapp.com",
-      "databaseURL": "https://tic-tac-toe-game-3668f-default-rtdb.firebaseio.com",
-      "projectId": "tic-tac-toe-game-3668f",
-      "storageBucket": "tic-tac-toe-game-3668f.appspot.com",
-      "messagingSenderId": "963811735838",
-      "appId": "1:963811735838:android:37c7c2234f78e33a25310f"
-    };
+    function updateStatusLists() {
+      document.getElementById("downloadedList").textContent = downloadedPages.length
+        ? downloadedPages.join(", ")
+        : "None";
+      document.getElementById("notDownloadedList").textContent = notDownloadedPages.length
+        ? notDownloadedPages.join(", ")
+        : "None";
+    }
 
-    // Firebase को शुरू करें
-    firebase.initializeApp(firebaseConfig);
+    function generateCoupons() {
+      const coupons = [];
+      for (let i = 0; i < totalCoupons; i++) {
+        const code = `GRSC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        coupons.push(code);
+      }
+      return coupons;
+    }
 
-    // डेटाबेस का रेफरेंस प्राप्त करें
-    const db = firebase.database();
+    function createQRCodeCanvas(code) {
+      const qr = new QRious({ value: code, size: 50 });
+      return qr.canvas;
+    }
 
-    // 'UPI payment' पथ पर डेटा में बदलाव को सुनें
-    db.ref("UPI payment").on("value", s => {
-      // iframe में डेटा दिखाएं, अगर डेटा नहीं है तो संदेश दिखाएं
-      document.getElementById('liveFrame').srcdoc = s.val() || "<p>सामग्री नहीं मिली।</p>";
-    });
-  </script>
+    function renderPages(coupons) {
+      let pageCount = 1;
 
-</body>
+      for (let i = 0; i < coupons.length; i += couponsPerPage) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "page-wrapper";
+
+        const page = document.createElement("div");
+        page.className = "page";
+        page.id = `page-${pageCount}`;
+
+        const chunk = coupons.slice(i, i + couponsPerPage);
+        chunk.forEach(code => {
+          const div = document.createElement("div");
+          div.className = "coupon";
+          div.innerHTML = `<div class="coupon-code">${code}</div>`;
+          div.appendChild(createQRCodeCanvas(code));
+          page.appendChild(div);
+        });
+
+        const button = document.createElement("button");
+        button.className = "download-btn";
+        button.innerText = `⬇️ Download Page ${pageCount}`;
+        button.onclick = () => {
+          const confirmDownload = confirm(`क्या आप Page ${pageCount} डाउनलोड करना चाहते हैं?`);
+          if (confirmDownload) {
+            downloadPageAsPDF(page, pageCount);
+            if (!downloadedPages.includes(pageCount)) {
+              downloadedPages.push(pageCount);
+              notDownloadedPages = notDownloadedPages.filter(n => n !== pageCount);
+              updateStatusLists();
+            }
+          }
+        };
+
+        wrapper.appendChild(page);
+        wrapper.appendChild(button);
+        allPages.appendChild(wrapper);
+
+        pageCount++;
+      }
+    }
+
+    function downloadPageAsPDF(pageElement, pageNumber) {
+      const opt = {
+        margin: 0,
+        filename: `page-${pageNumber}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(pageElement).save();
+    }
+
+    const coupons = generateCoupons();
+    renderPages(coupons);
+    updateStatusLists();
+  </script></body>
 </html>
