@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR कूपन A4 (Mobile Friendly)</title>
+  <title>QR कूपन A4 (Mobile Friendly + Single Page Download)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
@@ -84,7 +84,9 @@
   <div id="status">
     <p>✅ Downloaded Pages: <span id="downloadedList">None</span></p>
     <p>⏳ Not Downloaded Pages: <span id="notDownloadedList"></span></p>
-  </div>  <div id="allPages"></div>  <script>
+  </div><button onclick="downloadSinglePage(1)" class="download-btn">📥 केवल Page 1 डाउनलोड करें</button>
+
+  <div id="allPages"></div>  <script>
     const totalCoupons = 250;
     const couponsPerPage = 96;
     const allPages = document.getElementById("allPages");
@@ -168,6 +170,15 @@
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       html2pdf().set(opt).from(pageElement).save();
+    }
+
+    function downloadSinglePage(pageNum) {
+      const pageElement = document.getElementById(`page-${pageNum}`);
+      if (!pageElement) {
+        alert("पेज नहीं मिला!");
+        return;
+      }
+      downloadPageAsPDF(pageElement, pageNum);
     }
 
     const coupons = generateCoupons();
