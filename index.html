@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @media print {
-      #printBtn {
+      #printBtn, #textInputSection {
         display: none;
       }
       body {
@@ -25,13 +25,25 @@
 </head>
 <body class="bg-white text-black font-serif text-xs sm:text-sm mx-auto p-8" style="width: 210mm; min-height: 297mm; box-sizing: border-box;">
 
-  <!-- PDF करे बटन -->
+  <!-- 🔤 टेक्स्ट बदलने का इनपुट -->
+  <div id="textInputSection" class="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+    <div class="flex items-center gap-2">
+      <label for="btnText" class="text-sm font-semibold">बटन का टेक्स्ट:</label>
+      <input id="btnText" type="text" placeholder="उदा: PDF सेव करें" class="border px-2 py-1 rounded text-sm" />
+    </div>
+    <button onclick="changeButtonText()" class="bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700 text-sm">
+      अपडेट करें
+    </button>
+  </div>
+
+  <!-- 📄 PDF करें बटन -->
   <div class="mb-4 flex justify-end">
     <button id="printBtn" onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
       PDF करें
     </button>
   </div>
 
+  <!-- 👇 नीचे आपका पूरा CV कंटेंट जस का तस रहेगा -->
   <h1 class="text-center font-bold text-base mb-4">CURRICULUM VITAE</h1>
 
   <h2 class="font-extrabold text-sm mb-1">Nar Singh</h2>
@@ -50,60 +62,40 @@
 
   <p class="font-semibold mb-2">Personal Profile</p>
   <div class="mb-5">
-    <div class="flex mb-0.5">
-      <p class="flex-shrink-0 w-36 font-semibold">Full Name:</p>
-      <p class="flex-grow">Nar Singh</p>
-    </div>
-    <div class="flex mb-0.5">
-      <p class="flex-shrink-0 w-36 font-semibold">Father's Name:</p>
-      <p class="flex-grow">Karan Singh</p>
-    </div>
-    <div class="flex mb-0.5">
-      <p class="flex-shrink-0 w-36 font-semibold">Mother's Name:</p>
-      <p class="flex-grow">Sugna Bai</p>
-    </div>
-    <div class="flex mb-0.5">
-      <p class="flex-shrink-0 w-36 font-semibold">Date of Birth:</p>
-      <p class="flex-grow">12 March 2005</p>
-    </div>
-    <div class="flex mb-0.5">
-      <p class="flex-shrink-0 w-36 font-semibold">Language Known:</p>
-      <p class="flex-grow">Hindi, English</p>
-    </div>
-    <div class="flex mb-0.5">
-      <p class="flex-shrink-0 w-36 font-semibold">Civil Status:</p>
-      <p class="flex-grow">Male / Unmarried / Indian</p>
-    </div>
-    <div class="flex">
-      <p class="flex-shrink-0 w-36 font-semibold">Category:</p>
-      <p class="flex-grow">OBC</p>
-    </div>
+    <!-- Profile Data -->
+    <div class="flex mb-0.5"><p class="w-36 font-semibold">Full Name:</p><p>Nar Singh</p></div>
+    <div class="flex mb-0.5"><p class="w-36 font-semibold">Father's Name:</p><p>Karan Singh</p></div>
+    <div class="flex mb-0.5"><p class="w-36 font-semibold">Mother's Name:</p><p>Sugna Bai</p></div>
+    <div class="flex mb-0.5"><p class="w-36 font-semibold">Date of Birth:</p><p>12 March 2005</p></div>
+    <div class="flex mb-0.5"><p class="w-36 font-semibold">Language Known:</p><p>Hindi, English</p></div>
+    <div class="flex mb-0.5"><p class="w-36 font-semibold">Civil Status:</p><p>Male / Unmarried / Indian</p></div>
+    <div class="flex"><p class="w-36 font-semibold">Category:</p><p>OBC</p></div>
   </div>
 
   <hr class="border-black mb-4" />
 
   <p class="mb-1.5 font-semibold">Academic Profile</p>
-  <table class="border border-black border-collapse mb-5 w-full text-xs sm:text-sm table-auto">
+  <table class="border border-black border-collapse mb-5 w-full">
     <thead>
       <tr>
-        <th class="border border-black px-1 font-semibold text-left">Course</th>
-        <th class="border border-black px-1 font-semibold text-left">Board/University</th>
-        <th class="border border-black px-1 font-semibold text-center">Year</th>
-        <th class="border border-black px-1 font-semibold text-center">Percentage</th>
+        <th class="border px-1 text-left">Course</th>
+        <th class="border px-1 text-left">Board/University</th>
+        <th class="border px-1 text-center">Year</th>
+        <th class="border px-1 text-center">Percentage</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td class="border border-black px-1">Senior Secondary (12th)</td>
-        <td class="border border-black px-1">Board of Secondary Education, Rajasthan</td>
-        <td class="border border-black px-1 text-center">2022</td>
-        <td class="border border-black px-1 text-center">74.00%</td>
+        <td class="border px-1">Senior Secondary (12th)</td>
+        <td class="border px-1">Board of Secondary Education, Rajasthan</td>
+        <td class="border px-1 text-center">2022</td>
+        <td class="border px-1 text-center">74.00%</td>
       </tr>
       <tr>
-        <td class="border border-black px-1">Secondary (10th)</td>
-        <td class="border border-black px-1">Board of Secondary Education, Rajasthan</td>
-        <td class="border border-black px-1 text-center">2020</td>
-        <td class="border border-black px-1 text-center">67.50%</td>
+        <td class="border px-1">Secondary (10th)</td>
+        <td class="border px-1">Board of Secondary Education, Rajasthan</td>
+        <td class="border px-1 text-center">2020</td>
+        <td class="border px-1 text-center">67.50%</td>
       </tr>
     </tbody>
   </table>
@@ -112,16 +104,8 @@
 
   <p class="font-semibold mb-1.5">Experience</p>
   <ul class="list-disc list-inside mb-5 space-y-1.5">
-    <li>
-      <span class="font-extrabold">31 Oct 2020 to 30 Mar 2022</span><br />
-      Spandana Spoorthy Financial Ltd.<br />
-      Credit Assistant (Sales and Collection)
-    </li>
-    <li>
-      <span class="font-extrabold">04 Oct 2022 to Present</span><br />
-      Cholamandalam Investment & Finance Pvt. Ltd., Jhalawar<br />
-      Associate Manager (Vehicle Department)
-    </li>
+    <li><strong>31 Oct 2020 to 30 Mar 2022</strong><br />Spandana Spoorthy Financial Ltd.<br />Credit Assistant</li>
+    <li><strong>04 Oct 2022 to Present</strong><br />Cholamandalam Investment & Finance Pvt. Ltd., Jhalawar<br />Associate Manager</li>
   </ul>
 
   <hr class="border-black mb-4" />
@@ -140,5 +124,15 @@
   </p>
 
   <p class="text-right font-normal">Signature<br />(Nar Singh)</p>
+
+  <!-- ✅ Script to update button text -->
+  <script>
+    function changeButtonText() {
+      const newText = document.getElementById("btnText").value.trim();
+      if (newText) {
+        document.getElementById("printBtn").innerText = newText;
+      }
+    }
+  </script>
 </body>
 </html>
