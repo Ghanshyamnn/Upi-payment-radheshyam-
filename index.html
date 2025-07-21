@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Editable CV - Nar Singh</title>
+  <title>Curriculum Vitae - Nar Singh</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @media print {
@@ -57,6 +57,58 @@
 
     <hr class="border-black mb-4" />
 
+    <p class="mb-1.5 font-semibold">Academic Profile</p>
+    <table class="border border-black border-collapse mb-5 w-full text-sm table-auto">
+      <thead>
+        <tr>
+          <th class="border border-black px-1 font-semibold text-left">Course</th>
+          <th class="border border-black px-1 font-semibold text-left">Board/University</th>
+          <th class="border border-black px-1 font-semibold text-center">Year</th>
+          <th class="border border-black px-1 font-semibold text-center">Percentage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="border border-black px-1">Senior Secondary (12th)</td>
+          <td class="border border-black px-1">Board of Secondary Education, Rajasthan</td>
+          <td class="border border-black px-1 text-center">2022</td>
+          <td class="border border-black px-1 text-center">74.00%</td>
+        </tr>
+        <tr>
+          <td class="border border-black px-1">Secondary (10th)</td>
+          <td class="border border-black px-1">Board of Secondary Education, Rajasthan</td>
+          <td class="border border-black px-1 text-center">2020</td>
+          <td class="border border-black px-1 text-center">67.50%</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr class="border-black mb-4" />
+
+    <p class="font-semibold mb-1.5">Experience</p>
+    <ul class="list-disc list-inside mb-5 space-y-1.5">
+      <li>
+        <span class="font-extrabold">31 Oct 2020 to 30 Mar 2022</span><br />
+        Spandana Spoorthy Financial Ltd.<br />
+        Credit Assistant (Sales and Collection)
+      </li>
+      <li>
+        <span class="font-extrabold">04 Oct 2022 to Present</span><br />
+        Cholamandalam Investment & Finance Pvt. Ltd., Jhalawar<br />
+        Associate Manager (Vehicle Department)
+      </li>
+    </ul>
+
+    <hr class="border-black mb-4" />
+
+    <p class="font-semibold mb-1.5">Strengths</p>
+    <ul class="list-disc list-inside mb-5 space-y-1">
+      <li>Excellent communication skills</li>
+      <li>Proactive and result-driven with a positive attitude</li>
+    </ul>
+
+    <hr class="border-black mb-4" />
+
     <p class="font-semibold mb-1.5">Declaration</p>
     <p class="mb-10 editable" data-label="Declaration">
       I hereby declare that all the above-mentioned details are correct and complete to the best of my knowledge.
@@ -67,8 +119,6 @@
 
   <!-- JavaScript Logic -->
   <script>
-    let isEditing = false;
-
     function enableEditing() {
       const elements = document.querySelectorAll('.editable');
       elements.forEach(el => {
@@ -82,7 +132,6 @@
 
       document.getElementById('editBtn').classList.add('hidden');
       document.getElementById('updateBtn').classList.remove('hidden');
-      isEditing = true;
     }
 
     function applyChanges() {
@@ -97,7 +146,6 @@
 
       document.getElementById('editBtn').classList.remove('hidden');
       document.getElementById('updateBtn').classList.add('hidden');
-      isEditing = false;
     }
   </script>
 </body>
