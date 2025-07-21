@@ -1,20 +1,14 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Curriculum Vitae - Nar Singh</title>
+  <title>Editable CV - Nar Singh</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @media print {
-      #printBtn, #textInputSection {
+      #controlButtons {
         display: none;
-      }
-      body {
-        margin: 0;
-        width: 210mm;
-        height: 297mm;
-        box-sizing: border-box;
       }
       @page {
         size: A4;
@@ -25,113 +19,73 @@
 </head>
 <body class="bg-white text-black font-serif text-xs sm:text-sm mx-auto p-8" style="width: 210mm; min-height: 297mm; box-sizing: border-box;">
 
-  <!-- 🔤 टेक्स्ट बदलने का इनपुट -->
-  <div id="textInputSection" class="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-    <div class="flex items-center gap-2">
-      <label for="btnText" class="text-sm font-semibold">बटन का टेक्स्ट:</label>
-      <input id="btnText" type="text" placeholder="उदा: PDF सेव करें" class="border px-2 py-1 rounded text-sm" />
+  <!-- Control Buttons -->
+  <div id="controlButtons" class="mb-4 flex justify-between">
+    <button onclick="toggleEdit()" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">टेस्ट</button>
+    <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">PDF करें</button>
+  </div>
+
+  <!-- Editable Content -->
+  <div id="cvContent">
+    <h1 class="text-center font-bold text-base mb-4">CURRICULUM VITAE</h1>
+
+    <h2 class="font-extrabold text-sm mb-1"><span class="editable" data-label="Full Name">Nar Singh</span></h2>
+    <p class="mb-0">Address: <span class="editable" data-label="Address">Semli Chauhan, Jhalawar, Rajasthan – 326034</span></p>
+    <p class="mb-0">Email: <span class="editable underline text-blue-700" data-label="Email">narsingh@example.com</span></p>
+    <p class="mb-4">Mobile: <span class="editable" data-label="Mobile">+91-XXXXXXXXXX</span></p>
+
+    <hr class="border-black mb-4" />
+
+    <p class="font-semibold mb-1">Objective</p>
+    <p class="mb-4 leading-tight editable" data-label="Objective">
+      To be part of an organization that encourages learning and provides a professional working environment where I can contribute my skills while gaining valuable experience.
+    </p>
+
+    <hr class="border-black mb-4" />
+
+    <p class="font-semibold mb-2">Personal Profile</p>
+    <div class="mb-5 space-y-1">
+      <p>Full Name: <span class="editable" data-label="Full Name">Nar Singh</span></p>
+      <p>Father's Name: <span class="editable" data-label="Father">Karan Singh</span></p>
+      <p>Mother's Name: <span class="editable" data-label="Mother">Sugna Bai</span></p>
+      <p>Date of Birth: <span class="editable" data-label="DOB">12 March 2005</span></p>
+      <p>Languages Known: <span class="editable" data-label="Languages">Hindi, English</span></p>
+      <p>Civil Status: <span class="editable" data-label="Status">Male / Unmarried / Indian</span></p>
+      <p>Category: <span class="editable" data-label="Category">OBC</span></p>
     </div>
-    <button onclick="changeButtonText()" class="bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700 text-sm">
-      अपडेट करें
-    </button>
+
+    <hr class="border-black mb-4" />
+
+    <p class="font-semibold mb-1.5">Declaration</p>
+    <p class="mb-10 editable" data-label="Declaration">
+      I hereby declare that all the above-mentioned details are correct and complete to the best of my knowledge.
+    </p>
+
+    <p class="text-right font-normal">Signature<br />(<span class="editable" data-label="Signature">Nar Singh</span>)</p>
   </div>
 
-  <!-- 📄 PDF करें बटन -->
-  <div class="mb-4 flex justify-end">
-    <button id="printBtn" onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-      PDF करें
-    </button>
-  </div>
-
-  <!-- 👇 नीचे आपका पूरा CV कंटेंट जस का तस रहेगा -->
-  <h1 class="text-center font-bold text-base mb-4">CURRICULUM VITAE</h1>
-
-  <h2 class="font-extrabold text-sm mb-1">Nar Singh</h2>
-  <p class="mb-0">Address: Semli Chauhan, Jhalawar, Rajasthan – 326034</p>
-  <p class="mb-0">Email: <span class="underline text-blue-700">narsingh@example.com</span></p>
-  <p class="mb-4">Mobile: +91-XXXXXXXXXX</p>
-
-  <hr class="border-black mb-4" />
-
-  <p class="font-semibold mb-1">Objective</p>
-  <p class="mb-4 leading-tight">
-    To be part of an organization that encourages learning and provides a professional working environment where I can contribute my skills while gaining valuable experience.
-  </p>
-
-  <hr class="border-black mb-4" />
-
-  <p class="font-semibold mb-2">Personal Profile</p>
-  <div class="mb-5">
-    <!-- Profile Data -->
-    <div class="flex mb-0.5"><p class="w-36 font-semibold">Full Name:</p><p>Nar Singh</p></div>
-    <div class="flex mb-0.5"><p class="w-36 font-semibold">Father's Name:</p><p>Karan Singh</p></div>
-    <div class="flex mb-0.5"><p class="w-36 font-semibold">Mother's Name:</p><p>Sugna Bai</p></div>
-    <div class="flex mb-0.5"><p class="w-36 font-semibold">Date of Birth:</p><p>12 March 2005</p></div>
-    <div class="flex mb-0.5"><p class="w-36 font-semibold">Language Known:</p><p>Hindi, English</p></div>
-    <div class="flex mb-0.5"><p class="w-36 font-semibold">Civil Status:</p><p>Male / Unmarried / Indian</p></div>
-    <div class="flex"><p class="w-36 font-semibold">Category:</p><p>OBC</p></div>
-  </div>
-
-  <hr class="border-black mb-4" />
-
-  <p class="mb-1.5 font-semibold">Academic Profile</p>
-  <table class="border border-black border-collapse mb-5 w-full">
-    <thead>
-      <tr>
-        <th class="border px-1 text-left">Course</th>
-        <th class="border px-1 text-left">Board/University</th>
-        <th class="border px-1 text-center">Year</th>
-        <th class="border px-1 text-center">Percentage</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="border px-1">Senior Secondary (12th)</td>
-        <td class="border px-1">Board of Secondary Education, Rajasthan</td>
-        <td class="border px-1 text-center">2022</td>
-        <td class="border px-1 text-center">74.00%</td>
-      </tr>
-      <tr>
-        <td class="border px-1">Secondary (10th)</td>
-        <td class="border px-1">Board of Secondary Education, Rajasthan</td>
-        <td class="border px-1 text-center">2020</td>
-        <td class="border px-1 text-center">67.50%</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <hr class="border-black mb-4" />
-
-  <p class="font-semibold mb-1.5">Experience</p>
-  <ul class="list-disc list-inside mb-5 space-y-1.5">
-    <li><strong>31 Oct 2020 to 30 Mar 2022</strong><br />Spandana Spoorthy Financial Ltd.<br />Credit Assistant</li>
-    <li><strong>04 Oct 2022 to Present</strong><br />Cholamandalam Investment & Finance Pvt. Ltd., Jhalawar<br />Associate Manager</li>
-  </ul>
-
-  <hr class="border-black mb-4" />
-
-  <p class="font-semibold mb-1.5">Strengths</p>
-  <ul class="list-disc list-inside mb-5 space-y-1">
-    <li>Excellent communication skills</li>
-    <li>Proactive and result-driven with a positive attitude</li>
-  </ul>
-
-  <hr class="border-black mb-4" />
-
-  <p class="font-semibold mb-1.5">Declaration</p>
-  <p class="mb-10">
-    I hereby declare that all the above-mentioned details are correct and complete to the best of my knowledge.
-  </p>
-
-  <p class="text-right font-normal">Signature<br />(Nar Singh)</p>
-
-  <!-- ✅ Script to update button text -->
   <script>
-    function changeButtonText() {
-      const newText = document.getElementById("btnText").value.trim();
-      if (newText) {
-        document.getElementById("printBtn").innerText = newText;
-      }
+    let isEditable = false;
+
+    function toggleEdit() {
+      const elements = document.querySelectorAll('.editable');
+      elements.forEach(el => {
+        if (!isEditable) {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = el.innerText;
+          input.className = "border px-1 py-0.5 w-full";
+          input.setAttribute('data-label', el.getAttribute('data-label'));
+          el.replaceWith(input);
+        } else {
+          const span = document.createElement('span');
+          span.className = 'editable';
+          span.setAttribute('data-label', el.getAttribute('data-label'));
+          span.innerText = el.value;
+          el.replaceWith(span);
+        }
+      });
+      isEditable = !isEditable;
     }
   </script>
 </body>
