@@ -17,15 +17,16 @@
     }
   </style>
 </head>
-<body class="bg-white text-black font-serif text-xs sm:text-sm mx-auto p-8" style="width: 210mm; min-height: 297mm; box-sizing: border-box;">
+<body class="bg-white text-black font-serif text-sm mx-auto p-8" style="width: 210mm; min-height: 297mm; box-sizing: border-box;">
 
   <!-- Control Buttons -->
-  <div id="controlButtons" class="mb-4 flex justify-between">
-    <button onclick="toggleEdit()" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">टेस्ट</button>
+  <div id="controlButtons" class="mb-4 flex gap-2 justify-between flex-wrap">
+    <button id="editBtn" onclick="enableEditing()" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">टेस्ट</button>
+    <button id="updateBtn" onclick="applyChanges()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 hidden">अपडेट करें</button>
     <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">PDF करें</button>
   </div>
 
-  <!-- Editable Content -->
+  <!-- CV Content -->
   <div id="cvContent">
     <h1 class="text-center font-bold text-base mb-4">CURRICULUM VITAE</h1>
 
@@ -64,28 +65,39 @@
     <p class="text-right font-normal">Signature<br />(<span class="editable" data-label="Signature">Nar Singh</span>)</p>
   </div>
 
+  <!-- JavaScript Logic -->
   <script>
-    let isEditable = false;
+    let isEditing = false;
 
-    function toggleEdit() {
+    function enableEditing() {
       const elements = document.querySelectorAll('.editable');
       elements.forEach(el => {
-        if (!isEditable) {
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.value = el.innerText;
-          input.className = "border px-1 py-0.5 w-full";
-          input.setAttribute('data-label', el.getAttribute('data-label'));
-          el.replaceWith(input);
-        } else {
-          const span = document.createElement('span');
-          span.className = 'editable';
-          span.setAttribute('data-label', el.getAttribute('data-label'));
-          span.innerText = el.value;
-          el.replaceWith(span);
-        }
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = el.innerText.trim();
+        input.className = "border px-1 py-0.5 w-full editable-input";
+        input.setAttribute('data-label', el.getAttribute('data-label'));
+        el.replaceWith(input);
       });
-      isEditable = !isEditable;
+
+      document.getElementById('editBtn').classList.add('hidden');
+      document.getElementById('updateBtn').classList.remove('hidden');
+      isEditing = true;
+    }
+
+    function applyChanges() {
+      const inputs = document.querySelectorAll('.editable-input');
+      inputs.forEach(input => {
+        const span = document.createElement('span');
+        span.className = 'editable';
+        span.setAttribute('data-label', input.getAttribute('data-label'));
+        span.innerText = input.value.trim();
+        input.replaceWith(span);
+      });
+
+      document.getElementById('editBtn').classList.remove('hidden');
+      document.getElementById('updateBtn').classList.add('hidden');
+      isEditing = false;
     }
   </script>
 </body>
