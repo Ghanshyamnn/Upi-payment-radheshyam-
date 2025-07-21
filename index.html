@@ -1,188 +1,144 @@
-<!DOCTYPE html><html lang="hi">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR कूपन A4 (Mobile Friendly + Single Page Download)</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Curriculum Vitae - Nar Singh</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #eee;
-      padding: 10px;
-      margin: 0;
-    }h3 {
-  text-align: center;
-  font-size: 1.2rem;
-}
-
-#status {
-  background: #fff;
-  padding: 10px;
-  margin-bottom: 20px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-.page-wrapper {
-  margin-bottom: 30px;
-  border: 1px solid #ddd;
-  padding: 5px;
-  background: #fff;
-  border-radius: 6px;
-}
-
-.page {
-  width: 100%;
-  max-width: 800px;
-  margin: auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-  gap: 5px;
-  padding: 10px;
-  box-sizing: border-box;
-}
-
-.coupon {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 5px;
-  text-align: center;
-  font-size: 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: #fafafa;
-}
-
-.coupon canvas {
-  margin-top: 4px;
-}
-
-.coupon-code {
-  word-break: break-word;
-}
-
-.download-btn {
-  background: #007bff;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  font-size: 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin: 10px auto;
-  display: block;
-  max-width: 90%;
-}
-
+    @media print {
+      #printBtn {
+        display: none;
+      }
+      body {
+        margin: 0;
+        width: 210mm;
+        height: 297mm;
+        box-sizing: border-box;
+      }
+      @page {
+        size: A4;
+        margin: 20mm;
+      }
+    }
   </style>
 </head>
-<body>  <h3>📄 Download Status</h3>
-  <div id="status">
-    <p>✅ Downloaded Pages: <span id="downloadedList">None</span></p>
-    <p>⏳ Not Downloaded Pages: <span id="notDownloadedList"></span></p>
-  </div><button onclick="downloadSinglePage(1)" class="download-btn">📥 केवल Page 1 डाउनलोड करें</button>
+<body class="bg-white text-black font-serif text-xs sm:text-sm mx-auto p-8" style="width: 210mm; min-height: 297mm; box-sizing: border-box;">
 
-  <div id="allPages"></div>  <script>
-    const totalCoupons = 250;
-    const couponsPerPage = 96;
-    const allPages = document.getElementById("allPages");
+  <!-- PDF करे बटन -->
+  <div class="mb-4 flex justify-end">
+    <button id="printBtn" onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+      PDF करें
+    </button>
+  </div>
 
-    let downloadedPages = [];
-    let totalPages = Math.ceil(totalCoupons / couponsPerPage);
-    let notDownloadedPages = Array.from({length: totalPages}, (_, i) => i + 1);
+  <h1 class="text-center font-bold text-base mb-4">CURRICULUM VITAE</h1>
 
-    function updateStatusLists() {
-      document.getElementById("downloadedList").textContent = downloadedPages.length
-        ? downloadedPages.join(", ")
-        : "None";
-      document.getElementById("notDownloadedList").textContent = notDownloadedPages.length
-        ? notDownloadedPages.join(", ")
-        : "None";
-    }
+  <h2 class="font-extrabold text-sm mb-1">Nar Singh</h2>
+  <p class="mb-0">Address: Semli Chauhan, Jhalawar, Rajasthan – 326034</p>
+  <p class="mb-0">Email: <span class="underline text-blue-700">narsingh@example.com</span></p>
+  <p class="mb-4">Mobile: +91-XXXXXXXXXX</p>
 
-    function generateCoupons() {
-      const coupons = [];
-      for (let i = 0; i < totalCoupons; i++) {
-        const code = `GRSC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-        coupons.push(code);
-      }
-      return coupons;
-    }
+  <hr class="border-black mb-4" />
 
-    function createQRCodeCanvas(code) {
-      const qr = new QRious({ value: code, size: 50 });
-      return qr.canvas;
-    }
+  <p class="font-semibold mb-1">Objective</p>
+  <p class="mb-4 leading-tight">
+    To be part of an organization that encourages learning and provides a professional working environment where I can contribute my skills while gaining valuable experience.
+  </p>
 
-    function renderPages(coupons) {
-      let pageCount = 1;
+  <hr class="border-black mb-4" />
 
-      for (let i = 0; i < coupons.length; i += couponsPerPage) {
-        const wrapper = document.createElement("div");
-        wrapper.className = "page-wrapper";
+  <p class="font-semibold mb-2">Personal Profile</p>
+  <div class="mb-5">
+    <div class="flex mb-0.5">
+      <p class="flex-shrink-0 w-36 font-semibold">Full Name:</p>
+      <p class="flex-grow">Nar Singh</p>
+    </div>
+    <div class="flex mb-0.5">
+      <p class="flex-shrink-0 w-36 font-semibold">Father's Name:</p>
+      <p class="flex-grow">Karan Singh</p>
+    </div>
+    <div class="flex mb-0.5">
+      <p class="flex-shrink-0 w-36 font-semibold">Mother's Name:</p>
+      <p class="flex-grow">Sugna Bai</p>
+    </div>
+    <div class="flex mb-0.5">
+      <p class="flex-shrink-0 w-36 font-semibold">Date of Birth:</p>
+      <p class="flex-grow">12 March 2005</p>
+    </div>
+    <div class="flex mb-0.5">
+      <p class="flex-shrink-0 w-36 font-semibold">Language Known:</p>
+      <p class="flex-grow">Hindi, English</p>
+    </div>
+    <div class="flex mb-0.5">
+      <p class="flex-shrink-0 w-36 font-semibold">Civil Status:</p>
+      <p class="flex-grow">Male / Unmarried / Indian</p>
+    </div>
+    <div class="flex">
+      <p class="flex-shrink-0 w-36 font-semibold">Category:</p>
+      <p class="flex-grow">OBC</p>
+    </div>
+  </div>
 
-        const page = document.createElement("div");
-        page.className = "page";
-        page.id = `page-${pageCount}`;
+  <hr class="border-black mb-4" />
 
-        const chunk = coupons.slice(i, i + couponsPerPage);
-        chunk.forEach(code => {
-          const div = document.createElement("div");
-          div.className = "coupon";
-          div.innerHTML = `<div class="coupon-code">${code}</div>`;
-          div.appendChild(createQRCodeCanvas(code));
-          page.appendChild(div);
-        });
+  <p class="mb-1.5 font-semibold">Academic Profile</p>
+  <table class="border border-black border-collapse mb-5 w-full text-xs sm:text-sm table-auto">
+    <thead>
+      <tr>
+        <th class="border border-black px-1 font-semibold text-left">Course</th>
+        <th class="border border-black px-1 font-semibold text-left">Board/University</th>
+        <th class="border border-black px-1 font-semibold text-center">Year</th>
+        <th class="border border-black px-1 font-semibold text-center">Percentage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="border border-black px-1">Senior Secondary (12th)</td>
+        <td class="border border-black px-1">Board of Secondary Education, Rajasthan</td>
+        <td class="border border-black px-1 text-center">2022</td>
+        <td class="border border-black px-1 text-center">74.00%</td>
+      </tr>
+      <tr>
+        <td class="border border-black px-1">Secondary (10th)</td>
+        <td class="border border-black px-1">Board of Secondary Education, Rajasthan</td>
+        <td class="border border-black px-1 text-center">2020</td>
+        <td class="border border-black px-1 text-center">67.50%</td>
+      </tr>
+    </tbody>
+  </table>
 
-        const button = document.createElement("button");
-        button.className = "download-btn";
-        button.innerText = `⬇️ Download Page ${pageCount}`;
-        button.onclick = () => {
-          const confirmDownload = confirm(`क्या आप Page ${pageCount} डाउनलोड करना चाहते हैं?`);
-          if (confirmDownload) {
-            downloadPageAsPDF(page, pageCount);
-            if (!downloadedPages.includes(pageCount)) {
-              downloadedPages.push(pageCount);
-              notDownloadedPages = notDownloadedPages.filter(n => n !== pageCount);
-              updateStatusLists();
-            }
-          }
-        };
+  <hr class="border-black mb-4" />
 
-        wrapper.appendChild(page);
-        wrapper.appendChild(button);
-        allPages.appendChild(wrapper);
+  <p class="font-semibold mb-1.5">Experience</p>
+  <ul class="list-disc list-inside mb-5 space-y-1.5">
+    <li>
+      <span class="font-extrabold">31 Oct 2020 to 30 Mar 2022</span><br />
+      Spandana Spoorthy Financial Ltd.<br />
+      Credit Assistant (Sales and Collection)
+    </li>
+    <li>
+      <span class="font-extrabold">04 Oct 2022 to Present</span><br />
+      Cholamandalam Investment & Finance Pvt. Ltd., Jhalawar<br />
+      Associate Manager (Vehicle Department)
+    </li>
+  </ul>
 
-        pageCount++;
-      }
-    }
+  <hr class="border-black mb-4" />
 
-    function downloadPageAsPDF(pageElement, pageNumber) {
-      const opt = {
-        margin: 0,
-        filename: `page-${pageNumber}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(pageElement).save();
-    }
+  <p class="font-semibold mb-1.5">Strengths</p>
+  <ul class="list-disc list-inside mb-5 space-y-1">
+    <li>Excellent communication skills</li>
+    <li>Proactive and result-driven with a positive attitude</li>
+  </ul>
 
-    function downloadSinglePage(pageNum) {
-      const pageElement = document.getElementById(`page-${pageNum}`);
-      if (!pageElement) {
-        alert("पेज नहीं मिला!");
-        return;
-      }
-      downloadPageAsPDF(pageElement, pageNum);
-    }
+  <hr class="border-black mb-4" />
 
-    const coupons = generateCoupons();
-    renderPages(coupons);
-    updateStatusLists();
-  </script></body>
+  <p class="font-semibold mb-1.5">Declaration</p>
+  <p class="mb-10">
+    I hereby declare that all the above-mentioned details are correct and complete to the best of my knowledge.
+  </p>
+
+  <p class="text-right font-normal">Signature<br />(Nar Singh)</p>
+</body>
 </html>
