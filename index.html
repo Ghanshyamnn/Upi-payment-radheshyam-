@@ -3,158 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ग्राम डेटा</title>
+    <title>QR कोड स्कैनर</title>
     <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-family: Arial, sans-serif;
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+        #reader {
+            width: 500px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
         }
-        th {
-            background-color: #f2f2f2;
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            word-break: break-all;
         }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
+        @media (max-width: 600px) {
+            #reader {
+                width: 90%;
+            }
         }
     </style>
 </head>
 <body>
-    <h2>ग्राम डेटा - हरनावड़ा गजा</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Village</th>
-                <th>Aadhaar Number</th>
-                <th>Name</th>
-                <th>Gender</th>
-                <th>Father's/Husband's Name</th>
-                <th>Birth Year/Date</th>
-                <th>Address</th>
-                <th>Phone Number</th>
-                <th>Tehsil</th>
-                <th>Gram Panchayat</th>
-                <th>Hamlet</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td>11908</td><td>harnawada gaja</td><td>4846040178</td><td>Vishnu Kumar Rathor</td><td>M</td><td>Satyanarayan</td><td>2001</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7339818741</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11909</td><td>harnawada gaja</td><td>4860171279</td><td>Chena Bai</td><td>F</td><td>Pura Lal</td><td>1941</td><td>79, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>-</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11910</td><td>harnawada gaja</td><td>4804838489</td><td>Balu Lal</td><td>M</td><td>Rama Ji</td><td>1999</td><td>68, SEMALI CHOUHAN, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8003460322</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11911</td><td>harnawada gaja</td><td>5055348607</td><td>Kamlesh Kumar</td><td>M</td><td>Narayanlal</td><td>2011</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7728929310</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11912</td><td>harnawada gaja</td><td>5141813270</td><td>KRISHNA BAI</td><td>F</td><td>GANGA RAM</td><td>2008</td><td>63, PARELO KI GUVADI, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9571488396</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>11913</td><td>harnawada gaja</td><td>5027550688</td><td>Prem Singh</td><td>M</td><td>Bhagvan Singh</td><td>1981</td><td>Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9672249246</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11914</td><td>harnawada gaja</td><td>5002770568</td><td>Anand Bai</td><td>F</td><td>Madansingh</td><td>01-JAN-88</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>-</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11915</td><td>harnawada gaja</td><td>5002770568</td><td>Nahar Singh</td><td>M</td><td>Parathi Singh</td><td>01-JAN-92</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>-</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11916</td><td>harnawada gaja</td><td>4824677422</td><td>Sona Bai</td><td>F</td><td>Guman Singh</td><td>2014</td><td>30, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7878852595</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>11917</td><td>harnawada gaja</td><td>5000644113</td><td>Ajyotya Bai</td><td>F</td><td>Ramlal</td><td>1994</td><td>127, Meghwal basti, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9680951048</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11918</td><td>harnawada gaja</td><td>4866026283</td><td>Maya Bai</td><td>F</td><td>Chandar Lal</td><td>1995</td><td>117, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9001056596</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11919</td><td>harnawada gaja</td><td>4778771406</td><td>Kalu</td><td>M</td><td>Kanha</td><td>1965</td><td>104, Semali Chauhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9929644172</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11920</td><td>harnawada gaja</td><td>4741864286</td><td>BAHADUR SINGH</td><td>M</td><td>RATAN SINGH</td><td>1993</td><td>SEMLI CHOUHAN, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9001888004</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11921</td><td>harnawada gaja</td><td>5037756135</td><td>Balu Singh</td><td>M</td><td>Parvat Singh</td><td>01-JAN-93</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8949046292</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11922</td><td>harnawada gaja</td><td>5037756135</td><td>Seema Bai</td><td>F</td><td>Guman Singh</td><td>01-JAN-96</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8949046292</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11923</td><td>harnawada gaja</td><td>5037756135</td><td>Dilip Singh</td><td>M</td><td>Balu Singh</td><td>01-JAN-14</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8949046292</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11924</td><td>harnawada gaja</td><td>4870508570</td><td>Radha Bai</td><td>F</td><td>Prabhu Lal</td><td>2007</td><td>112, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7339903473</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>11925</td><td>harnawada gaja</td><td>4870508570</td><td>Bhagvan Lal</td><td>M</td><td>Prabhu Lal</td><td>1995</td><td>112, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7339903473</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11926</td><td>harnawada gaja</td><td>4851066234</td><td>Mangi Lal</td><td>M</td><td>Bhagvan Singh</td><td>1958</td><td>53, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7878190014</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11927</td><td>harnawada gaja</td><td>5081512468</td><td>Suman Bai</td><td>F</td><td>Gokal</td><td>1951</td><td>00, Semli Chohan, Semli Chohan, Semli Chohan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8690794783</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11928</td><td>harnawada gaja</td><td>4846562471</td><td>Bhagat Bai</td><td>F</td><td>Dhula Ji</td><td>1943</td><td>Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9636947207</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11929</td><td>harnawada gaja</td><td>4741864326</td><td>Gayatri Bai</td><td>F</td><td>Nanu Ram</td><td>2005</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7073930928</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11930</td><td>harnawada gaja</td><td>4834623072</td><td>Mahesh Rathor</td><td>M</td><td>Bhagvan Lal</td><td>2011</td><td>153, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8955251094</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11931</td><td>harnawada gaja</td><td>4834623072</td><td>Rakesh Rathod</td><td>F</td><td>Bhagvan Lal</td><td>1992</td><td>153, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7339931971</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11932</td><td>harnawada gaja</td><td>4834623072</td><td>Seema</td><td>F</td><td>Ram Singh</td><td>1991</td><td>153, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8955251094</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11933</td><td>harnawada gaja</td><td>5025383716</td><td>Ramkanya Bai</td><td>F</td><td>Naran</td><td>01-JAN-68</td><td>10, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>-</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11934</td><td>harnawada gaja</td><td>5025383716</td><td>Anil Meghwal</td><td>M</td><td>Dula Lal</td><td>09-AUG-11</td><td>10, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>-</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11935</td><td>harnawada gaja</td><td>5025383716</td><td>PRAKASH LAL</td><td>M</td><td>Dula Lal</td><td>20-AUG-09</td><td>10, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>-</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>11936</td><td>harnawada gaja</td><td>5025383716</td><td>Sapana Kumari</td><td>F</td><td>Dula Lal</td><td>01-SEP-04</td><td>10, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>-</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11937</td><td>harnawada gaja</td><td>5025383716</td><td>Dula Lal</td><td>M</td><td>Mangi Lal</td><td>01-JAN-66</td><td>10, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>-</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>11938</td><td>harnawada gaja</td><td>4834623119</td><td>Nirmla</td><td>F</td><td>Radheshyam</td><td>2001</td><td>110, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8000872434</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11939</td><td>harnawada gaja</td><td>5025378501</td><td>Arun Singh</td><td>M</td><td>Sujan Singh</td><td>2014</td><td>148, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8107345569</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11940</td><td>harnawada gaja</td><td>4822206650</td><td>Kailash Bai</td><td>F</td><td>Ramlal</td><td>1992</td><td>00, 110, Sitamata Ka Chouk Semli Chauha, Semli Chauha, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9166545832</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11941</td><td>harnawada gaja</td><td>5020687439</td><td>Pooja Kumari</td><td>F</td><td>Parvat Lal</td><td>2002</td><td>semali chauhan, Kumhar Mohalla, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9660408938</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11942</td><td>harnawada gaja</td><td>5020687439</td><td>Durga Kumari</td><td>F</td><td>Parvat Lal</td><td>1996</td><td>semali chauhan, Kumhar Mohalla, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8302243095</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11943</td><td>harnawada gaja</td><td>5020687439</td><td>Kala Bai</td><td>F</td><td>Gangaram Jee</td><td>1980</td><td>semali chauhan, Kumhar Mohalla, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8302243095</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11944</td><td>harnawada gaja</td><td>4764382009</td><td>Prahlad Lal</td><td>M</td><td>Pura</td><td>01-JAN-89</td><td>00, 139, Meghwal basti, Saimali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9024051760</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>11945</td><td>harnawada gaja</td><td>5067122114</td><td>Mamata Bai</td><td>F</td><td>Pratap Singh</td><td>2007</td><td>87, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9929483906</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11946</td><td>harnawada gaja</td><td>5011020634</td><td>Lilabai</td><td>F</td><td>Bapu Lal</td><td>01-JAN-94</td><td>सेमली चौहान, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7357667890</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11947</td><td>harnawada gaja</td><td>5011020634</td><td>Suraj Singh</td><td>M</td><td>Prem Singh</td><td>20-FEB-16</td><td>सेमली चौहान, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>6265794058</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11948</td><td>harnawada gaja</td><td>4723487476</td><td>Pura</td><td>M</td><td>Hira Ji</td><td>1959</td><td>158, Pura, Meghwal basti, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>6376689906</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11949</td><td>harnawada gaja</td><td>5037003326</td><td>Ishwar Lal</td><td>M</td><td>Ram Lal</td><td>1987</td><td>semli chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9024914565</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11950</td><td>harnawada gaja</td><td>5072314555</td><td>Dasrath Singh</td><td>M</td><td>Man Singh</td><td>2006</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8619064175</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11951</td><td>harnawada gaja</td><td>4858726853</td><td>Puja</td><td>F</td><td>Ishwar Singh</td><td>2010</td><td>142, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8890232558</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11952</td><td>harnawada gaja</td><td>4858726853</td><td>Karankor Bai</td><td>F</td><td>Andar Singh</td><td>1989</td><td>142, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8890232558</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11953</td><td>harnawada gaja</td><td>4858726853</td><td>Ravina</td><td>F</td><td>Ishwar Singh</td><td>2015</td><td>142, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8890232558</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11954</td><td>harnawada gaja</td><td>4858726853</td><td>Bhavna Kuvar</td><td>F</td><td>Ishwar Singh</td><td>2007</td><td>142, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8890232558</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11955</td><td>harnawada gaja</td><td>5055352580</td><td>Ramkaran</td><td>M</td><td>Kailash</td><td>1996</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9950035396</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11956</td><td>harnawada gaja</td><td>5055352580</td><td>Nisha Parmar</td><td>F</td><td>Dinesh Kumar</td><td>2017</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9950035396</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11957</td><td>harnawada gaja</td><td>5055352580</td><td>Seema Malviy</td><td>F</td><td>Mohan Lal</td><td>1998</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9950035396</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11958</td><td>harnawada gaja</td><td>5055352580</td><td>Pirya Parmar</td><td>F</td><td>Dinesh Kumar</td><td>2015</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9950035396</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11959</td><td>harnawada gaja</td><td>5055352580</td><td>Dinesh Kumar</td><td>M</td><td>Ramlal</td><td>1991</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9950035396</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11960</td><td>harnawada gaja</td><td>4870842064</td><td>Govina Lal</td><td>M</td><td>Viram Lal</td><td>2006</td><td>144, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9680929774</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11961</td><td>harnawada gaja</td><td>4741868270</td><td>Manju Bai</td><td>F</td><td>Nahar Singh</td><td>2005</td><td>Nahar Singh, Mandir chowk, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8302140034</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>11962</td><td>harnawada gaja</td><td>5025385381</td><td>Puja Bai</td><td>F</td><td>Bhanvar Lal</td><td>2000</td><td>semali chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>6367468714</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11963</td><td>harnawada gaja</td><td>4824644434</td><td>Santosh Bai</td><td>F</td><td>Ram Narayan</td><td>1995</td><td>85, SEMALI CHOUHAN, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>6377597009</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11964</td><td>harnawada gaja</td><td>4824644434</td><td>Kamla Bai</td><td>F</td><td>Kani Ram</td><td>1969</td><td>85, SEMALI CHOUHAN, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>6377597009</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11965</td><td>harnawada gaja</td><td>4741864326</td><td>Sangita</td><td>F</td><td>Nanu Ram</td><td>2008</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7073930928</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11966</td><td>harnawada gaja</td><td>5051475372</td><td>Payal</td><td>F</td><td>Kailash Chand</td><td>2016</td><td>151, SEMALI CHOUHAN, Meghwal Basti, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9145839419</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11967</td><td>harnawada gaja</td><td>4725670721</td><td>Ranjeet Singh</td><td>M</td><td>Bhagwan Singh</td><td>2009</td><td>425, Bhagwan Singh, Sati Mata Ka Chouk, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8769488949</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11968</td><td>harnawada gaja</td><td>4725670721</td><td>Komal Kumari</td><td>F</td><td>Roshan Singh</td><td>2018</td><td>425, Bhagwan Singh, Sati Mata Ka Chouk, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8769488949</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11969</td><td>harnawada gaja</td><td>4851065636</td><td>Krishnapal</td><td>M</td><td>Sardar Singh</td><td>2010</td><td>27, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8696495510</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11970</td><td>harnawada gaja</td><td>4824677388</td><td>Urmila Bai</td><td>F</td><td>Umarav Singh</td><td>2001</td><td>102, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9950908066</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>11971</td><td>harnawada gaja</td><td>4844434049</td><td>Mana Bai</td><td>F</td><td>Gopal Lal</td><td>2000</td><td>147, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8302895138</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>11972</td><td>harnawada gaja</td><td>4851066275</td><td>Meharban Singh</td><td>M</td><td>Bhavani Singh</td><td>1992</td><td>130, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9929539459</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11973</td><td>harnawada gaja</td><td>4824644475</td><td>Kailash Bai</td><td>F</td><td>Kalu Singh</td><td>1985</td><td>140, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7742366930</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11974</td><td>harnawada gaja</td><td>4824644475</td><td>Hemraj</td><td>M</td><td>Kalu Singh</td><td>2008</td><td>140, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7742366930</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11975</td><td>harnawada gaja</td><td>4868702636</td><td>Bhavar Bai</td><td>F</td><td>Har Lal</td><td>1930</td><td>Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9680832326</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>11976</td><td>harnawada gaja</td><td>5055353055</td><td>Shraddha</td><td>F</td><td>Tej Singh</td><td>05-JUN-10</td><td>148, Meghwal Basti, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7742538415</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11977</td><td>harnawada gaja</td><td>4818643386</td><td>Kushal Bai</td><td>F</td><td>Ram Lal</td><td>2006</td><td>163, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8302006699</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11978</td><td>harnawada gaja</td><td>4818643386</td><td>Shyamu Bai</td><td>F</td><td>Ram Lal</td><td>2003</td><td>163, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8302006699</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>11979</td><td>harnawada gaja</td><td>4818643386</td><td>Jitendar</td><td>M</td><td>Jyoti Bai</td><td>2015</td><td>163, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8302006699</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>11980</td><td>harnawada gaja</td><td>4821637064</td><td>VISHNU BAI</td><td>F</td><td>CHANDAR LAL</td><td>1992</td><td>122, MEGHWAL BASTI, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>6376235692</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11981</td><td>harnawada gaja</td><td>4770207871</td><td>Jai Kunwar</td><td>F</td><td>Gokul Singh</td><td>2000</td><td>45, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8302163886</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11982</td><td>harnawada gaja</td><td>5068084843</td><td>Ukar Lal</td><td>M</td><td>Mehtab Singh</td><td>1953</td><td>Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>6377514272</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11983</td><td>harnawada gaja</td><td>5025377675</td><td>Gokul Lal</td><td>M</td><td>Chandar</td><td>1984</td><td>155, semali chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7878619782</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11984</td><td>harnawada gaja</td><td>4764382009</td><td>Dev Karan</td><td>F</td><td>Prahlad Lal</td><td>05-JUL-04</td><td>00, 139, Meghwal basti, Saimali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9024051760</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11985</td><td>harnawada gaja</td><td>4764382009</td><td>Deepika</td><td>F</td><td>Prahlad Lal</td><td>18-OCT-21</td><td>00, 139, Meghwal basti, Saimali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9024051760</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11986</td><td>harnawada gaja</td><td>4764382009</td><td>Shimla Bai</td><td>F</td><td>Prahlad Lal</td><td>12-SEP-19</td><td>00, 139, Meghwal basti, Saimali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>-</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11987</td><td>harnawada gaja</td><td>4764382009</td><td>Shivkanya</td><td>F</td><td>Prahalad Lal</td><td>12-JUN-12</td><td>00, 139, Meghwal basti, Saimali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9024051760</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11988</td><td>harnawada gaja</td><td>4764382009</td><td>Urmila</td><td>F</td><td>Prahalad Lal</td><td>18-NOV-13</td><td>00, 139, Meghwal basti, Saimali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9024051760</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11989</td><td>harnawada gaja</td><td>4764382009</td><td>Raja Bai</td><td>F</td><td>Rama</td><td>01-JAN-88</td><td>00, 139, Meghwal basti, Saimali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9024051760</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11990</td><td>harnawada gaja</td><td>4846562519</td><td>Gita Bai</td><td>F</td><td>Amar Singh</td><td>1939</td><td>124, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7878918534</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11991</td><td>harnawada gaja</td><td>5000644113</td><td>Manisha</td><td>F</td><td>Mohan Lal</td><td>1994</td><td>127, Meghwal basti, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9680951048</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11992</td><td>harnawada gaja</td><td>5055355405</td><td>Sarekunver Bai</td><td>F</td><td>Parbat Singh</td><td>1981</td><td>48, semali chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7425952195</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>11993</td><td>harnawada gaja</td><td>4831726474</td><td>Bhavna</td><td>F</td><td>Om Prakash</td><td>2013</td><td>128, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>-</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>11994</td><td>harnawada gaja</td><td>5055356508</td><td>Suraj Singh</td><td>M</td><td>Pur Singh</td><td>2014</td><td>Pur Singh Cemli Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9024913227</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11995</td><td>harnawada gaja</td><td>5055356508</td><td>Buli Bai</td><td>F</td><td>Pur Singh</td><td>2011</td><td>Pur Singh Cemli Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9024913227</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11996</td><td>harnawada gaja</td><td>5068084889</td><td>Bhagwan Singh</td><td>M</td><td>Bhuvani Singh</td><td>1965</td><td>SEMLI CHOUHAN, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9929537079</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11997</td><td>harnawada gaja</td><td>4851331329</td><td>Gudi Bai</td><td>F</td><td>Kalu Singh</td><td>04-FEB-86</td><td>100, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7073936381</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11998</td><td>harnawada gaja</td><td>5067128068</td><td>Jasu Bai</td><td>F</td><td>Bapu Lal</td><td>1989</td><td>73, semali chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8619819570</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>11999</td><td>harnawada gaja</td><td>5062031159</td><td>Sohan Bai</td><td>F</td><td>Bheru Singh</td><td>1974</td><td>14, SUTHARO KI BASTI, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8290288921</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>12000</td><td>harnawada gaja</td><td>5072764154</td><td>Gendi Bai</td><td>F</td><td>Bhuvani Singh</td><td>1930</td><td>Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>6377500849</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>12001</td><td>harnawada gaja</td><td>5022186643</td><td>Ranjit</td><td>M</td><td>Parvat Lal</td><td>01-JAN-15</td><td>meghwal mohalla, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9784507183</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>12002</td><td>harnawada gaja</td><td>5022186643</td><td>Babli Bai</td><td>F</td><td>Rama</td><td>01-JAN-88</td><td>meghwal mohalla, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9784507183</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>12003</td><td>harnawada gaja</td><td>5022186643</td><td>Parvat Lal</td><td>M</td><td>Pyara</td><td>01-JAN-83</td><td>meghwal mohalla, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9784507183</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>12004</td><td>harnawada gaja</td><td>5022186643</td><td>Vishal</td><td>M</td><td>Parvat Lal</td><td>01-JAN-12</td><td>meghwal mohalla, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9784507183</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>migration</td></tr>
-            <tr><td>12005</td><td>harnawada gaja</td><td>5025384526</td><td>Shankar Lal</td><td>M</td><td>Nagga Lal</td><td>1973</td><td>semali chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9829515687</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>PENDING</td></tr>
-            <tr><td>12006</td><td>harnawada gaja</td><td>4772286838</td><td>Kamu Bai</td><td>F</td><td>Kanhiram</td><td>01-JAN-88</td><td>56, Semli Chauhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9358705167</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>12007</td><td>harnawada gaja</td><td>4772286838</td><td>Arvind</td><td>M</td><td>Biram Lal</td><td>18-MAR-19</td><td>56, Semli Chauhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9358705167</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>12008</td><td>harnawada gaja</td><td>4772286838</td><td>Biram Lal</td><td>M</td><td>Prabhu Lal</td><td>01-JAN-85</td><td>56, Semli Chauhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>9358705167</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>done</td></tr>
-            <tr><td>12009</td><td>harnawada gaja</td><td>4737625044</td><td>Sona</td><td>F</td><td>Pura Lal</td><td>2000</td><td>128, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7878698496</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>marrige</td></tr>
-            <tr><td>12010</td><td>harnawada gaja</td><td>4824677451</td><td>Panbai</td><td>F</td><td>Amar Lal</td><td>1950</td><td>133, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>-</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>12011</td><td>harnawada gaja</td><td>4833163449</td><td>Rughanath</td><td>M</td><td>Hira Ji</td><td>1961</td><td>158, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8302689247</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>12012</td><td>harnawada gaja</td><td>4833163449</td><td>Vikram</td><td>M</td><td>Rughanath</td><td>2002</td><td>158, Semali Chouhan, Semali Chouhan, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>8302689247</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-            <tr><td>12013</td><td>harnawada gaja</td><td>4724318672</td><td>Ayodhya Bai</td><td>F</td><td>Kishan Lal</td><td>1978</td><td>158, Mohan Lal, Meghwal Basti, Semli Chauhan, Harnawada Gaja, PIRAWA, Jhalawar</td><td>7742485487</td><td>PIRAWA (SUNEL)</td><td>Harnawada Gaja</td><td>Semli Chauhan</td><td>DEATH</td></tr>
-        </tbody>
-    </table>
+
+    <h1>QR कोड स्कैनर</h1>
+    <div id="reader"></div>
+    <div id="result">स्कैन किया गया परिणाम यहाँ दिखाई देगा</div>
+
+    <!-- html5-qrcode लाइब्रेरी को शामिल करें -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <script>
+        // यह फ़ंक्शन तब कॉल होता है जब QR कोड सफलतापूर्वक स्कैन हो जाता है
+        function onScanSuccess(decodedText, decodedResult) {
+            // स्कैन किए गए टेक्स्ट को कंसोल में लॉग करें
+            console.log(`स्कैन किया गया कोड = ${decodedText}`, decodedResult);
+
+            // स्कैन किए गए टेक्स्ट को 'result' नामक div में दिखाएं
+            document.getElementById('result').innerHTML = `स्कैन किया गया परिणाम: <a href="${decodedText}" target="_blank">${decodedText}</a>`;
+            
+            // वैकल्पिक: एक बार स्कैन होने के बाद स्कैनर को रोकें
+            // html5QrcodeScanner.clear(); 
+        }
+
+        // यह फ़ंक्शन तब कॉल होता है जब स्कैन विफल हो जाता है
+        function onScanFailure(error) {
+            // त्रुटि को कंसोल में दिखाएं, लेकिन उपयोगकर्ता को परेशान न करें
+            // console.warn(`कोड स्कैन में त्रुटि = ${error}`);
+        }
+
+        // Html5QrcodeScanner ऑब्जेक्ट को इनिशियलाइज़ करें
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", // उस div का ID जहाँ स्कैनर दिखना चाहिए
+            { 
+                fps: 10, // फ्रेम्स प्रति सेकंड
+                qrbox: { width: 250, height: 250 } // स्कैनिंग बॉक्स का आकार
+            },
+            /* verbose= */ false // वर्बोस आउटपुट को बंद करें
+        );
+
+        // स्कैनर को रेंडर (प्रारंभ) करें
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    </script>
+
 </body>
-</html>
+</html>```
+
+### यह कैसे काम करता है:
+
+1.  **HTML संरचना**:
+    *   `<!DOCTYPE html>`: यह बताता है कि यह एक HTML5 डॉक्यूमेंट है।
+    *   `<head>`: इसमें पेज का शीर्षक (`<title>`) और स्टाइलिंग (`<style>`) की जानकारी होती है।
+    *   `<body>`: इसमें पेज पर दिखने वाले सभी तत्व होते हैं।
+        *   `<h1>`: यह पेज का मुख्य शीर्षक है।
+        *   `<div id="reader"></div>`: यह वह जगह है जहाँ कैमरा व्यू और QR कोड स्कैनर दिखाई देगा।
+[[4](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQHHT4KD34t4_N11jxpEf_Zs3W0mr_Fgrk32v1IfJ4l_JTkmLrlOspIwOAqScBlkhDB23KAtS4ucu8uFRNayeK6ceF5pporjOsSqcxL997QAezdfj4nSdNUb0qxujgFEElk6poMTijPXcELGqw%3D%3D)]        *   `<div id="result"></div>`: स्कैन करने के बाद परिणाम इस डिव में दिखाया जाएगा।
+
+2.  **CSS स्टाइलिंग**:
+    *   `<style>` टैग के अंदर का कोड पेज को एक अच्छा और साफ़-सुथरा लुक देता है। यह स्कैनर और परिणाम को पेज के केंद्र में रखता है।
+
+3.  **JavaScript कार्यक्षमता**:
+    *   `<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>`: यह लाइन `html5-qrcode` लाइब्रेरी को इंटरनेट से सीधे आपके पेज में लोड करती है। [[2](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQFgwPafGkhxoAB_wCAKxJbhP4GXR21QmO7BVECWoJAC6MSBh5Gp_ZXDlOgT90WGAueWUHovrcANtSkj4GwjoyFy4gBXh4BuZCEDj7jp_y5kin4TaEkkKqfJApdEb48MegpMPUXLZLt-VY2kuEzKOwvjWFe4ZOGOMXW2wTJp3XqHGoxjf7sUWKKNF7O3XNzAFPxgjx5qOQbbbKpks8r5N9RTBD-rGrJs_XJQFvGrELdG)]यह लाइब्रेरी QR कोड को पढ़ने का सारा जटिल काम करती है।
+    *   `onScanSuccess`: यह फ़ंक्शन तब चलता है जब स्कैनर सफलतापूर्वक एक QR कोड पढ़ लेता है। यह पढ़े गए टेक्स्ट को `result` वाले `div` में दिखाता है।
+[[4](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQHHT4KD34t4_N11jxpEf_Zs3W0mr_Fgrk32v1IfJ4l_JTkmLrlOspIwOAqScBlkhDB23KAtS4ucu8uFRNayeK6ceF5pporjOsSqcxL997QAezdfj4nSdNUb0qxujgFEElk6poMTijPXcELGqw%3D%3D)]    *   `onScanFailure`: अगर स्कैन करते समय कोई त्रुटि होती है, तो यह फ़ंक्शन चलता है। वर्तमान में यह कुछ नहीं करता है ताकि उपयोगकर्ता को बार-बार त्रुटि संदेश न दिखें।
+    *   `Html5QrcodeScanner`: यह `html5-qrcode` लाइब्रेरी से एक नया स्कैनर ऑब्जेक्ट बनाता है। हम इसे बताते हैं कि स्कैनर को कहाँ दिखाना है (`"reader"`) और कुछ सेटिंग्स, जैसे कि स्कैनिंग बॉक्स का आकार (`qrbox`)।
+[[5](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQEE6aPbN0S-6TerZr4PXTIYENfPVtXQLTsx9N-8mSkdziO_wFMxLYN7ezvIKeBp3g8OPrPxevuKNNrd4dxlq_HNgajs1CYmuCc3fijseHMtqIjWb0qlu7zxR_D4bTi39GYrkO-nLy8DLxbExjINRUXEMcL4q2d79mCtPXulzFHKGtIBT7BYkkOuYiAICLZlU7D6jQwkMDkIKcgOr_I5vw%3D%3D)]    *   `html5QrcodeScanner.render(...)`: यह अंतिम कमांड है जो स्कैनर को शुरू करता है और कैमरे तक पहुंच का अनुरोध करता है।
+[[5](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQEE6aPbN0S-6TerZr4PXTIYENfPVtXQLTsx9N-8mSkdziO_wFMxLYN7ezvIKeBp3g8OPrPxevuKNNrd4dxlq_HNgajs1CYmuCc3fijseHMtqIjWb0qlu7zxR_D4bTi39GYrkO-nLy8DLxbExjINRUXEMcL4q2d79mCtPXulzFHKGtIBT7BYkkOuYiAICLZlU7D6jQwkMDkIKcgOr_I5vw%3D%3D)]
+### कैसे उपयोग करें:
+
+1.  ऊपर दिए गए पूरे कोड को एक टेक्स्ट एडिटर (जैसे नोटपैड) में कॉपी करें।
+2.  फ़ाइल को `qrscanner.html` नाम से अपने कंप्यूटर पर सेव करें।
+3.  इस HTML फ़ाइल को अपने वेब ब्राउज़र (जैसे क्रोम, फ़ायरफ़ॉक्स) में खोलें।
+4.  ब्राउज़र आपसे कैमरे का उपयोग करने की अनुमति मांगेगा। **अनुमति दें (Allow)** पर क्लिक करें।
+5.  अब आप अपने डिवाइस के कैमरे के सामने कोई भी QR कोड ला सकते हैं, और स्कैनर उसे पढ़कर परिणाम नीचे दिखा देगा।
