@@ -3,26 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR कोड स्कैनर</title>
+    <title>QR कोड स्कैनर पॉप-अप के साथ</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jsQR library for QR code decoding -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
-        /* Custom styles for the video and scanner box */
-        #video-container {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-            overflow: hidden;
-            border-radius: 0.75rem; /* rounded-xl */
-        }
-        #video {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
+        /* Custom styles for the scanner box animation */
         #scan-box {
             position: absolute;
             top: 50%;
@@ -32,7 +19,7 @@
             transform: translate(-50%, -50%);
             border: 3px solid rgba(255, 255, 255, 0.8);
             border-radius: 0.75rem;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
             animation: scan-animation 2s infinite;
         }
         @keyframes scan-animation {
@@ -47,14 +34,7 @@
     <div class="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 text-center">
         
         <h1 class="text-3xl md:text-4xl font-bold mb-2 text-gray-800 dark:text-white">QR कोड स्कैनर</h1>
-        <p class="text-gray-600 dark:text-gray-300 mb-6">कैमरे को QR कोड पर रखें या स्कैन करने के लिए एक छवि अपलोड करें।</p>
-
-        <!-- Video container for camera stream -->
-        <div id="video-container" class="mb-4 bg-gray-200 dark:bg-gray-700 hidden">
-            <video id="video" playsinline></video>
-            <div id="scan-box"></div>
-        </div>
-        <canvas id="canvas" class="hidden"></canvas>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">कैमरे से स्कैन करें या स्कैन करने के लिए एक छवि अपलोड करें।</p>
 
         <!-- Controls -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
@@ -67,10 +47,6 @@
                 छवि अपलोड करें
                 <input id="file-input" type="file" accept="image/*" class="hidden">
             </label>
-            <button id="switch-camera" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg hidden items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 20L20 4" /></svg>
-                 कैमरा बदलें
-            </button>
         </div>
         
         <!-- Result Display -->
@@ -96,24 +72,52 @@
         <!-- Error Message -->
         <div id="error-message" class="w-full mt-4 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded-lg hidden"></div>
     </div>
+
+    <!-- Scanner Modal (Popup) -->
+    <div id="scanner-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 text-center relative w-full max-w-xl">
+            <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">QR कोड स्कैन करें</h2>
+            
+            <div id="video-container" class="relative mb-4 bg-gray-200 dark:bg-gray-700 rounded-xl overflow-hidden">
+                <video id="video" class="w-full h-auto block" playsinline></video>
+                <div id="scan-box"></div>
+            </div>
+            
+            <button id="switch-camera" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 20L20 4" /></svg>
+                कैमरा बदलें
+            </button>
+        </div>
+    </div>
+
+    <canvas id="canvas" class="hidden"></canvas>
     <audio id="scan-sound" src="https://cdn.jsdelivr.net/gh/Simple-MAX/QR-Code-Generator-and-Scanner@master/assets/audio/beep.mp3" preload="auto"></audio>
 
     <script>
         // DOM elements
-        const videoContainer = document.getElementById('video-container');
-        const video = document.getElementById('video');
-        const canvasElement = document.getElementById('canvas');
-        const canvas = canvasElement.getContext('2d');
         const startScanBtn = document.getElementById('start-scan');
         const fileInput = document.getElementById('file-input');
         const resultContainer = document.getElementById('result-container');
         const resultElement = document.getElementById('result');
         const copyBtn = document.getElementById('copy-result');
         const errorMessageElement = document.getElementById('error-message');
-        const switchCameraBtn = document.getElementById('switch-camera');
         const scanSound = document.getElementById('scan-sound');
-
-        // History elements
+        
+        // Modal elements
+        const scannerModal = document.getElementById('scanner-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const videoContainer = document.getElementById('video-container');
+        const video = document.getElementById('video');
+        const switchCameraBtn = document.getElementById('switch-camera');
+        
+        // Canvas and History elements
+        const canvasElement = document.getElementById('canvas');
+        const canvas = canvasElement.getContext('2d');
         const historyList = document.getElementById('history-list');
         const noHistoryMsg = document.getElementById('no-history');
         const clearHistoryBtn = document.getElementById('clear-history');
@@ -159,7 +163,7 @@
         }
         
         function displayResult(data) {
-            stopScanner(false);
+            closeScannerModal(); // Close modal after scanning
             scanSound.play();
             try {
                 new URL(data);
@@ -171,35 +175,32 @@
             updateHistory(data);
         }
 
-        function stopScanner(fullStop = true) {
+        function closeScannerModal() {
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
                 animationFrameId = null;
             }
-            if (fullStop && stream) {
+            if (stream) {
                 stream.getTracks().forEach(track => track.stop());
                 stream = null;
-                videoContainer.classList.add('hidden');
-                switchCameraBtn.classList.add('hidden');
-                startScanBtn.innerHTML = startScanBtn.innerHTML.replace('स्कैन बंद करें', 'स्कैन शुरू करें');
             }
+            scannerModal.classList.add('hidden');
         }
         
         async function startCamera() {
             try {
-                if (stream) stopScanner();
+                if (stream) { // Stop any existing stream
+                    stream.getTracks().forEach(track => track.stop());
+                }
                 
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
                 video.srcObject = stream;
                 video.style.transform = (currentFacingMode === 'user') ? 'scaleX(-1)' : 'scaleX(1)';
                 await video.play();
-                videoContainer.classList.remove('hidden');
-                startScanBtn.innerHTML = startScanBtn.innerHTML.replace('स्कैन शुरू करें', 'स्कैन बंद करें');
-                switchCameraBtn.classList.remove('hidden');
                 animationFrameId = requestAnimationFrame(tick);
             } catch (err) {
                 displayError("कैमरा एक्सेस नहीं हो सका। कृपया अनुमति दें।");
-                stopScanner();
+                closeScannerModal();
             }
         }
 
@@ -218,12 +219,16 @@
             if (stream) animationFrameId = requestAnimationFrame(tick);
         }
 
+        // --- Event Listeners ---
+        
         startScanBtn.addEventListener('click', () => {
             resultContainer.classList.add('hidden');
             errorMessageElement.classList.add('hidden');
-            if (stream) stopScanner();
-            else startCamera();
+            scannerModal.classList.remove('hidden');
+            startCamera();
         });
+
+        closeModalBtn.addEventListener('click', closeScannerModal);
 
         switchCameraBtn.addEventListener('click', () => {
             currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
@@ -233,7 +238,7 @@
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (!file) return;
-            stopScanner();
+            closeScannerModal(); // Close modal if it was open
             const reader = new FileReader();
             reader.onload = e => {
                 const img = new Image();
