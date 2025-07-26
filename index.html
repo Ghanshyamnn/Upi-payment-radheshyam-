@@ -2,280 +2,324 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Customer Reward App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>एडवांस्ड QR कोड स्कैनर</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsQR library for QR code decoding -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
-        /* बेसिक रीसेट और पेज की स्टाइलिंग */
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #e9ecef;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-        }
-
-        /* ऐप के लिए मुख्य कंटेनर */
-        .app-container {
+        /* Custom styles for the video and scanner box */
+        #video-container {
+            position: relative;
             width: 100%;
-            max-width: 450px;
-            background-color: #ffffff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* 1. हेडर सेक्शन */
-        .app-header {
-            background-color: #a7f3d0;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #1f2937;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .app-name { font-size: 1.5em; font-weight: bold; }
-        .balance { background-color: #ffffff; padding: 8px 15px; border-radius: 20px; font-size: 1.1em; font-weight: 600; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
-
-        /* 2. मुख्य कंटेंट एरिया */
-        .main-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
-        .coupon-section { position: relative; margin-bottom: 20px; }
-        .coupon-input { width: 100%; padding: 15px 50px 15px 20px; font-size: 1em; border: 1px solid #d1d5db; border-radius: 30px; box-sizing: border-box; }
-        .coupon-input::placeholder { color: #9ca3af; }
-        .scanner-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; cursor: pointer; color: #ef4444; }
-        
-        /* रिडीम लिस्ट कंटेनर और आइटम स्टाइल */
-        .list-header { text-align: center; font-size: 1.2em; font-weight: 500; color: #4b5563; padding: 10px; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; margin-top: 10px;}
-        .redeem-list { flex-grow: 1; overflow-y: auto; padding-top: 10px; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; background-color: #f9fafb; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .list-item-coupon { font-size: 0.9em; color: #374151; }
-        .list-item-value { font-size: 1.1em; font-weight: 600; color: #16a34a; }
-
-        /* QR स्कैनर पॉप-अप (Modal) के लिए CSS */
-        #scanner-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.8);
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        #scanner-modal.active {
-            display: flex;
-        }
-        #reader {
-            width: 90%;
-            max-width: 450px;
-            background: black;
-            border-radius: 8px;
+            max-width: 500px;
+            margin: 0 auto;
             overflow: hidden;
-            border: 2px solid white;
+            border-radius: 0.75rem; /* rounded-xl */
         }
-        #close-scanner {
+        #video {
+            width: 100%;
+            height: auto;
+            display: block;
+            transform: scaleX(-1); /* Mirror the video for front camera */
+        }
+        #scan-box {
             position: absolute;
-            top: 20px; right: 20px;
-            color: white; background: #ef4444; border: none;
-            width: 40px; height: 40px; border-radius: 50%;
-            font-size: 1.5em; font-weight: bold; cursor: pointer;
-            line-height: 40px; text-align: center;
+            top: 50%;
+            left: 50%;
+            width: 70%;
+            height: 50%;
+            transform: translate(-50%, -50%);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            border-radius: 0.75rem;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            animation: scan-animation 2s infinite;
         }
-        #scanner-status-text { color: white; margin-top: 15px; font-weight: 500; }
-
-        /* अलर्ट संदेशों के लिए */
-        .app-alert-container { position: sticky; top: 80px; z-index: 200; padding: 0 20px; }
-        .app-alert { padding: 15px; color: white; text-align: center; font-weight: 500; border-radius: 8px; opacity: 0; transform: translateY(-20px); transition: opacity 0.3s ease, transform 0.3s ease; }
-        .app-alert.show { opacity: 1; transform: translateY(0); }
-        .app-alert.success { background-color: #22c55e; }
-        .app-alert.error { background-color: #ef4444; }
+        @keyframes scan-animation {
+            0% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(76, 175, 80, 1); }
+            100% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.5); }
+        }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col items-center justify-center min-h-screen p-4 font-sans">
 
-    <div class="app-container">
-        <header class="app-header">
-            <div class="app-name">Reward App</div>
-            <div class="balance" id="balance-display">₹ 0</div>
-        </header>
-        <div class="app-alert-container" id="alert-box"></div>
-        <main class="main-content">
-            <div class="coupon-section">
-                <input class="coupon-input" id="coupon-input" type="text" placeholder="कूपन कोड डालें या स्कैन करें">
-                <div class="scanner-icon" id="scanner-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.5a.75.75 0 00-1.5 0v1.5h1.5V4.5zM3.75 9V7.5h-1.5V9h1.5zM3.75 13.5v-1.5h-1.5v1.5h1.5zM3.75 18v-1.5h-1.5V18h1.5zM8.25 4.5h-1.5v1.5h1.5V4.5zM8.25 9V7.5h-1.5V9h1.5zM8.25 13.5v-1.5h-1.5v1.5h1.5zM8.25 18v-1.5h-1.5V18h1.5zM12.75 4.5h-1.5v1.5h1.5V4.5zM12.75 9V7.5h-1.5V9h1.5zM12.75 13.5v-1.5h-1.5v1.5h1.5zM12.75 18v-1.5h-1.5V18h1.5zM17.25 4.5h-1.5v1.5h1.5V4.5zM17.25 9V7.5h-1.5V9h1.5zM17.25 13.5v-1.5h-1.5v1.5h1.5zM17.25 18v-1.5h-1.5V18h1.5zM21.75 4.5a.75.75 0 00-1.5 0v1.5h1.5V4.5zM21.75 9V7.5h-1.5V9h1.5zM21.75 13.5v-1.5h-1.5v1.5h1.5zM21.75 18v-1.5h-1.5V18h1.5z" /></svg>
-                </div>
-            </div>
-            <div class="list-header">रिडीम लिस्ट</div>
-            <div class="redeem-list" id="redeem-list"></div>
-        </main>
+    <div class="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 text-center">
+        
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-gray-800 dark:text-white">एडवांस्ड QR कोड स्कैनर</h1>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">कैमरे को QR कोड पर रखें या स्कैन करने के लिए एक छवि अपलोड करें।</p>
+
+        <!-- Video container for camera stream -->
+        <div id="video-container" class="mb-4 bg-gray-200 dark:bg-gray-700 hidden">
+            <video id="video" playsinline></video>
+            <div id="scan-box"></div>
+        </div>
+        <canvas id="canvas" class="hidden"></canvas>
+
+        <!-- Controls -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+            <button id="start-scan" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                स्कैन शुरू करें
+            </button>
+            <label for="file-input" class="w-full sm:w-auto cursor-pointer bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                छवि अपलोड करें
+                <input id="file-input" type="file" accept="image/*" class="hidden">
+            </label>
+            <button id="switch-camera" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block -mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 20L20 4" /></svg>
+                 कैमरा बदलें
+            </button>
+        </div>
+        
+        <!-- Result Display -->
+        <div id="result-container" class="w-full mt-4 p-5 bg-gray-100 dark:bg-gray-700 rounded-lg text-left hidden">
+            <h2 class="text-xl font-bold mb-3 text-gray-800 dark:text-white">स्कैन का परिणाम:</h2>
+            <div id="result" class="text-lg text-blue-500 break-all bg-white dark:bg-gray-600 p-4 rounded-md shadow-inner"></div>
+            <button id="copy-result" class="mt-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                परिणाम कॉपी करें
+            </button>
+        </div>
+
+        <!-- Scan History -->
+        <div id="history-container" class="w-full mt-6 text-left">
+            <h2 class="text-xl font-bold mb-3 text-gray-800 dark:text-white">स्कैन हिस्ट्री</h2>
+            <ul id="history-list" class="list-disc list-inside bg-gray-100 dark:bg-gray-700 p-4 rounded-lg max-h-40 overflow-y-auto">
+                <li id="no-history" class="text-gray-500 dark:text-gray-400">अभी तक कोई हिस्ट्री नहीं है।</li>
+            </ul>
+            <button id="clear-history" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors hidden">
+                हिस्ट्री साफ़ करें
+            </button>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="w-full mt-4 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded-lg hidden"></div>
     </div>
-
-    <div id="scanner-modal">
-        <button id="close-scanner">×</button>
-        <div id="reader"></div>
-        <div id="scanner-status-text">QR कोड को कैमरे के सामने लाएं</div>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <audio id="scan-sound" src="https://cdn.jsdelivr.net/gh/Simple-MAX/QR-Code-Generator-and-Scanner@master/assets/audio/beep.mp3" preload="auto"></audio>
 
     <script>
-    // 1. === कॉन्फ़िगरेशन ===
-    const firebaseConfig = {
-      apiKey: "AIzaSyBObxnvyUCZF1-qEy_kpw0YiQ8894igieA", // अपना apiKey यहाँ पेस्ट करें
-      authDomain: "reward-card-aec2e.firebaseapp.com",
-      databaseURL: "https://reward-card-aec2e-default-rtdb.firebaseio.com",
-      projectId: "reward-card-aec2e",
-      storageBucket: "reward-card-aec2e.appspot.com",
-      messagingSenderId: "638220236646",
-      appId: "1:638220236646:web:e0031855e948c26372d6f7"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    
-    // 2. === वेरिएबल्स और UI एलिमेंट्स ===
-    const COUPON_VALUE = 10;
-    const UI = {
-        balance: document.getElementById('balance-display'),
-        redeemList: document.getElementById('redeem-list'),
-        couponInput: document.getElementById('coupon-input'),
-        scannerButton: document.getElementById('scanner-button'),
-        scannerModal: document.getElementById('scanner-modal'),
-        closeScanner: document.getElementById('close-scanner'),
-        alertBox: document.getElementById('alert-box'),
-        scannerStatusText: document.getElementById('scanner-status-text'),
-    };
-    let currentUserId = null;
-    let html5Qrcode = null;
+        // DOM elements
+        const videoContainer = document.getElementById('video-container');
+        const video = document.getElementById('video');
+        const canvasElement = document.getElementById('canvas');
+        const canvas = canvasElement.getContext('2d');
+        const startScanBtn = document.getElementById('start-scan');
+        const fileInput = document.getElementById('file-input');
+        const resultContainer = document.getElementById('result-container');
+        const resultElement = document.getElementById('result');
+        const copyBtn = document.getElementById('copy-result');
+        const errorMessageElement = document.getElementById('error-message');
+        const switchCameraBtn = document.getElementById('switch-camera');
+        const scanSound = document.getElementById('scan-sound');
 
-    // 3. === उपयोगकर्ता और डेटा हैंडलिंग फ़ंक्शंस ===
-    function handleUser() {
-        currentUserId = localStorage.getItem('rewardAppUserId');
-        if (!currentUserId) {
-            currentUserId = database.ref().child('users').push().key;
-            localStorage.setItem('rewardAppUserId', currentUserId);
+        // History elements
+        const historyContainer = document.getElementById('history-container');
+        const historyList = document.getElementById('history-list');
+        const noHistoryMsg = document.getElementById('no-history');
+        const clearHistoryBtn = document.getElementById('clear-history');
+
+        let stream;
+        let animationFrameId;
+        let currentFacingMode = 'environment'; // 'environment' for rear, 'user' for front
+        let scanHistory = JSON.parse(localStorage.getItem('scanHistory')) || [];
+
+        // Function to display errors
+        function displayError(message) {
+            errorMessageElement.textContent = `त्रुटि: ${message}`;
+            errorMessageElement.classList.remove('hidden');
         }
-        loadUserData();
-    }
-    
-    function loadUserData() {
-        if (!currentUserId) return;
-        const userRef = database.ref(`users/${currentUserId}`);
-        userRef.child('balance').on('value', s => UI.balance.textContent = `₹ ${s.val()||0}`);
-        userRef.child('redeemedCoupons').on('value', snapshot => {
-            UI.redeemList.innerHTML = '';
-            if (!snapshot.exists()) {
-                UI.redeemList.innerHTML = '<p style="text-align:center;color:#6b7280;">कोई कूपन रिडीम नहीं हुआ है।</p>';
-                return;
+
+        // Function to update and display history
+        function updateHistory(data) {
+            if (!scanHistory.includes(data)) {
+                scanHistory.unshift(data); // Add new item to the beginning
+                if (scanHistory.length > 20) { // Keep history to a reasonable size
+                    scanHistory.pop();
+                }
+                localStorage.setItem('scanHistory', JSON.stringify(scanHistory));
             }
-            snapshot.forEach(child => {
-                const coupon = child.val();
-                const itemHTML = `<div class="list-item"><span class="list-item-coupon">${child.key}</span><span class="list-item-value">+ ₹${coupon.value}</span></div>`;
-                UI.redeemList.insertAdjacentHTML('afterbegin', itemHTML);
+            renderHistory();
+        }
+
+        function renderHistory() {
+            historyList.innerHTML = ''; // Clear current list
+            if (scanHistory.length === 0) {
+                historyList.appendChild(noHistoryMsg);
+                clearHistoryBtn.classList.add('hidden');
+            } else {
+                scanHistory.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = "mb-2 text-sm text-gray-700 dark:text-gray-300 break-all";
+                    
+                    try {
+                        new URL(item);
+                        li.innerHTML = `<a href="${item}" target="_blank" rel="noopener noreferrer" class="hover:underline text-blue-500">${item}</a>`;
+                    } catch (_) {
+                        li.textContent = item;
+                    }
+                    historyList.appendChild(li);
+                });
+                clearHistoryBtn.classList.remove('hidden');
+            }
+        }
+        
+        // Function to display the result
+        function displayResult(data) {
+            stopScanner(false); // Stop scanning but keep video on for a moment
+            scanSound.play();
+            
+            try {
+                new URL(data);
+                resultElement.innerHTML = `<a href="${data}" target="_blank" rel="noopener noreferrer" class="hover:underline">${data}</a>`;
+            } catch (_) {
+                resultElement.textContent = data;
+            }
+            resultContainer.classList.remove('hidden');
+            updateHistory(data);
+        }
+
+        // Function to stop the camera and scanner
+        function stopScanner(fullStop = true) {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            if (fullStop && stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                videoContainer.classList.add('hidden');
+                switchCameraBtn.classList.add('hidden');
+                startScanBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg> कैमरा स्कैन शुरू करें';
+            }
+        }
+        
+        async function startCamera() {
+            try {
+                if (stream) { // Stop existing stream before starting a new one
+                    stopScanner();
+                }
+                
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+                video.style.transform = (currentFacingMode === 'user') ? 'scaleX(-1)' : 'scaleX(1)';
+                video.play();
+                videoContainer.classList.remove('hidden');
+                startScanBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg> स्कैन बंद करें';
+                switchCameraBtn.classList.remove('hidden');
+                animationFrameId = requestAnimationFrame(tick);
+            } catch (err) {
+                displayError("कैमरा एक्सेस नहीं हो सका। कृपया अनुमति दें या दूसरा कैमरा चुनें।");
+                console.error("getUserMedia error: ", err);
+                stopScanner();
+            }
+        }
+
+        // Main scanning loop
+        function tick() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                
+                // Mirror canvas if using front camera
+                if (currentFacingMode === 'user') {
+                    canvas.translate(canvasElement.width, 0);
+                    canvas.scale(-1, 1);
+                } else {
+                    canvas.setTransform(1, 0, 0, 1, 0, 0);
+                }
+
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                if (code && code.data) {
+                    displayResult(code.data);
+                    return; // Stop scanning once a code is found
+                }
+            }
+            if (stream) {
+              animationFrameId = requestAnimationFrame(tick);
+            }
+        }
+
+        // Event listener for the start scan button
+        startScanBtn.addEventListener('click', () => {
+            resultContainer.classList.add('hidden');
+            errorMessageElement.classList.add('hidden');
+
+            if (stream) {
+                stopScanner();
+            } else {
+                startCamera();
+            }
+        });
+
+        // Switch camera event
+        switchCameraBtn.addEventListener('click', () => {
+            currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+            resultContainer.classList.add('hidden');
+            errorMessageElement.classList.add('hidden');
+            startCamera();
+        });
+
+        // Event listener for file input
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            stopScanner();
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    canvasElement.width = img.width;
+                    canvasElement.height = img.height;
+                    canvas.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+                    canvas.drawImage(img, 0, 0, img.width, img.height);
+                    const imageData = canvas.getImageData(0, 0, img.width, img.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    
+                    if (code) {
+                        scanSound.play();
+                        displayResult(code.data);
+                    } else {
+                        displayError("इस छवि में कोई QR कोड नहीं मिला।");
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Event listener for copy button
+        copyBtn.addEventListener('click', () => {
+            const textToCopy = resultElement.textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                copyBtn.textContent = 'कॉपी हो गया!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'परिणाम कॉपी करें';
+                }, 2000);
+            }).catch(err => {
+                console.error('Copy failed', err);
+                displayError('कॉपी करने में विफल।');
             });
         });
-    }
-
-    function showAlert(message, isSuccess = true) {
-        UI.alertBox.innerHTML = `<div class="app-alert ${isSuccess ? 'success' : 'error'}">${message}</div>`;
-        const alertDiv = UI.alertBox.querySelector('.app-alert');
-        setTimeout(() => alertDiv.classList.add('show'), 10);
-        setTimeout(() => {
-            alertDiv.classList.remove('show');
-            alertDiv.addEventListener('transitionend', () => UI.alertBox.innerHTML = '');
-        }, 4000);
-    }
-
-    async function redeemCoupon(rawCode) {
-        if (!rawCode || rawCode.trim() === "") return;
-        const couponId = rawCode.trim().toUpperCase();
-        const couponRef = database.ref(`coupons/${couponId}`);
-
-        couponRef.transaction(coupon => {
-            if (!coupon) { showAlert("यह कूपन कोड अमान्य है।", false); return; }
-            if (coupon.used) { showAlert(`कूपन ${couponId} पहले ही इस्तेमाल हो चुका है।`, false); return; }
-            
-            const isActivated = coupon.status === 'active' || (Date.now() - (coupon.activationTime || 0)) > 24*60*60*1000;
-            if (!isActivated) { showAlert(`कूपन ${couponId} अभी सक्रिय नहीं है।`, false); return; }
-            
-            coupon.used = true;
-            coupon.status = 'used';
-            coupon.redeemedBy = currentUserId;
-            coupon.redeemedAt = firebase.database.ServerValue.TIMESTAMP;
-            return coupon;
-        }, (error, committed) => {
-            if (error) { showAlert("कुछ गलत हो गया, कृपया पुनः प्रयास करें।", false); } 
-            else if (committed) {
-                const userRef = database.ref(`users/${currentUserId}`);
-                userRef.child('balance').transaction(balance => (balance || 0) + COUPON_VALUE);
-                userRef.child(`redeemedCoupons/${couponId}`).set({ value: COUPON_VALUE, redeemedAt: firebase.database.ServerValue.TIMESTAMP });
-                showAlert(`बधाई! कूपन ${couponId} सफलतापूर्वक रिडीम हो गया।`);
-                UI.couponInput.value = '';
-            }
+        
+        // Clear history event
+        clearHistoryBtn.addEventListener('click', () => {
+            scanHistory = [];
+            localStorage.removeItem('scanHistory');
+            renderHistory();
         });
-    }
 
-    // 4. === पॉप-अप और स्कैनर लॉजिक ===
-    function startScanner() {
-        if (!html5Qrcode) html5Qrcode = new Html5Qrcode("reader");
-        UI.scannerModal.classList.add('active');
-        UI.scannerStatusText.textContent = "कैमरा शुरू हो रहा है...";
+        // Initial render of history
+        renderHistory();
 
-        html5Qrcode.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            onScanSuccess,
-            (errorMessage) => {}
-        ).then(() => {
-            UI.scannerStatusText.textContent = "QR कोड को कैमरे के सामने लाएं";
-        }).catch(err => {
-            UI.scannerStatusText.textContent = "त्रुटि: कैमरा शुरू नहीं हो सका।";
-            showAlert("कैमरा एक्सेस नहीं हो सका। कृपया अनुमति दें।", false);
-            setTimeout(stopScanner, 1500);
-        });
-    }
-
-    function stopScanner() {
-        if (html5Qrcode && html5Qrcode.isScanning) {
-            html5Qrcode.stop().catch(err => console.error("Scanner Stop Error:", err));
-        }
-        UI.scannerModal.classList.remove('active');
-    }
-
-    async function onScanSuccess(decodedText) {
-        stopScanner();
-        showAlert("QR कोड मिला, प्रोसेस हो रहा है...");
-        let codeToRedeem = decodedText;
-        try {
-            const url = new URL(decodedText);
-            const qrId = url.searchParams.get('qr');
-            if(qrId) {
-                const qrSnap = await database.ref(`qrCards/${qrId}`).once('value');
-                if (qrSnap.exists() && qrSnap.val().coupon) codeToRedeem = qrSnap.val().coupon;
-                else { showAlert("इस QR से जुड़ा कोई कूपन नहीं मिला।", false); return; }
-            }
-        } catch(e) {} // URL नहीं है, तो सीधे कोड का उपयोग करें
-        await redeemCoupon(codeToRedeem);
-    }
-    
-    // 5. === ऐप की शुरुआत और इवेंट्स ===
-    window.onload = function() {
-        handleUser();
-        UI.scannerButton.addEventListener('click', startScanner);
-        UI.closeScanner.addEventListener('click', stopScanner);
-        UI.couponInput.addEventListener('keypress', e => {
-            if (e.key === 'Enter') redeemCoupon(UI.couponInput.value);
-        });
-    };
     </script>
 </body>
 </html>
