@@ -19,12 +19,13 @@
         /* ऐप के लिए मुख्य कंटेनर */
         .app-container {
             width: 100%;
-            max-width: 450px; /* मोबाइल स्क्रीन जैसा आकार */
+            max-width: 450px;
             background-color: #ffffff;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         /* 1. हेडर सेक्शन */
@@ -35,6 +36,9 @@
             justify-content: space-between;
             align-items: center;
             color: #1f2937;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
         .app-name { font-size: 1.5em; font-weight: bold; }
         .balance { background-color: #ffffff; padding: 8px 15px; border-radius: 20px; font-size: 1.1em; font-weight: 600; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
@@ -45,70 +49,64 @@
         .coupon-input { width: 100%; padding: 15px 50px 15px 20px; font-size: 1em; border: 1px solid #d1d5db; border-radius: 30px; box-sizing: border-box; }
         .coupon-input::placeholder { color: #9ca3af; }
         .scanner-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; cursor: pointer; color: #ef4444; }
-        .list-header { text-align: center; font-size: 1.2em; font-weight: 500; color: #4b5563; padding: 10px; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
         
         /* रिडीम लिस्ट कंटेनर और आइटम स्टाइल */
+        .list-header { text-align: center; font-size: 1.2em; font-weight: 500; color: #4b5563; padding: 10px; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; margin-top: 10px;}
         .redeem-list { flex-grow: 1; overflow-y: auto; padding-top: 10px; }
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; background-color: #f9fafb; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .list-item-coupon { font-size: 0.9em; color: #374151; }
         .list-item-value { font-size: 1.1em; font-weight: 600; color: #16a34a; }
 
-        /* === QR स्कैनर पॉप-अप (Modal) के लिए CSS === */
+        /* QR स्कैनर पॉप-अप (Modal) के लिए CSS */
         #scanner-modal {
-            display: none; /* डिफ़ॉल्ट रूप से छिपा हुआ */
+            display: none;
             position: fixed;
             z-index: 1000;
             left: 0; top: 0;
             width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.8); /* गहरा बैकग्राउंड */
+            background-color: rgba(0,0,0,0.8);
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
         #scanner-modal.active {
-            display: flex; /* इसे दिखाने के लिए फ्लेक्स करें */
+            display: flex;
         }
         #reader {
             width: 90%;
-            max-width: 500px;
-            background: white;
+            max-width: 450px;
+            background: black;
             border-radius: 8px;
-            overflow: hidden; /* कोनों को गोल रखने के लिए */
+            overflow: hidden;
+            border: 2px solid white;
         }
         #close-scanner {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            color: white;
-            background: #ef4444;
-            border: none;
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            font-size: 1.5em;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 40px; /* X को बीच में लाने के लिए */
-            text-align: center;
+            top: 20px; right: 20px;
+            color: white; background: #ef4444; border: none;
+            width: 40px; height: 40px; border-radius: 50%;
+            font-size: 1.5em; font-weight: bold; cursor: pointer;
+            line-height: 40px; text-align: center;
         }
-        #scanner-status-text {
-            color: white;
-            margin-top: 15px;
-            font-weight: 500;
-        }
+        #scanner-status-text { color: white; margin-top: 15px; font-weight: 500; }
 
         /* अलर्ट संदेशों के लिए */
-        .app-alert { padding: 15px; margin: -20px -20px 20px -20px; color: white; text-align: center; font-weight: 500; display: none; }
-        .app-alert.success { background-color: #22c55e; display: block; }
-        .app-alert.error { background-color: #ef4444; display: block; }
+        .app-alert-container { position: sticky; top: 80px; z-index: 200; padding: 0 20px; }
+        .app-alert { padding: 15px; color: white; text-align: center; font-weight: 500; border-radius: 8px; opacity: 0; transform: translateY(-20px); transition: opacity 0.3s ease, transform 0.3s ease; }
+        .app-alert.show { opacity: 1; transform: translateY(0); }
+        .app-alert.success { background-color: #22c55e; }
+        .app-alert.error { background-color: #ef4444; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- ... हेडर और मुख्य कंटेंट (कोई बदलाव नहीं) ... -->
-        <header class="app-header"><div class="app-name">Reward App</div><div class="balance" id="balance-display">₹ 0</div></header>
+        <header class="app-header">
+            <div class="app-name">Reward App</div>
+            <div class="balance" id="balance-display">₹ 0</div>
+        </header>
+        <div class="app-alert-container" id="alert-box"></div>
         <main class="main-content">
-            <div id="alert-box"></div>
             <div class="coupon-section">
                 <input class="coupon-input" id="coupon-input" type="text" placeholder="कूपन कोड डालें या स्कैन करें">
                 <div class="scanner-icon" id="scanner-button">
@@ -120,124 +118,164 @@
         </main>
     </div>
 
-    <!-- === QR स्कैनर पॉप-अप (Modal) HTML === -->
     <div id="scanner-modal">
         <button id="close-scanner">×</button>
         <div id="reader"></div>
         <div id="scanner-status-text">QR कोड को कैमरे के सामने लाएं</div>
     </div>
 
-    <!-- बाहरी स्क्रिप्ट्स -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
     <script>
-    // --- कॉन्फ़िगरेशन ---
-    const firebaseConfig = { /* ... आपका फायरबेस कॉन्फ़िगरेशन यहाँ ... */ };
+    // 1. === कॉन्फ़िगरेशन ===
+    const firebaseConfig = {
+      apiKey: "AIzaSyBObxnvyUCZF1-qEy_kpw0YiQ8894igieA", // अपना apiKey यहाँ पेस्ट करें
+      authDomain: "reward-card-aec2e.firebaseapp.com",
+      databaseURL: "https://reward-card-aec2e-default-rtdb.firebaseio.com",
+      projectId: "reward-card-aec2e",
+      storageBucket: "reward-card-aec2e.appspot.com",
+      messagingSenderId: "638220236646",
+      appId: "1:638220236646:web:e0031855e948c26372d6f7"
+    };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    const COUPON_VALUE = 10;
     
-    // --- UI एलिमेंट्स ---
-    const balanceDisplay = document.getElementById('balance-display');
-    const redeemList = document.getElementById('redeem-list');
-    const couponInput = document.getElementById('coupon-input');
-    const scannerButton = document.getElementById('scanner-button');
-    const scannerModal = document.getElementById('scanner-modal');
-    const closeScannerButton = document.getElementById('close-scanner');
-    const alertBox = document.getElementById('alert-box');
-    const scannerStatusText = document.getElementById('scanner-status-text');
-
+    // 2. === वेरिएबल्स और UI एलिमेंट्स ===
+    const COUPON_VALUE = 10;
+    const UI = {
+        balance: document.getElementById('balance-display'),
+        redeemList: document.getElementById('redeem-list'),
+        couponInput: document.getElementById('coupon-input'),
+        scannerButton: document.getElementById('scanner-button'),
+        scannerModal: document.getElementById('scanner-modal'),
+        closeScanner: document.getElementById('close-scanner'),
+        alertBox: document.getElementById('alert-box'),
+        scannerStatusText: document.getElementById('scanner-status-text'),
+    };
     let currentUserId = null;
     let html5Qrcode = null;
 
-    // === उपयोगकर्ता और डेटा हैंडलिंग फ़ंक्शंस (कोई बदलाव नहीं) ===
-    function handleUser() { /* ... पिछला कोड ... */ }
-    function loadUserData() { /* ... पिछला कोड ... */ }
-    function showAlert(message, isSuccess = true) { /* ... पिछला कोड ... */ }
-    async function redeemCoupon(rawCode) { /* ... पिछला कोड ... */ }
-
-    // === पॉप-अप और स्कैनर लॉजिक ===
-
-    function startScanner() {
-        if (!html5Qrcode) {
-            html5Qrcode = new Html5Qrcode("reader");
+    // 3. === उपयोगकर्ता और डेटा हैंडलिंग फ़ंक्शंस ===
+    function handleUser() {
+        currentUserId = localStorage.getItem('rewardAppUserId');
+        if (!currentUserId) {
+            currentUserId = database.ref().child('users').push().key;
+            localStorage.setItem('rewardAppUserId', currentUserId);
         }
-        scannerModal.classList.add('active');
-        scannerStatusText.textContent = "कैमरा शुरू हो रहा है...";
+        loadUserData();
+    }
+    
+    function loadUserData() {
+        if (!currentUserId) return;
+        const userRef = database.ref(`users/${currentUserId}`);
+        userRef.child('balance').on('value', s => UI.balance.textContent = `₹ ${s.val()||0}`);
+        userRef.child('redeemedCoupons').on('value', snapshot => {
+            UI.redeemList.innerHTML = '';
+            if (!snapshot.exists()) {
+                UI.redeemList.innerHTML = '<p style="text-align:center;color:#6b7280;">कोई कूपन रिडीम नहीं हुआ है।</p>';
+                return;
+            }
+            snapshot.forEach(child => {
+                const coupon = child.val();
+                const itemHTML = `<div class="list-item"><span class="list-item-coupon">${child.key}</span><span class="list-item-value">+ ₹${coupon.value}</span></div>`;
+                UI.redeemList.insertAdjacentHTML('afterbegin', itemHTML);
+            });
+        });
+    }
+
+    function showAlert(message, isSuccess = true) {
+        UI.alertBox.innerHTML = `<div class="app-alert ${isSuccess ? 'success' : 'error'}">${message}</div>`;
+        const alertDiv = UI.alertBox.querySelector('.app-alert');
+        setTimeout(() => alertDiv.classList.add('show'), 10);
+        setTimeout(() => {
+            alertDiv.classList.remove('show');
+            alertDiv.addEventListener('transitionend', () => UI.alertBox.innerHTML = '');
+        }, 4000);
+    }
+
+    async function redeemCoupon(rawCode) {
+        if (!rawCode || rawCode.trim() === "") return;
+        const couponId = rawCode.trim().toUpperCase();
+        const couponRef = database.ref(`coupons/${couponId}`);
+
+        couponRef.transaction(coupon => {
+            if (!coupon) { showAlert("यह कूपन कोड अमान्य है।", false); return; }
+            if (coupon.used) { showAlert(`कूपन ${couponId} पहले ही इस्तेमाल हो चुका है।`, false); return; }
+            
+            const isActivated = coupon.status === 'active' || (Date.now() - (coupon.activationTime || 0)) > 24*60*60*1000;
+            if (!isActivated) { showAlert(`कूपन ${couponId} अभी सक्रिय नहीं है।`, false); return; }
+            
+            coupon.used = true;
+            coupon.status = 'used';
+            coupon.redeemedBy = currentUserId;
+            coupon.redeemedAt = firebase.database.ServerValue.TIMESTAMP;
+            return coupon;
+        }, (error, committed) => {
+            if (error) { showAlert("कुछ गलत हो गया, कृपया पुनः प्रयास करें।", false); } 
+            else if (committed) {
+                const userRef = database.ref(`users/${currentUserId}`);
+                userRef.child('balance').transaction(balance => (balance || 0) + COUPON_VALUE);
+                userRef.child(`redeemedCoupons/${couponId}`).set({ value: COUPON_VALUE, redeemedAt: firebase.database.ServerValue.TIMESTAMP });
+                showAlert(`बधाई! कूपन ${couponId} सफलतापूर्वक रिडीम हो गया।`);
+                UI.couponInput.value = '';
+            }
+        });
+    }
+
+    // 4. === पॉप-अप और स्कैनर लॉजिक ===
+    function startScanner() {
+        if (!html5Qrcode) html5Qrcode = new Html5Qrcode("reader");
+        UI.scannerModal.classList.add('active');
+        UI.scannerStatusText.textContent = "कैमरा शुरू हो रहा है...";
 
         html5Qrcode.start(
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 250 } },
-            onScanSuccess, // स्कैन सफल होने पर कॉल किया जाएगा
-            (errorMessage) => { /* त्रुटियों को अनदेखा करें */ }
+            onScanSuccess,
+            (errorMessage) => {}
         ).then(() => {
-             scannerStatusText.textContent = "QR कोड को कैमरे के सामने लाएं";
-        }).catch((err) => {
-            scannerStatusText.textContent = "त्रुटि: कैमरा शुरू नहीं हो सका।";
+            UI.scannerStatusText.textContent = "QR कोड को कैमरे के सामने लाएं";
+        }).catch(err => {
+            UI.scannerStatusText.textContent = "त्रुटि: कैमरा शुरू नहीं हो सका।";
             showAlert("कैमरा एक्सेस नहीं हो सका। कृपया अनुमति दें।", false);
-            console.error(err);
+            setTimeout(stopScanner, 1500);
         });
     }
 
     function stopScanner() {
-        // getState() यह जाँचता है कि कैमरा चल रहा है या नहीं
-        if (html5Qrcode && html5Qrcode.getState() === 2) { // 2 = SCANNING
-            html5Qrcode.stop().catch(err => {
-                // भले ही स्टॉप में कोई त्रुटि हो, Modal को छिपा दें
-                console.error("Scanner stop error:", err);
-            });
+        if (html5Qrcode && html5Qrcode.isScanning) {
+            html5Qrcode.stop().catch(err => console.error("Scanner Stop Error:", err));
         }
-        scannerModal.classList.remove('active');
+        UI.scannerModal.classList.remove('active');
     }
 
-    async function onScanSuccess(decodedText, decodedResult) {
-        // एक बार स्कैन सफल होने पर, तुरंत स्कैनर बंद करें
+    async function onScanSuccess(decodedText) {
         stopScanner();
         showAlert("QR कोड मिला, प्रोसेस हो रहा है...");
-        
         let codeToRedeem = decodedText;
-
-        // जांचें कि क्या QR में URL है, अगर है तो couponId निकालें
         try {
             const url = new URL(decodedText);
             const qrId = url.searchParams.get('qr');
             if(qrId) {
-                const qrCardSnap = await database.ref(`qrCards/${qrId}`).once('value');
-                if (qrCardSnap.exists() && qrCardSnap.val().coupon) {
-                    codeToRedeem = qrCardSnap.val().coupon;
-                } else {
-                    showAlert("इस QR से जुड़ा कोई वैध कूपन नहीं मिला।", false);
-                    return;
-                }
+                const qrSnap = await database.ref(`qrCards/${qrId}`).once('value');
+                if (qrSnap.exists() && qrSnap.val().coupon) codeToRedeem = qrSnap.val().coupon;
+                else { showAlert("इस QR से जुड़ा कोई कूपन नहीं मिला।", false); return; }
             }
-        } catch (e) {
-            // यह URL नहीं है, मान लें कि यह सीधे कूपन कोड है
-            // कोई कार्रवाई आवश्यक नहीं, `codeToRedeem` पहले से ही सेट है
-        }
-        
+        } catch(e) {} // URL नहीं है, तो सीधे कोड का उपयोग करें
         await redeemCoupon(codeToRedeem);
     }
     
-    // === ऐप की शुरुआत ===
+    // 5. === ऐप की शुरुआत और इवेंट्स ===
     window.onload = function() {
         handleUser();
-
-        // इवेंट श्रोता सेट करें
-        scannerButton.addEventListener('click', startScanner);
-        closeScannerButton.addEventListener('click', stopScanner);
-        couponInput.addEventListener('keypress', e => {
-            if (e.key === 'Enter') redeemCoupon(couponInput.value);
+        UI.scannerButton.addEventListener('click', startScanner);
+        UI.closeScanner.addEventListener('click', stopScanner);
+        UI.couponInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') redeemCoupon(UI.couponInput.value);
         });
     };
-
-    // पहले से मौजूद फ़ंक्शंस को यहाँ फिर से शामिल करें
-    function handleUser() { let userId = localStorage.getItem('rewardAppUserId'); if (!userId) { userId = database.ref().child('users').push().key; localStorage.setItem('rewardAppUserId', userId); } currentUserId = userId; loadUserData(); }
-    function loadUserData() { if (!currentUserId) return; const userRef = database.ref(`users/${currentUserId}`); userRef.child('balance').on('value', s => { balanceDisplay.textContent = `₹ ${s.val()||0}`; }); userRef.child('redeemedCoupons').on('value', s => { redeemList.innerHTML = ''; if (!s.exists()) { redeemList.innerHTML = '<p style="text-align:center;color:#6b7280;">कोई कूपन रिडीम नहीं हुआ है।</p>'; return; } s.forEach(cs => { const c = cs.val(); const li = `<div class="list-item"><span class="list-item-coupon">${cs.key}</span><span class="list-item-value">+ ₹${c.value}</span></div>`; redeemList.insertAdjacentHTML('afterbegin', li); }); }); }
-    function showAlert(message, isSuccess = true) { alertBox.innerHTML = `<div class="app-alert ${isSuccess?'success':'error'}">${message}</div>`; setTimeout(() => { alertBox.innerHTML = ''; }, 4000); }
-    async function redeemCoupon(rawCode) { if (!rawCode || rawCode.trim() === "") return; let couponId = rawCode.trim().toUpperCase(); const couponRef = database.ref(`coupons/${couponId}`); const snapshot = await couponRef.once('value'); if (!snapshot.exists()) { showAlert("यह कूपन कोड अमान्य है।", false); return; } const coupon = snapshot.val(); couponRef.transaction(currentCoupon => { if (!currentCoupon) return; if (currentCoupon.used) { showAlert(`कूपन ${couponId} पहले ही इस्तेमाल हो चुका है।`, false); return; } const twentyFourHours = 24*60*60*1000; const isActivated = currentCoupon.activationTime && (Date.now() - currentCoupon.activationTime > twentyFourHours); if (currentCoupon.status !== 'active' && !isActivated) { showAlert(`कूपन ${couponId} अभी सक्रिय नहीं है।`, false); return; } currentCoupon.used = true; currentCoupon.status = 'used'; currentCoupon.redeemedBy = currentUserId; currentCoupon.redeemedAt = firebase.database.ServerValue.TIMESTAMP; return currentCoupon; }, (error, committed) => { if (error) { showAlert("कुछ गलत हो गया, पुनः प्रयास करें।", false); } else if (committed) { const userRef = database.ref(`users/${currentUserId}`); userRef.child('balance').transaction(b => (b || 0) + COUPON_VALUE); userRef.child(`redeemedCoupons/${couponId}`).set({ redeemedAt: firebase.database.ServerValue.TIMESTAMP, value: COUPON_VALUE }); showAlert(`बधाई! कूपन ${couponId} सफलतापूर्वक रिडीम हो गया।`); couponInput.value = ''; } }); }
-
     </script>
 </body>
 </html>
