@@ -3,95 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR कोड स्कैनर पॉप-अप के साथ</title>
-    <!-- Tailwind CSS for styling -->
+    <title>स्मार्ट QR टूलबॉक्स V2</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- jsQR library for QR code decoding -->
+    <!-- JSQR for Scanning -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <!-- QRCode.js for Generating -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
-        /* Custom styles for the scanner box animation */
+        .tab-btn.active { background-color: #3b82f6; color: white; }
         #scan-box {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 70%;
-            height: 50%;
-            transform: translate(-50%, -50%);
-            border: 3px solid rgba(255, 255, 255, 0.8);
-            border-radius: 0.75rem;
-            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
-            animation: scan-animation 2s infinite;
+            position: absolute; top: 50%; left: 50%; width: 60%; height: 60%;
+            transform: translate(-50%, -50%); border: 3px solid rgba(255, 255, 255, 0.9);
+            border-radius: 1rem; box-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+            animation: scan-glow 2s infinite alternate;
         }
-        @keyframes scan-animation {
-            0% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.5); }
-            50% { box-shadow: 0 0 30px rgba(76, 175, 80, 1); }
-            100% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.5); }
+        @keyframes scan-glow {
+            from { box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); }
+            to { box-shadow: 0 0 35px rgba(0, 255, 0, 1); }
         }
+        #qrcode-output { display: flex; justify-content: center; align-items: center; min-height: 280px; }
+        #qrcode-output img { border: 6px solid white; border-radius: 0.5rem; }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col items-center justify-center min-h-screen p-4 font-sans">
+<body class="bg-gray-200 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center min-h-screen p-4 font-sans">
 
-    <div class="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 text-center">
+    <div class="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 text-center">
         
-        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-gray-800 dark:text-white">QR कोड स्कैनर</h1>
-        <p class="text-gray-600 dark:text-gray-300 mb-6">कैमरे से स्कैन करें या स्कैन करने के लिए एक छवि अपलोड करें।</p>
+        <h1 class="text-3xl md:text-4xl font-bold mb-4 text-gray-800 dark:text-white">स्मार्ट QR टूलबॉक्स</h1>
 
-        <!-- Controls -->
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
-            <button id="start-scan" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                स्कैन शुरू करें
-            </button>
-            <label for="file-input" class="w-full sm:w-auto cursor-pointer bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                छवि अपलोड करें
-                <input id="file-input" type="file" accept="image/*" class="hidden">
-            </label>
-        </div>
-        
-        <!-- Result Display -->
-        <div id="result-container" class="w-full mt-4 p-5 bg-gray-100 dark:bg-gray-700 rounded-lg text-left hidden">
-            <h2 class="text-xl font-bold mb-3 text-gray-800 dark:text-white">स्कैन का परिणाम:</h2>
-            <div id="result" class="text-lg text-blue-500 break-all bg-white dark:bg-gray-600 p-4 rounded-md shadow-inner"></div>
-            <button id="copy-result" class="mt-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                परिणाम कॉपी करें
-            </button>
+        <!-- Tab Controls -->
+        <div class="flex border-b border-gray-300 dark:border-gray-600 mb-6">
+            <button id="scan-tab-btn" class="tab-btn flex-1 py-3 px-4 text-lg font-semibold rounded-t-lg transition-colors active">स्कैन करें</button>
+            <button id="create-tab-btn" class="tab-btn flex-1 py-3 px-4 text-lg font-semibold rounded-t-lg transition-colors">QR बनाएं</button>
         </div>
 
-        <!-- Scan History -->
-        <div id="history-container" class="w-full mt-6 text-left">
-            <h2 class="text-xl font-bold mb-3 text-gray-800 dark:text-white">स्कैन हिस्ट्री</h2>
-            <ul id="history-list" class="list-disc list-inside bg-gray-100 dark:bg-gray-700 p-4 rounded-lg max-h-40 overflow-y-auto">
-                <li id="no-history" class="text-gray-500 dark:text-gray-400">अभी तक कोई हिस्ट्री नहीं है।</li>
-            </ul>
-            <button id="clear-history" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors hidden">
-                हिस्ट्री साफ़ करें
-            </button>
-        </div>
-
-        <!-- Error Message -->
-        <div id="error-message" class="w-full mt-4 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded-lg hidden"></div>
-    </div>
-
-    <!-- Scanner Modal (Popup) -->
-    <div id="scanner-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 text-center relative w-full max-w-xl">
-            <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-            <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">QR कोड स्कैन करें</h2>
-            
-            <div id="video-container" class="relative mb-4 bg-gray-200 dark:bg-gray-700 rounded-xl overflow-hidden">
-                <video id="video" class="w-full h-auto block" playsinline></video>
-                <div id="scan-box"></div>
+        <!-- Scanner Section -->
+        <div id="scanner-section">
+            <p class="text-gray-600 dark:text-gray-300 mb-6">कैमरे से स्कैन करें या कोई छवि अपलोड करें।</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+                <button id="main-scan-btn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center justify-center">
+                    <svg class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    कैमरा स्कैनर
+                </button>
+                <label for="file-input" class="w-full sm:w-auto cursor-pointer bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center justify-center">
+                    <svg class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                    छवि अपलोड करें
+                    <input id="file-input" type="file" accept="image/*" class="hidden">
+                </label>
             </div>
             
-            <button id="switch-camera" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center mx-auto">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 20L20 4" /></svg>
-                कैमरा बदलें
+            <div id="result-container" class="w-full mt-4 p-5 bg-gray-100 dark:bg-gray-700 rounded-lg text-left hidden">
+                <h2 class="text-xl font-bold mb-3">स्कैन का परिणाम:</h2>
+                <p id="result-text" class="text-lg text-blue-500 break-all bg-white dark:bg-gray-600 p-4 rounded-md shadow-inner"></p>
+                <div id="smart-actions" class="mt-4 flex flex-wrap gap-3"></div>
+            </div>
+        </div>
+
+        <!-- Generator Section -->
+        <div id="generator-section" class="hidden">
+            <p class="text-gray-600 dark:text-gray-300 mb-4">कोई भी टेक्स्ट या लिंक टाइप करें, या स्कैन करके भरें।</p>
+            <textarea id="qr-input" class="w-full text-lg bg-gray-100 dark:bg-gray-700 p-3 rounded-md shadow-inner border border-gray-300 dark:border-gray-600" rows="4" placeholder="यहाँ अपना लिंक या टेक्स्ट डालें..."></textarea>
+            
+            <!-- NEW BUTTON HERE -->
+            <button id="scan-to-fill-btn" class="mt-4 w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg flex items-center justify-center mx-auto">
+                 <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                स्कैन करके भरें
             </button>
+
+            <div id="qrcode-output" class="my-5 p-4 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+            <button id="download-qr" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg hidden">
+                PNG डाउनलोड करें
+            </button>
+        </div>
+
+        <!-- Error Message Placeholder -->
+        <div id="error-message" class="w-full mt-4 p-4 bg-red-100 dark:bg-red-900 border-red-400 text-red-700 dark:text-red-200 rounded-lg hidden"></div>
+    </div>
+
+    <!-- Scanner Modal -->
+    <div id="scanner-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 relative w-full max-w-lg">
+            <button id="close-modal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800"><svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M6 18L18 6M6 6l12 12" /></svg></button>
+            <h2 class="text-2xl font-bold mb-4">QR कोड स्कैन करें</h2>
+            <div class="relative mb-4 rounded-xl overflow-hidden"><video id="video" class="w-full h-auto block" playsinline></video><div id="scan-box"></div></div>
         </div>
     </div>
 
@@ -99,146 +94,136 @@
     <audio id="scan-sound" src="https://cdn.jsdelivr.net/gh/Simple-MAX/QR-Code-Generator-and-Scanner@master/assets/audio/beep.mp3" preload="auto"></audio>
 
     <script>
-        // DOM elements
-        const startScanBtn = document.getElementById('start-scan');
+        // --- DOM Elements ---
+        const scanTabBtn = document.getElementById('scan-tab-btn');
+        const createTabBtn = document.getElementById('create-tab-btn');
+        const scannerSection = document.getElementById('scanner-section');
+        const generatorSection = document.getElementById('generator-section');
+        const mainScanBtn = document.getElementById('main-scan-btn');
+        const scanToFillBtn = document.getElementById('scan-to-fill-btn'); // New button
         const fileInput = document.getElementById('file-input');
         const resultContainer = document.getElementById('result-container');
-        const resultElement = document.getElementById('result');
-        const copyBtn = document.getElementById('copy-result');
+        const resultText = document.getElementById('result-text');
+        const smartActions = document.getElementById('smart-actions');
         const errorMessageElement = document.getElementById('error-message');
-        const scanSound = document.getElementById('scan-sound');
-        
-        // Modal elements
         const scannerModal = document.getElementById('scanner-modal');
         const closeModalBtn = document.getElementById('close-modal');
-        const videoContainer = document.getElementById('video-container');
         const video = document.getElementById('video');
-        const switchCameraBtn = document.getElementById('switch-camera');
-        
-        // Canvas and History elements
         const canvasElement = document.getElementById('canvas');
         const canvas = canvasElement.getContext('2d');
-        const historyList = document.getElementById('history-list');
-        const noHistoryMsg = document.getElementById('no-history');
-        const clearHistoryBtn = document.getElementById('clear-history');
+        const scanSound = document.getElementById('scan-sound');
+        const qrInput = document.getElementById('qr-input');
+        const qrcodeOutput = document.getElementById('qrcode-output');
+        const downloadBtn = document.getElementById('download-qr');
 
         let stream;
         let animationFrameId;
-        let currentFacingMode = 'environment';
-        let scanHistory = JSON.parse(localStorage.getItem('scanHistory')) || [];
 
-        function displayError(message) {
-            errorMessageElement.textContent = `त्रुटि: ${message}`;
-            errorMessageElement.classList.remove('hidden');
-        }
+        // --- Tab Switching ---
+        scanTabBtn.addEventListener('click', () => {
+            scannerSection.classList.remove('hidden');
+            generatorSection.classList.add('hidden');
+            scanTabBtn.classList.add('active');
+            createTabBtn.classList.remove('active');
+        });
+        createTabBtn.addEventListener('click', () => {
+            scannerSection.classList.add('hidden');
+            generatorSection.classList.remove('hidden');
+            scanTabBtn.classList.remove('active');
+            createTabBtn.classList.add('active');
+            if (!qrInput.value) generateQR(); // Generate initial empty QR placeholder
+        });
         
-        function updateHistory(data) {
-            if (!scanHistory.includes(data)) {
-                scanHistory.unshift(data);
-                if (scanHistory.length > 20) scanHistory.pop();
-                localStorage.setItem('scanHistory', JSON.stringify(scanHistory));
-            }
-            renderHistory();
-        }
-
-        function renderHistory() {
-            historyList.innerHTML = '';
-            if (scanHistory.length === 0) {
-                historyList.appendChild(noHistoryMsg);
-                clearHistoryBtn.classList.add('hidden');
-            } else {
-                scanHistory.forEach(item => {
-                    const li = document.createElement('li');
-                    li.className = "mb-2 text-sm text-gray-700 dark:text-gray-300 break-all";
-                    try {
-                        new URL(item);
-                        li.innerHTML = `<a href="${item}" target="_blank" rel="noopener noreferrer" class="hover:underline text-blue-500">${item}</a>`;
-                    } catch (_) {
-                        li.textContent = item;
-                    }
-                    historyList.appendChild(li);
-                });
-                clearHistoryBtn.classList.remove('hidden');
-            }
-        }
-        
-        function displayResult(data) {
-            closeScannerModal(); // Close modal after scanning
-            scanSound.play();
-            try {
-                new URL(data);
-                resultElement.innerHTML = `<a href="${data}" target="_blank" rel="noopener noreferrer" class="hover:underline">${data}</a>`;
-            } catch (_) {
-                resultElement.textContent = data;
-            }
-            resultContainer.classList.remove('hidden');
-            updateHistory(data);
-        }
-
+        // --- REFACTORED Scanner Logic ---
         function closeScannerModal() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (stream) stream.getTracks().forEach(track => track.stop());
+            animationFrameId = null;
+            stream = null;
             scannerModal.classList.add('hidden');
         }
         
-        async function startCamera() {
+        async function startCamera(onScanSuccess) {
             try {
-                if (stream) { // Stop any existing stream
-                    stream.getTracks().forEach(track => track.stop());
-                }
-                
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 video.srcObject = stream;
-                video.style.transform = (currentFacingMode === 'user') ? 'scaleX(-1)' : 'scaleX(1)';
                 await video.play();
-                animationFrameId = requestAnimationFrame(tick);
+                scannerModal.classList.remove('hidden');
+                
+                function tick() {
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        canvasElement.height = video.videoHeight;
+                        canvasElement.width = video.videoWidth;
+                        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                        const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+                        if (code) {
+                            onScanSuccess(code.data);
+                            return; // Stop scanning
+                        }
+                    }
+                    if (stream) animationFrameId = requestAnimationFrame(tick);
+                }
+                tick();
+
             } catch (err) {
-                displayError("कैमरा एक्सेस नहीं हो सका। कृपया अनुमति दें।");
+                displayError("कैमरा एक्सेस नहीं हो सका।");
                 closeScannerModal();
             }
         }
+        
+        function displayError(message) {
+            errorMessageElement.textContent = `त्रुटि: ${message}`;
+            errorMessageElement.classList.remove('hidden');
+            setTimeout(() => errorMessageElement.classList.add('hidden'), 4000);
+        }
 
-        function tick() {
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvasElement.height = video.videoHeight;
-                canvasElement.width = video.videoWidth;
-                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-                if (code) {
-                    displayResult(code.data);
-                    return;
-                }
+        // --- Result Display & Smart Actions ---
+        function displayResult(data) {
+            resultText.textContent = data;
+            smartActions.innerHTML = ''; // Clear old actions
+
+            if (data.startsWith('http')) smartActions.innerHTML += `<a href="${data}" target="_blank" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">साइट पर जाएँ</a>`;
+            if (data.startsWith('tel:')) smartActions.innerHTML += `<a href="${data}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">कॉल करें</a>`;
+            if (data.startsWith('mailto:')) smartActions.innerHTML += `<a href="${data}" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg">ईमेल भेजें</a>`;
+            if (data.startsWith('WIFI:')) {
+                const ssid = data.match(/S:(.*?);/)?.[1] || 'N/A';
+                const password = data.match(/P:(.*?);/)?.[1] || 'N/A';
+                smartActions.innerHTML += `<div class="w-full p-3 bg-gray-200 dark:bg-gray-800 rounded-lg text-left"><span class="font-bold">Wi-Fi:</span> ${ssid}<br><span class="font-bold">पासवर्ड:</span> ${password}</div>`;
             }
-            if (stream) animationFrameId = requestAnimationFrame(tick);
+
+            const copyButton = document.createElement('button');
+            copyButton.className = "bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg";
+            copyButton.textContent = 'कॉपी करें';
+            copyButton.onclick = () => { navigator.clipboard.writeText(data); copyButton.textContent = 'कॉपी हो गया!'; setTimeout(() => copyButton.textContent = 'कॉपी करें', 2000); };
+            smartActions.appendChild(copyButton);
+
+            resultContainer.classList.remove('hidden');
         }
 
         // --- Event Listeners ---
+        mainScanBtn.addEventListener('click', () => {
+            startCamera(data => {
+                closeScannerModal();
+                scanSound.play();
+                displayResult(data);
+            });
+        });
+
+        scanToFillBtn.addEventListener('click', () => {
+            startCamera(data => {
+                closeScannerModal();
+                scanSound.play();
+                qrInput.value = data;
+                generateQR(); // Automatically generate new QR after scanning
+            });
+        });
         
-        startScanBtn.addEventListener('click', () => {
-            resultContainer.classList.add('hidden');
-            errorMessageElement.classList.add('hidden');
-            scannerModal.classList.remove('hidden');
-            startCamera();
-        });
-
         closeModalBtn.addEventListener('click', closeScannerModal);
-
-        switchCameraBtn.addEventListener('click', () => {
-            currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
-            startCamera();
-        });
 
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (!file) return;
-            closeScannerModal(); // Close modal if it was open
             const reader = new FileReader();
             reader.onload = e => {
                 const img = new Image();
@@ -249,6 +234,7 @@
                     const imageData = canvas.getImageData(0, 0, img.width, img.height);
                     const code = jsQR(imageData.data, imageData.width, imageData.height);
                     if (code) {
+                        scanSound.play();
                         displayResult(code.data);
                     } else {
                         displayError("इस छवि में कोई QR कोड नहीं मिला।");
@@ -259,20 +245,30 @@
             reader.readAsDataURL(file);
         });
 
-        copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(resultElement.textContent).then(() => {
-                copyBtn.textContent = 'कॉपी हो गया!';
-                setTimeout(() => { copyBtn.textContent = 'परिणाम कॉपी करें'; }, 2000);
-            }).catch(err => displayError('कॉपी करने में विफल।'));
-        });
-        
-        clearHistoryBtn.addEventListener('click', () => {
-            scanHistory = [];
-            localStorage.removeItem('scanHistory');
-            renderHistory();
+        // --- Generator Logic ---
+        let qrcode = null;
+        function generateQR() {
+            const text = qrInput.value.trim();
+            qrcodeOutput.innerHTML = '';
+            if (text) {
+                qrcode = new QRCode(qrcodeOutput, { text, width: 256, height: 256, colorDark: "#000", colorLight: "#fff", correctLevel: QRCode.CorrectLevel.H });
+                downloadBtn.classList.remove('hidden');
+            } else {
+                qrcodeOutput.innerHTML = '<span class="text-gray-400">QR कोड यहाँ दिखेगा</span>';
+                downloadBtn.classList.add('hidden');
+            }
+        }
+        qrInput.addEventListener('input', generateQR);
+        downloadBtn.addEventListener('click', () => {
+            const canvas = qrcodeOutput.querySelector('canvas');
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = 'qrcode.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
         });
 
-        renderHistory();
     </script>
 </body>
 </html>
