@@ -3,107 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR कोड स्कैनर</title>
+    <title>Customer App</title>
     <style>
+        /* बेसिक रीसेट और पेज की स्टाइलिंग */
         body {
-            font-family: 'Arial', sans-serif;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #e9ecef; /* पेज का हल्का ग्रे बैकग्राउंड */
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* कंटेंट को ऊपर से शुरू करें */
+            min-height: 100vh;
+        }
+
+        /* ऐप के लिए मुख्य कंटेनर */
+        .app-container {
+            width: 100%;
+            max-width: 450px; /* मोबाइल स्क्रीन जैसा आकार */
+            background-color: #ffffff; /* सफेद बैकग्राउंड */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
             flex-direction: column;
-            height: 100vh;
-            background-color: #f0f2f5;
-            margin: 0;
+            min-height: 100vh;
         }
-        #reader {
-            width: 500px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
+
+        /* 1. हेडर सेक्शन */
+        .app-header {
+            background-color: #a7f3d0; /* हल्का हरा बैकग्राउंड */
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #1f2937;
         }
-        #result {
-            margin-top: 20px;
-            font-size: 1.2em;
+
+        .app-name {
+            font-size: 1.5em; /* 'App name' का फ़ॉन्ट साइज़ */
             font-weight: bold;
-            color: #333;
-            text-align: center;
-            word-break: break-all;
         }
-        @media (max-width: 600px) {
-            #reader {
-                width: 90%;
-            }
+
+        .balance {
+            background-color: #ffffff;
+            padding: 8px 15px;
+            border-radius: 20px; /* गोलाकार कोने */
+            font-size: 1.1em;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 2. मुख्य कंटेंट एरिया */
+        .main-content {
+            padding: 20px;
+            flex-grow: 1; /* बची हुई जगह को भरें */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* कूपन डालने वाला सेक्शन */
+        .coupon-section {
+            position: relative; /* आइकॉन को सही जगह पर रखने के लिए */
+            margin-bottom: 20px;
+        }
+
+        .coupon-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px; /* आइकॉन के लिए दाईं ओर जगह */
+            font-size: 1em;
+            border: 1px solid #d1d5db;
+            border-radius: 30px; /* पूरी तरह से गोलाकार कोने */
+            box-sizing: border-box; /* पैडिंग और बॉर्डर को चौड़ाई में शामिल करें */
+        }
+        
+        .coupon-input::placeholder {
+            color: #9ca3af;
+        }
+
+        /* स्कैनर आइकॉन */
+        .scanner-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            cursor: pointer; /* कर्सर को पॉइंटर बनाएं */
+            color: #ef4444; /* आइकॉन का लाल रंग */
+        }
+
+        /* रिडीम लिस्ट का टाइटल */
+        .list-header {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 500;
+            color: #4b5563;
+            padding: 10px;
+            border-top: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        /* रिडीम लिस्ट का कंटेनर */
+        .redeem-list {
+            flex-grow: 1; /* बची हुई पूरी जगह ले लो */
+            overflow-y: auto; /* स्क्रॉल बार के लिए */
+            padding-top: 10px;
+        }
+
+        /* स्क्रॉलबार की स्टाइल (वैकल्पिक, इमेज जैसा दिखने के लिए) */
+        .redeem-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .redeem-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .redeem-list::-webkit-scrollbar-thumb {
+            background: #333; /* गहरा स्क्रॉलबार */
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
 
-    <h1>QR कोड स्कैनर</h1>
-    <div id="reader"></div>
-    <div id="result">स्कैन किया गया परिणाम यहाँ दिखाई देगा</div>
+    <div class="app-container">
+        <!-- 1. हेडर: ऐप का नाम और बैलेंस -->
+        <header class="app-header">
+            <div class="app-name">App name</div>
+            <div class="balance">₹ 0</div>
+        </header>
 
-    <!-- html5-qrcode लाइब्रेरी को शामिल करें -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
-    <script>
-        // यह फ़ंक्शन तब कॉल होता है जब QR कोड सफलतापूर्वक स्कैन हो जाता है
-        function onScanSuccess(decodedText, decodedResult) {
-            // स्कैन किए गए टेक्स्ट को कंसोल में लॉग करें
-            console.log(`स्कैन किया गया कोड = ${decodedText}`, decodedResult);
-
-            // स्कैन किए गए टेक्स्ट को 'result' नामक div में दिखाएं
-            document.getElementById('result').innerHTML = `स्कैन किया गया परिणाम: <a href="${decodedText}" target="_blank">${decodedText}</a>`;
+        <!-- 2. मुख्य कंटेंट -->
+        <main class="main-content">
             
-            // वैकल्पिक: एक बार स्कैन होने के बाद स्कैनर को रोकें
-            // html5QrcodeScanner.clear(); 
-        }
+            <!-- कूपन कोड इनपुट -->
+            <div class="coupon-section">
+                <input class="coupon-input" type="text" placeholder="कुपन कोड">
+                <!-- स्कैनर आइकॉन (SVG) -->
+                <div class="scanner-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.5a.75.75 0 00-1.5 0v1.5h1.5V4.5zM3.75 9V7.5h-1.5V9h1.5zM3.75 13.5v-1.5h-1.5v1.5h1.5zM3.75 18v-1.5h-1.5V18h1.5zM8.25 4.5h-1.5v1.5h1.5V4.5zM8.25 9V7.5h-1.5V9h1.5zM8.25 13.5v-1.5h-1.5v1.5h1.5zM8.25 18v-1.5h-1.5V18h1.5zM12.75 4.5h-1.5v1.5h1.5V4.5zM12.75 9V7.5h-1.5V9h1.5zM12.75 13.5v-1.5h-1.5v1.5h1.5zM12.75 18v-1.5h-1.5V18h1.5zM17.25 4.5h-1.5v1.5h1.5V4.5zM17.25 9V7.5h-1.5V9h1.5zM17.25 13.5v-1.5h-1.5v1.5h1.5zM17.25 18v-1.5h-1.5V18h1.5zM21.75 4.5a.75.75 0 00-1.5 0v1.5h1.5V4.5zM21.75 9V7.5h-1.5V9h1.5zM21.75 13.5v-1.5h-1.5v1.5h1.5zM21.75 18v-1.5h-1.5V18h1.5z" />
+                    </svg>
+                </div>
+            </div>
 
-        // यह फ़ंक्शन तब कॉल होता है जब स्कैन विफल हो जाता है
-        function onScanFailure(error) {
-            // त्रुटि को कंसोल में दिखाएं, लेकिन उपयोगकर्ता को परेशान न करें
-            // console.warn(`कोड स्कैन में त्रुटि = ${error}`);
-        }
+            <!-- रिडीम लिस्ट का टाइटल -->
+            <div class="list-header">
+                रिडीम लिस्ट
+            </div>
 
-        // Html5QrcodeScanner ऑब्जेक्ट को इनिशियलाइज़ करें
-        let html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", // उस div का ID जहाँ स्कैनर दिखना चाहिए
-            { 
-                fps: 10, // फ्रेम्स प्रति सेकंड
-                qrbox: { width: 250, height: 250 } // स्कैनिंग बॉक्स का आकार
-            },
-            /* verbose= */ false // वर्बोस आउटपुट को बंद करें
-        );
-
-        // स्कैनर को रेंडर (प्रारंभ) करें
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-    </script>
+            <!-- रिडीम की गई आइटम की लिस्ट यहाँ आएगी -->
+            <div class="redeem-list">
+                <!-- 
+                    उदाहरण के लिए, लिस्ट आइटम ऐसे दिख सकते हैं:
+                    <div class="list-item">
+                        <span>कूपन #12345</span>
+                        <span>+ ₹10</span>
+                    </div> 
+                -->
+            </div>
+        </main>
+    </div>
 
 </body>
-</html>```
-
-### यह कैसे काम करता है:
-
-1.  **HTML संरचना**:
-    *   `<!DOCTYPE html>`: यह बताता है कि यह एक HTML5 डॉक्यूमेंट है।
-    *   `<head>`: इसमें पेज का शीर्षक (`<title>`) और स्टाइलिंग (`<style>`) की जानकारी होती है।
-    *   `<body>`: इसमें पेज पर दिखने वाले सभी तत्व होते हैं।
-        *   `<h1>`: यह पेज का मुख्य शीर्षक है।
-        *   `<div id="reader"></div>`: यह वह जगह है जहाँ कैमरा व्यू और QR कोड स्कैनर दिखाई देगा।
-[[4](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQHHT4KD34t4_N11jxpEf_Zs3W0mr_Fgrk32v1IfJ4l_JTkmLrlOspIwOAqScBlkhDB23KAtS4ucu8uFRNayeK6ceF5pporjOsSqcxL997QAezdfj4nSdNUb0qxujgFEElk6poMTijPXcELGqw%3D%3D)]        *   `<div id="result"></div>`: स्कैन करने के बाद परिणाम इस डिव में दिखाया जाएगा।
-
-2.  **CSS स्टाइलिंग**:
-    *   `<style>` टैग के अंदर का कोड पेज को एक अच्छा और साफ़-सुथरा लुक देता है। यह स्कैनर और परिणाम को पेज के केंद्र में रखता है।
-
-3.  **JavaScript कार्यक्षमता**:
-    *   `<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>`: यह लाइन `html5-qrcode` लाइब्रेरी को इंटरनेट से सीधे आपके पेज में लोड करती है। [[2](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQFgwPafGkhxoAB_wCAKxJbhP4GXR21QmO7BVECWoJAC6MSBh5Gp_ZXDlOgT90WGAueWUHovrcANtSkj4GwjoyFy4gBXh4BuZCEDj7jp_y5kin4TaEkkKqfJApdEb48MegpMPUXLZLt-VY2kuEzKOwvjWFe4ZOGOMXW2wTJp3XqHGoxjf7sUWKKNF7O3XNzAFPxgjx5qOQbbbKpks8r5N9RTBD-rGrJs_XJQFvGrELdG)]यह लाइब्रेरी QR कोड को पढ़ने का सारा जटिल काम करती है।
-    *   `onScanSuccess`: यह फ़ंक्शन तब चलता है जब स्कैनर सफलतापूर्वक एक QR कोड पढ़ लेता है। यह पढ़े गए टेक्स्ट को `result` वाले `div` में दिखाता है।
-[[4](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQHHT4KD34t4_N11jxpEf_Zs3W0mr_Fgrk32v1IfJ4l_JTkmLrlOspIwOAqScBlkhDB23KAtS4ucu8uFRNayeK6ceF5pporjOsSqcxL997QAezdfj4nSdNUb0qxujgFEElk6poMTijPXcELGqw%3D%3D)]    *   `onScanFailure`: अगर स्कैन करते समय कोई त्रुटि होती है, तो यह फ़ंक्शन चलता है। वर्तमान में यह कुछ नहीं करता है ताकि उपयोगकर्ता को बार-बार त्रुटि संदेश न दिखें।
-    *   `Html5QrcodeScanner`: यह `html5-qrcode` लाइब्रेरी से एक नया स्कैनर ऑब्जेक्ट बनाता है। हम इसे बताते हैं कि स्कैनर को कहाँ दिखाना है (`"reader"`) और कुछ सेटिंग्स, जैसे कि स्कैनिंग बॉक्स का आकार (`qrbox`)।
-[[5](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQEE6aPbN0S-6TerZr4PXTIYENfPVtXQLTsx9N-8mSkdziO_wFMxLYN7ezvIKeBp3g8OPrPxevuKNNrd4dxlq_HNgajs1CYmuCc3fijseHMtqIjWb0qlu7zxR_D4bTi39GYrkO-nLy8DLxbExjINRUXEMcL4q2d79mCtPXulzFHKGtIBT7BYkkOuYiAICLZlU7D6jQwkMDkIKcgOr_I5vw%3D%3D)]    *   `html5QrcodeScanner.render(...)`: यह अंतिम कमांड है जो स्कैनर को शुरू करता है और कैमरे तक पहुंच का अनुरोध करता है।
-[[5](https://www.google.com/url?sa=E&q=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fgrounding-api-redirect%2FAUZIYQEE6aPbN0S-6TerZr4PXTIYENfPVtXQLTsx9N-8mSkdziO_wFMxLYN7ezvIKeBp3g8OPrPxevuKNNrd4dxlq_HNgajs1CYmuCc3fijseHMtqIjWb0qlu7zxR_D4bTi39GYrkO-nLy8DLxbExjINRUXEMcL4q2d79mCtPXulzFHKGtIBT7BYkkOuYiAICLZlU7D6jQwkMDkIKcgOr_I5vw%3D%3D)]
-### कैसे उपयोग करें:
-
-1.  ऊपर दिए गए पूरे कोड को एक टेक्स्ट एडिटर (जैसे नोटपैड) में कॉपी करें।
-2.  फ़ाइल को `qrscanner.html` नाम से अपने कंप्यूटर पर सेव करें।
-3.  इस HTML फ़ाइल को अपने वेब ब्राउज़र (जैसे क्रोम, फ़ायरफ़ॉक्स) में खोलें।
-4.  ब्राउज़र आपसे कैमरे का उपयोग करने की अनुमति मांगेगा। **अनुमति दें (Allow)** पर क्लिक करें।
-5.  अब आप अपने डिवाइस के कैमरे के सामने कोई भी QR कोड ला सकते हैं, और स्कैनर उसे पढ़कर परिणाम नीचे दिखा देगा।
+</html>
