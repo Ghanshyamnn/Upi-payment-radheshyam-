@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>एडवांस्ड QR कोड स्कैनर</title>
+    <title>QR कोड स्कैनर</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jsQR library for QR code decoding -->
@@ -22,7 +22,6 @@
             width: 100%;
             height: auto;
             display: block;
-            transform: scaleX(-1); /* Mirror the video for front camera */
         }
         #scan-box {
             position: absolute;
@@ -47,7 +46,7 @@
 
     <div class="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 text-center">
         
-        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-gray-800 dark:text-white">एडवांस्ड QR कोड स्कैनर</h1>
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-gray-800 dark:text-white">QR कोड स्कैनर</h1>
         <p class="text-gray-600 dark:text-gray-300 mb-6">कैमरे को QR कोड पर रखें या स्कैन करने के लिए एक छवि अपलोड करें।</p>
 
         <!-- Video container for camera stream -->
@@ -59,17 +58,17 @@
 
         <!-- Controls -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
-            <button id="start-scan" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <button id="start-scan" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 स्कैन शुरू करें
             </button>
-            <label for="file-input" class="w-full sm:w-auto cursor-pointer bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            <label for="file-input" class="w-full sm:w-auto cursor-pointer bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                 छवि अपलोड करें
                 <input id="file-input" type="file" accept="image/*" class="hidden">
             </label>
-            <button id="switch-camera" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg hidden">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block -mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 20L20 4" /></svg>
+            <button id="switch-camera" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg hidden items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 20L20 4" /></svg>
                  कैमरा बदलें
             </button>
         </div>
@@ -115,36 +114,31 @@
         const scanSound = document.getElementById('scan-sound');
 
         // History elements
-        const historyContainer = document.getElementById('history-container');
         const historyList = document.getElementById('history-list');
         const noHistoryMsg = document.getElementById('no-history');
         const clearHistoryBtn = document.getElementById('clear-history');
 
         let stream;
         let animationFrameId;
-        let currentFacingMode = 'environment'; // 'environment' for rear, 'user' for front
+        let currentFacingMode = 'environment';
         let scanHistory = JSON.parse(localStorage.getItem('scanHistory')) || [];
 
-        // Function to display errors
         function displayError(message) {
             errorMessageElement.textContent = `त्रुटि: ${message}`;
             errorMessageElement.classList.remove('hidden');
         }
-
-        // Function to update and display history
+        
         function updateHistory(data) {
             if (!scanHistory.includes(data)) {
-                scanHistory.unshift(data); // Add new item to the beginning
-                if (scanHistory.length > 20) { // Keep history to a reasonable size
-                    scanHistory.pop();
-                }
+                scanHistory.unshift(data);
+                if (scanHistory.length > 20) scanHistory.pop();
                 localStorage.setItem('scanHistory', JSON.stringify(scanHistory));
             }
             renderHistory();
         }
 
         function renderHistory() {
-            historyList.innerHTML = ''; // Clear current list
+            historyList.innerHTML = '';
             if (scanHistory.length === 0) {
                 historyList.appendChild(noHistoryMsg);
                 clearHistoryBtn.classList.add('hidden');
@@ -152,7 +146,6 @@
                 scanHistory.forEach(item => {
                     const li = document.createElement('li');
                     li.className = "mb-2 text-sm text-gray-700 dark:text-gray-300 break-all";
-                    
                     try {
                         new URL(item);
                         li.innerHTML = `<a href="${item}" target="_blank" rel="noopener noreferrer" class="hover:underline text-blue-500">${item}</a>`;
@@ -165,11 +158,9 @@
             }
         }
         
-        // Function to display the result
         function displayResult(data) {
-            stopScanner(false); // Stop scanning but keep video on for a moment
+            stopScanner(false);
             scanSound.play();
-            
             try {
                 new URL(data);
                 resultElement.innerHTML = `<a href="${data}" target="_blank" rel="noopener noreferrer" class="hover:underline">${data}</a>`;
@@ -180,7 +171,6 @@
             updateHistory(data);
         }
 
-        // Function to stop the camera and scanner
         function stopScanner(fullStop = true) {
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
@@ -191,101 +181,69 @@
                 stream = null;
                 videoContainer.classList.add('hidden');
                 switchCameraBtn.classList.add('hidden');
-                startScanBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg> कैमरा स्कैन शुरू करें';
+                startScanBtn.innerHTML = startScanBtn.innerHTML.replace('स्कैन बंद करें', 'स्कैन शुरू करें');
             }
         }
         
         async function startCamera() {
             try {
-                if (stream) { // Stop existing stream before starting a new one
-                    stopScanner();
-                }
+                if (stream) stopScanner();
                 
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
                 video.srcObject = stream;
-                video.setAttribute("playsinline", true);
                 video.style.transform = (currentFacingMode === 'user') ? 'scaleX(-1)' : 'scaleX(1)';
-                video.play();
+                await video.play();
                 videoContainer.classList.remove('hidden');
-                startScanBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg> स्कैन बंद करें';
+                startScanBtn.innerHTML = startScanBtn.innerHTML.replace('स्कैन शुरू करें', 'स्कैन बंद करें');
                 switchCameraBtn.classList.remove('hidden');
                 animationFrameId = requestAnimationFrame(tick);
             } catch (err) {
-                displayError("कैमरा एक्सेस नहीं हो सका। कृपया अनुमति दें या दूसरा कैमरा चुनें।");
-                console.error("getUserMedia error: ", err);
+                displayError("कैमरा एक्सेस नहीं हो सका। कृपया अनुमति दें।");
                 stopScanner();
             }
         }
 
-        // Main scanning loop
         function tick() {
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 canvasElement.height = video.videoHeight;
                 canvasElement.width = video.videoWidth;
-                
-                // Mirror canvas if using front camera
-                if (currentFacingMode === 'user') {
-                    canvas.translate(canvasElement.width, 0);
-                    canvas.scale(-1, 1);
-                } else {
-                    canvas.setTransform(1, 0, 0, 1, 0, 0);
-                }
-
                 canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
                 const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
-                });
-
-                if (code && code.data) {
+                const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+                if (code) {
                     displayResult(code.data);
-                    return; // Stop scanning once a code is found
+                    return;
                 }
             }
-            if (stream) {
-              animationFrameId = requestAnimationFrame(tick);
-            }
+            if (stream) animationFrameId = requestAnimationFrame(tick);
         }
 
-        // Event listener for the start scan button
         startScanBtn.addEventListener('click', () => {
             resultContainer.classList.add('hidden');
             errorMessageElement.classList.add('hidden');
-
-            if (stream) {
-                stopScanner();
-            } else {
-                startCamera();
-            }
+            if (stream) stopScanner();
+            else startCamera();
         });
 
-        // Switch camera event
         switchCameraBtn.addEventListener('click', () => {
             currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
-            resultContainer.classList.add('hidden');
-            errorMessageElement.classList.add('hidden');
             startCamera();
         });
 
-        // Event listener for file input
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (!file) return;
-
             stopScanner();
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = e => {
                 const img = new Image();
-                img.onload = function() {
+                img.onload = () => {
                     canvasElement.width = img.width;
                     canvasElement.height = img.height;
-                    canvas.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
                     canvas.drawImage(img, 0, 0, img.width, img.height);
                     const imageData = canvas.getImageData(0, 0, img.width, img.height);
                     const code = jsQR(imageData.data, imageData.width, imageData.height);
-                    
                     if (code) {
-                        scanSound.play();
                         displayResult(code.data);
                     } else {
                         displayError("इस छवि में कोई QR कोड नहीं मिला।");
@@ -296,30 +254,20 @@
             reader.readAsDataURL(file);
         });
 
-        // Event listener for copy button
         copyBtn.addEventListener('click', () => {
-            const textToCopy = resultElement.textContent;
-            navigator.clipboard.writeText(textToCopy).then(() => {
+            navigator.clipboard.writeText(resultElement.textContent).then(() => {
                 copyBtn.textContent = 'कॉपी हो गया!';
-                setTimeout(() => {
-                    copyBtn.textContent = 'परिणाम कॉपी करें';
-                }, 2000);
-            }).catch(err => {
-                console.error('Copy failed', err);
-                displayError('कॉपी करने में विफल।');
-            });
+                setTimeout(() => { copyBtn.textContent = 'परिणाम कॉपी करें'; }, 2000);
+            }).catch(err => displayError('कॉपी करने में विफल।'));
         });
         
-        // Clear history event
         clearHistoryBtn.addEventListener('click', () => {
             scanHistory = [];
             localStorage.removeItem('scanHistory');
             renderHistory();
         });
 
-        // Initial render of history
         renderHistory();
-
     </script>
 </body>
 </html>
