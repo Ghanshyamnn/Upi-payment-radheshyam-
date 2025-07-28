@@ -1,89 +1,94 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>स्मार्ट QR हब - स्कैन, बनाएं और वेरिफ़ाई करें</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- JSQR for Scanning -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    <!-- QRCode.js for Generating -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <style>
-        .tab-btn.active { background-color: #3b82f6; color: white; }
-        #scan-box { position: absolute; top: 50%; left: 50%; width: 60%; height: 60%; transform: translate(-50%, -50%); border: 3px solid rgba(255, 255, 255, 0.9); border-radius: 1rem; box-shadow: 0 0 20px rgba(0, 255, 0, 0.7); animation: scan-glow 2s infinite alternate; }
-        @keyframes scan-glow { from { box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); } to { box-shadow: 0 0 35px rgba(0, 255, 0, 1); } }
-        #qrcode-output img { border: 6px solid white; border-radius: 0.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    </style>
+  <meta charset="UTF-8">
+  <title>Text to Voice (Offline)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background: #f7f7f7;
+    }
+    textarea {
+      width: 80%;
+      height: 120px;
+      font-size: 18px;
+      padding: 10px;
+      margin: 10px auto;
+      display: block;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin: 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: #4CAF50;
+      color: white;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    audio {
+      margin-top: 20px;
+      width: 80%;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center min-h-screen p-4 font-sans">
+<body>
+  <h1>Text to Voice (Offline)</h1>
+  <textarea id="text" placeholder="अपना टेक्स्ट लिखें..."></textarea><br>
+  <button onclick="speak()">Play Voice</button>
+  <button onclick="startRecording()">Record & Download</button>
+  <audio id="player" controls></audio>
 
-    <div class="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 text-center">
-        
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white text-left">स्मार्ट QR हब</h1>
-            <button id="open-coupon-settings" title="कूपन सेटिंग" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 p-2 rounded-full transition-transform transform hover:scale-110">
-                <svg class="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            </button>
-        </div>
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
 
-        <div class="flex border-b border-gray-300 dark:border-gray-600 mb-6">
-            <button id="scan-tab-btn" class="tab-btn flex-1 py-3 px-4 text-lg font-semibold rounded-t-lg transition-colors active">स्कैन करें</button>
-            <button id="create-tab-btn" class="tab-btn flex-1 py-3 px-4 text-lg font-semibold rounded-t-lg transition-colors">QR बनाएं</button>
-        </div>
+    function speak() {
+      const text = document.getElementById('text').value.trim();
+      if (!text) return alert("कृपया टेक्स्ट डालें।");
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'hi-IN'; // हिंदी आवाज़ के लिए
+      speechSynthesis.speak(utterance);
+    }
 
-        <div id="scanner-section">
-            <p class="text-gray-600 dark:text-gray-300 mb-6">QR कोड स्कैन करें और वेरिफ़ाई करें।</p>
-            <button id="main-scan-btn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center justify-center mx-auto">
-                 <svg class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                कैमरा स्कैनर खोलें
-            </button>
-            <div id="result-container" class="w-full mt-6 p-5 bg-gray-100 dark:bg-gray-700 rounded-lg text-left hidden">
-                <h2 class="text-xl font-bold mb-3">स्कैन का परिणाम:</h2>
-                <p id="result-text" class="text-lg text-blue-500 break-all bg-white dark:bg-gray-600 p-4 rounded-md shadow-inner"></p>
-                <div id="smart-actions" class="mt-4 flex flex-wrap gap-3 items-center"></div>
-                <div id="verification-status" class="mt-4 text-center text-xl font-bold"></div>
-            </div>
-        </div>
+    async function startRecording() {
+      const text = document.getElementById('text').value.trim();
+      if (!text) return alert("कृपया टेक्स्ट डालें।");
 
-        <div id="generator-section" class="hidden">
-            <p class="text-gray-600 dark:text-gray-300 mb-4">कोई भी टेक्स्ट या लिंक टाइप करें, या स्कैन करके भरें।</p>
-            <textarea id="qr-input" class="w-full text-lg bg-gray-100 dark:bg-gray-700 p-3 rounded-md shadow-inner border border-gray-300 dark:border-gray-600" rows="4" placeholder="अपना कूपन कोड, लिंक या टेक्स्ट डालें..."></textarea>
-            <button id="scan-to-fill-btn" class="mt-4 w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg flex items-center justify-center mx-auto">
-                <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                स्कैन करके भरें
-            </button>
-            <div id="qrcode-output" class="my-5 p-4 bg-gray-200 dark:bg-gray-700 rounded-lg flex justify-center items-center min-h-[280px]"></div>
-            <button id="download-qr" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg hidden">PNG डाउनलोड करें</button>
-        </div>
-        
-        <div id="error-message" class="w-full mt-4 p-4 bg-red-100 dark:bg-red-900 border-red-400 text-red-700 dark:text-red-200 rounded-lg hidden"></div>
-    </div>
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'hi-IN';
 
-    <!-- Modals -->
-    <div id="scanner-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 hidden"><div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 relative w-full max-w-lg"><button id="close-scanner-modal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800"><svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M6 18L18 6M6 6l12 12" /></svg></button><h2 class="text-2xl font-bold mb-4">QR कोड स्कैन करें</h2><div class="relative mb-4 rounded-xl overflow-hidden"><video id="video" class="w-full h-auto block" playsinline></video><div id="scan-box"></div></div></div></div>
-    <div id="coupon-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 hidden"><div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-md"><h2 class="text-2xl font-bold mb-4">कूपन कोड सेटिंग</h2><p class="text-gray-600 dark:text-gray-400 mb-4">अपने मान्य कूपन कोड यहाँ जोड़ें (जैसे SAVE50, DIWALI25)।</p><div class="flex gap-2 mb-4"><input type="text" id="coupon-input" placeholder="नया कूपन कोड" class="flex-grow p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"><button id="add-coupon-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">जोड़ें</button></div><div id="coupon-list" class="max-h-48 overflow-y-auto"></div><button id="close-coupon-modal" class="mt-6 w-full bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600">बंद करें</button></div></div>
-    
-    <canvas id="canvas" class="hidden"></canvas>
-    <audio id="scan-sound" src="https://cdn.jsdelivr.net/gh/Simple-MAX/QR-Code-Generator-and-Scanner@master/assets/audio/beep.mp3" preload="auto"></audio>
+      // ऑडियो कैप्चर
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
 
-    <script>
-        // --- DOM Elements ---
-        const scanTabBtn=document.getElementById("scan-tab-btn"),createTabBtn=document.getElementById("create-tab-btn"),scannerSection=document.getElementById("scanner-section"),generatorSection=document.getElementById("generator-section"),mainScanBtn=document.getElementById("main-scan-btn"),scanToFillBtn=document.getElementById("scan-to-fill-btn"),resultContainer=document.getElementById("result-container"),resultText=document.getElementById("result-text"),smartActions=document.getElementById("smart-actions"),verificationStatus=document.getElementById("verification-status"),errorMessageElement=document.getElementById("error-message"),scannerModal=document.getElementById("scanner-modal"),closeScannerModalBtn=document.getElementById("close-scanner-modal"),video=document.getElementById("video"),canvas=document.getElementById("canvas").getContext("2d"),scanSound=document.getElementById("scan-sound"),qrInput=document.getElementById("qr-input"),qrcodeOutput=document.getElementById("qrcode-output"),downloadBtn=document.getElementById("download-qr"),openCouponSettingsBtn=document.getElementById("open-coupon-settings"),couponModal=document.getElementById("coupon-modal"),closeCouponModalBtn=document.getElementById("close-coupon-modal"),couponInput=document.getElementById("coupon-input"),addCouponBtn=document.getElementById("add-coupon-btn"),couponList=document.getElementById("coupon-list");
+      mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
 
-        // --- State ---
-        let stream,animationFrameId,qrcode=null,validCoupons=JSON.parse(localStorage.getItem("validCoupons"))||[];
-        
-        // --- Main Logic ---
-        const switchTab=(isScanTab)=>{scannerSection.classList.toggle("hidden",!isScanTab),generatorSection.classList.toggle("hidden",isScanTab),scanTabBtn.classList.toggle("active",isScanTab),createTabBtn.classList.toggle("active",!isScanTab),isScanTab||qrInput.value||generateQR()};scanTabBtn.addEventListener("click",()=>switchTab(!0)),createTabBtn.addEventListener("click",()=>switchTab(!1));
-        const closeScannerModal=()=>{animationFrameId&&cancelAnimationFrame(animationFrameId),stream&&stream.getTracks().forEach(e=>e.stop()),animationFrameId=null,stream=null,scannerModal.classList.add("hidden")};
-        const startCamera=async e=>{try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}),video.srcObject=stream,await video.play(),scannerModal.classList.remove("hidden");const t=()=>{if(video.HAVE_ENOUGH_DATA===video.readyState){canvas.canvas.height=video.videoHeight,canvas.canvas.width=video.videoWidth,canvas.drawImage(video,0,0,video.videoWidth,video.videoHeight);const d=jsQR(canvas.getImageData(0,0,video.videoWidth,video.videoHeight).data,video.videoWidth,video.videoHeight,{inversionAttempts:"dontInvert"});d&&e(d.data)}stream&&(animationFrameId=requestAnimationFrame(t))};t()}catch(e){displayError("कैमरा एक्सेस नहीं हो सका।"),closeScannerModal()}};
-        const displayError=e=>{errorMessageElement.textContent=`त्रुटि: ${e}`,errorMessageElement.classList.remove("hidden"),setTimeout(()=>errorMessageElement.classList.add("hidden"),4e3)};
-        const displayResult=e=>{scanSound.play(),resultContainer.classList.remove("hidden");const t=e.trim();resultText.textContent=t,smartActions.innerHTML="",verificationStatus.innerHTML="";let d="";t.startsWith("http")&&(d+=`<a href="${t}" target="_blank" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">साइट पर जाएँ</a>`),t.startsWith("tel:")&&(d+=`<a href="${t}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">कॉल करें</a>`),smartActions.innerHTML=d;const o=document.createElement("button");o.className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg",o.textContent="कॉपी करें",o.onclick=()=>{navigator.clipboard.writeText(t),o.textContent="कॉपी हो गया!",setTimeout(()=>o.textContent="कॉपी करें",2e3)},smartActions.appendChild(o);const n=document.createElement("button");n.className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg",n.textContent="कूपन वेरिफ़ाई करें",n.onclick=()=>{const e=JSON.parse(localStorage.getItem("validCoupons"))||[];verificationStatus.innerHTML=e.includes(t)?'<p class="p-3 rounded-lg text-green-800 bg-green-100 border border-green-300">\u2705 कूपन मान्य है!</p>':'<p class="p-3 rounded-lg text-red-800 bg-red-100 border border-red-300">\u274c अमान्य कूपन कोड।</p>',n.disabled=!0,n.classList.add("opacity-50","cursor-not-allowed")},smartActions.appendChild(n)};
-        const renderCoupons=()=>{couponList.innerHTML="",validCoupons.forEach(e=>{const t=document.createElement("div");t.className="flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-600 rounded-lg mb-2",t.innerHTML=`<span class="font-mono">${e}</span><button data-coupon="${e}" class="text-red-500 hover:text-red-700 p-1 rounded-full">\u2716</button>`,couponList.appendChild(t)})},saveCoupons=()=>{localStorage.setItem("validCoupons",JSON.stringify(validCoupons))};openCouponSettingsBtn.addEventListener("click",()=>{couponModal.classList.remove("hidden"),renderCoupons()}),closeCouponModalBtn.addEventListener("click",()=>couponModal.classList.add("hidden")),addCouponBtn.addEventListener("click",()=>{const e=couponInput.value.trim().toUpperCase();e&&!validCoupons.includes(e)&&(validCoupons.push(e),saveCoupons(),renderCoupons(),couponInput.value="")}),couponList.addEventListener("click",e=>{if("BUTTON"===e.target.tagName){const t=e.target.dataset.coupon;validCoupons=validCoupons.filter(e=>e!==t),saveCoupons(),renderCoupons()}});
-        const generateQR=()=>{const e=qrInput.value.trim();qrcodeOutput.innerHTML="",e?(qrcode=new QRCode(qrcodeOutput,{text:e,width:256,height:256}),downloadBtn.classList.remove("hidden")):(qrcodeOutput.innerHTML='<span class="text-gray-400">QR कोड यहाँ दिखेगा</span>',downloadBtn.classList.add("hidden"))};qrInput.addEventListener("input",generateQR),downloadBtn.addEventListener("click",()=>{const e=qrcodeOutput.querySelector("canvas");e&&(const t=document.createElement("a");t.download="qrcode.png",t.href=e.toDataURL("image/png"),t.click())});
-        mainScanBtn.addEventListener("click",()=>startCamera(e=>{closeScannerModal(),displayResult(e)})),scanToFillBtn.addEventListener("click",()=>startCamera(e=>{closeScannerModal(),qrInput.value=e,generateQR()})),closeScannerModalBtn.addEventListener("click",closeScannerModal);
-    </script>
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunks, { type: 'audio/wav' });
+        const audioURL = URL.createObjectURL(blob);
+        const player = document.getElementById('player');
+        player.src = audioURL;
+
+        // डाउनलोड लिंक बनाएं
+        const a = document.createElement('a');
+        a.href = audioURL;
+        a.download = 'voice.wav';
+        a.click();
+      };
+
+      mediaRecorder.start();
+      speechSynthesis.speak(utterance);
+      setTimeout(() => mediaRecorder.stop(), text.length * 150); // रिकॉर्डिंग स्टॉप
+    }
+  </script>
 </body>
 </html>
