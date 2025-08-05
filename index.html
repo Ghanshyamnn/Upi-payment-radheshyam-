@@ -11,13 +11,21 @@
   #lightbox {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.9);
-    display: none; justify-content: center; align-items: center;
+    display: none; flex-direction: column; justify-content: center; align-items: center;
     z-index: 9999;
   }
   #lightbox img, #lightbox video {
-    max-width: 95%; max-height: 95%;
+    max-width: 95%; max-height: 85%;
     border-radius: 8px;
     touch-action: pinch-zoom;
+  }
+  #downloadBtn {
+    margin-top: 10px;
+    background: rgba(255,255,255,0.2);
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
   }
 </style>
 </head>
@@ -44,6 +52,7 @@
 <!-- Lightbox -->
 <div id="lightbox" onclick="closeLightbox()">
   <div id="lightboxContent"></div>
+  <button id="downloadBtn" onclick="event.stopPropagation(); downloadCurrent()">⬇ Download</button>
 </div>
 
 <!-- Firebase SDK -->
@@ -113,17 +122,11 @@
     gallery.innerHTML = '';
     items.forEach((item, index) => {
       const media = item.type === "video"
-        ? `<video src="${item.data}" controls class="w-full rounded"></video>`
+        ? `<video src="${item.data}" controls class="w-full rounded cursor-pointer" onclick="openLightbox(${index})"></video>`
         : `<img src="${item.data}" class="w-full rounded cursor-pointer" onclick="openLightbox(${index})">`;
       gallery.innerHTML += `
         <div class="bg-white dark:bg-gray-700 p-2 rounded shadow">
           ${media}
-          <div class="flex gap-1 mt-2 text-xs">
-            <button onclick="copyLink('${item.data}')" class="flex-1 bg-gray-200 dark:bg-gray-600 p-1 rounded">Copy</button>
-            <button onclick="showQR('${item.data}')" class="flex-1 bg-gray-200 dark:bg-gray-600 p-1 rounded">QR</button>
-            <button onclick="downloadMedia('${item.data}','${item.name}')" class="flex-1 bg-green-500 text-white p-1 rounded">⬇</button>
-            <button onclick="deleteItem('${item.key}')" class="flex-1 bg-red-500 text-white p-1 rounded">🗑</button>
-          </div>
         </div>
       `;
     });
@@ -135,42 +138,6 @@
     const filtered = allItems.filter(i => i.name.toLowerCase().includes(q));
     displayGallery(filtered);
   });
-
-  // Copy Link
-  function copyLink(url) {
-    navigator.clipboard.writeText(url);
-    alert("Link copied!");
-  }
-
-  // QR Code
-  function showQR(url) {
-    const qrWindow = window.open("", "QR Code", "width=300,height=300");
-    QRCode.toCanvas(url, { width: 250 }, (err, canvas) => {
-      if (!err) qrWindow.document.body.appendChild(canvas);
-    });
-  }
-
-  // Download Media
-  function downloadMedia(dataUrl, filename) {
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  }
-
-  // Delete with passcode
-  function deleteItem(key) {
-    const pass = prompt("Enter admin passcode:");
-    if (pass === "1234") {
-      db.ref('gallery/' + key).remove();
-      alert("Deleted!");
-      loadGallery();
-    } else {
-      alert("Wrong passcode!");
-    }
-  }
 
   // Light/Dark Mode
   document.getElementById('toggleTheme').addEventListener('click', () => {
@@ -189,6 +156,17 @@
   }
   function closeLightbox() {
     document.getElementById('lightbox').style.display = 'none';
+  }
+
+  // Download from Lightbox
+  function downloadCurrent() {
+    const item = allItems[currentLightboxIndex];
+    const a = document.createElement('a');
+    a.href = item.data;
+    a.download = item.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   // Swipe for Lightbox
