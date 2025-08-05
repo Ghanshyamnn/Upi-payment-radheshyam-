@@ -118,9 +118,10 @@
       gallery.innerHTML += `
         <div class="bg-white dark:bg-gray-700 p-2 rounded shadow">
           ${media}
-          <div class="flex gap-2 mt-2 text-xs">
+          <div class="flex gap-1 mt-2 text-xs">
             <button onclick="copyLink('${item.data}')" class="flex-1 bg-gray-200 dark:bg-gray-600 p-1 rounded">Copy</button>
             <button onclick="showQR('${item.data}')" class="flex-1 bg-gray-200 dark:bg-gray-600 p-1 rounded">QR</button>
+            <button onclick="downloadMedia('${item.data}','${item.name}')" class="flex-1 bg-green-500 text-white p-1 rounded">⬇</button>
             <button onclick="deleteItem('${item.key}')" class="flex-1 bg-red-500 text-white p-1 rounded">🗑</button>
           </div>
         </div>
@@ -147,6 +148,16 @@
     QRCode.toCanvas(url, { width: 250 }, (err, canvas) => {
       if (!err) qrWindow.document.body.appendChild(canvas);
     });
+  }
+
+  // Download Media
+  function downloadMedia(dataUrl, filename) {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   // Delete with passcode
