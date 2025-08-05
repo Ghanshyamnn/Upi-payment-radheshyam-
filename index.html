@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenGallery Mobile</title>
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <style>
   body.dark { background-color: #1a202c; color: white; }
   #lightbox {
@@ -26,6 +25,13 @@
     border-radius: 6px;
     color: white;
     font-size: 14px;
+  }
+  /* Upload Popup */
+  #uploadPopup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none; align-items: center; justify-content: center;
+    z-index: 99999;
   }
 </style>
 </head>
@@ -55,6 +61,14 @@
   <button id="downloadBtn" onclick="event.stopPropagation(); downloadCurrent()">⬇ Download</button>
 </div>
 
+<!-- Upload Popup -->
+<div id="uploadPopup">
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+    <h2 class="text-lg font-bold mb-2">Uploading...</h2>
+    <p id="uploadStatus" class="text-sm">Please wait</p>
+  </div>
+</div>
+
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
@@ -76,6 +90,8 @@
   const fileInput = document.getElementById('fileInput');
   const gallery = document.getElementById('gallery');
   const searchInput = document.getElementById('search');
+  const uploadPopup = document.getElementById('uploadPopup');
+  const uploadStatus = document.getElementById('uploadStatus');
   let allItems = [];
   let currentLightboxIndex = 0;
 
@@ -89,10 +105,19 @@
     });
   }
 
-  // Upload Files
+  // Upload Files with Popup
   fileInput.addEventListener('change', async (e) => {
     const files = e.target.files;
+    if (!files.length) return;
+
+    uploadPopup.style.display = 'flex';
+    let total = files.length;
+    let count = 0;
+
     for (let file of files) {
+      count++;
+      uploadStatus.innerText = `Uploading ${count} of ${total}`;
+
       const base64Data = await fileToBase64(file);
       const fileData = {
         name: file.name,
@@ -102,8 +127,12 @@
       };
       await db.ref('gallery').push(fileData);
     }
-    alert("Upload complete!");
-    loadGallery();
+
+    uploadStatus.innerText = "Upload complete!";
+    setTimeout(() => {
+      uploadPopup.style.display = 'none';
+      loadGallery();
+    }, 800);
   });
 
   // Load Gallery
