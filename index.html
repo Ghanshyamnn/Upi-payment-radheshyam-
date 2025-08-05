@@ -1,153 +1,154 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Friends Chat</title>
+<title>OpenGallery (No Storage)</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <style>
-  body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
-  header { background: #4a90e2; color: white; padding: 12px; text-align: center; font-size: 18px; }
-  #friendsList { background: white; border-bottom: 1px solid #ccc; display: flex; overflow-x: auto; }
-  .friend { padding: 10px; cursor: pointer; white-space: nowrap; border-right: 1px solid #eee; }
-  .friend.active { background: #d6e9ff; }
-  #chat { height: calc(100vh - 190px); overflow-y: auto; padding: 10px; }
-  .msg { background: white; margin: 8px 0; padding: 8px 12px; border-radius: 10px; max-width: 80%; word-wrap: break-word; }
-  .msg img { max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; }
-  #input-area { display: flex; padding: 8px; background: white; gap: 6px; border-top: 1px solid #ccc; position: fixed; bottom: 0; width: 100%; }
-  input[type="text"] { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; font-size: 16px; }
-  input[type="file"] { display: none; }
-  .upload-btn, .send-btn, .gallery-btn { background: #4a90e2; color: white; border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
-  #galleryModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; overflow-y: auto; }
-  #galleryContent { display: flex; flex-wrap: wrap; padding: 10px; justify-content: center; }
-  #galleryContent img { max-width: 45%; margin: 5px; border-radius: 8px; cursor: pointer; }
-  #fullImageView { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 10000; }
-  #fullImageView img { max-width: 90%; max-height: 90%; border-radius: 8px; }
+  body.dark { background-color: #1a202c; color: white; }
 </style>
 </head>
-<body>
+<body class="bg-gray-100 dark:bg-gray-900">
 
-<header>📱 Friends Chat</header>
+<!-- Header -->
+<header class="p-4 bg-white dark:bg-gray-800 flex justify-between items-center shadow">
+  <h1 class="text-2xl font-bold">OpenGallery</h1>
+  <div class="flex gap-2 items-center">
+    <input type="text" id="search" placeholder="Search..." class="border px-2 py-1 rounded">
+    <button id="toggleTheme" class="px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded">🌓</button>
+    <label class="px-3 py-1 bg-blue-500 text-white rounded cursor-pointer">
+      Upload
+      <input type="file" id="fileInput" class="hidden" multiple accept="image/*,video/*">
+    </label>
+  </div>
+</header>
 
-<div id="friendsList"></div>
+<!-- Gallery -->
+<main id="gallery" class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4"></main>
 
-<div id="chat"></div>
-
-<div id="input-area">
-  <label for="imageInput" class="upload-btn">📷</label>
-  <input type="file" id="imageInput" accept="image/*">
-  <button id="galleryBtn" class="gallery-btn">🖼️</button>
-  <input type="text" id="messageInput" placeholder="Type a message...">
-  <button id="sendBtn" class="send-btn">➡️</button>
-</div>
-
-<!-- Gallery Modal -->
-<div id="galleryModal">
-  <div id="galleryContent"></div>
-</div>
-
-<!-- Full Image View -->
-<div id="fullImageView">
-  <img src="" alt="Full View">
-</div>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
 
 <script>
-const friends = ["कमल कुमार", "लखन ठाकुर", "रोहित शर्मा", "अजय वर्मा", "नेहा गुप्ता"];
-let currentFriend = friends[0];
-let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || {};
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAa-r7rwMxNMZGKucXtwdHimKq77iX7MpM",
+    authDomain: "grsc-chet.firebaseapp.com",
+    databaseURL: "https://grsc-chet-default-rtdb.firebaseio.com",
+    projectId: "grsc-chet",
+    messagingSenderId: "1029401721470",
+    appId: "1:1029401721470:web:c75cb33423c7f567ec362f"
+  };
 
-const friendsListDiv = document.getElementById("friendsList");
-const chatDiv = document.getElementById("chat");
-const imageInput = document.getElementById("imageInput");
-const messageInput = document.getElementById("messageInput");
-const sendBtn = document.getElementById("sendBtn");
-const galleryBtn = document.getElementById("galleryBtn");
-const galleryModal = document.getElementById("galleryModal");
-const galleryContent = document.getElementById("galleryContent");
-const fullImageView = document.getElementById("fullImageView");
-const fullImageElement = fullImageView.querySelector("img");
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-function renderFriendsList() {
-  friendsListDiv.innerHTML = "";
-  friends.forEach(friend => {
-    const div = document.createElement("div");
-    div.classList.add("friend");
-    if (friend === currentFriend) div.classList.add("active");
-    div.textContent = friend;
-    div.onclick = () => { currentFriend = friend; renderFriendsList(); renderChat(); };
-    friendsListDiv.appendChild(div);
-  });
-}
+  const fileInput = document.getElementById('fileInput');
+  const gallery = document.getElementById('gallery');
+  const searchInput = document.getElementById('search');
+  let allItems = [];
 
-function renderChat() {
-  chatDiv.innerHTML = "";
-  const msgs = chatHistory[currentFriend] || [];
-  msgs.forEach(msg => {
-    const msgDiv = document.createElement("div");
-    msgDiv.classList.add("msg");
-    if (msg.text) msgDiv.innerHTML += `<div>${msg.text}</div>`;
-    if (msg.image) {
-      const img = document.createElement("img");
-      img.src = msg.image;
-      img.onclick = () => openFullImage(msg.image);
-      msgDiv.appendChild(img);
-    }
-    chatDiv.appendChild(msgDiv);
-  });
-  chatDiv.scrollTop = chatDiv.scrollHeight;
-}
-
-function openFullImage(src) {
-  fullImageElement.src = src;
-  fullImageView.style.display = "flex";
-}
-
-fullImageView.onclick = () => { fullImageView.style.display = "none"; };
-
-sendBtn.addEventListener("click", () => {
-  const text = messageInput.value.trim();
-  if (!text && imageInput.files.length === 0) return;
-
-  if (imageInput.files.length > 0) {
-    const formData = new FormData();
-    formData.append("image", imageInput.files[0]);
-
-    fetch("upload.php", { method: "POST", body: formData })
-      .then(res => res.text())
-      .then(url => {
-        saveMessage(text, url);
-      })
-      .catch(err => console.error(err));
-  } else {
-    saveMessage(text, null);
+  // File to Base64
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
   }
-});
 
-function saveMessage(text, image) {
-  if (!chatHistory[currentFriend]) chatHistory[currentFriend] = [];
-  chatHistory[currentFriend].push({ text, image });
-  localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-  renderChat();
-  messageInput.value = "";
-  imageInput.value = "";
-}
-
-galleryBtn.addEventListener("click", () => {
-  galleryContent.innerHTML = "";
-  const msgs = chatHistory[currentFriend] || [];
-  msgs.filter(m => m.image).forEach(m => {
-    const img = document.createElement("img");
-    img.src = m.image;
-    img.onclick = () => openFullImage(m.image);
-    galleryContent.appendChild(img);
+  // Upload Files
+  fileInput.addEventListener('change', async (e) => {
+    const files = e.target.files;
+    for (let file of files) {
+      const base64Data = await fileToBase64(file);
+      const fileData = {
+        name: file.name,
+        data: base64Data,
+        type: file.type.startsWith("video") ? "video" : "image",
+        timestamp: Date.now()
+      };
+      await db.ref('gallery').push(fileData);
+    }
+    alert("Upload complete!");
+    loadGallery();
   });
-  galleryModal.style.display = "block";
-});
 
-galleryModal.onclick = () => { galleryModal.style.display = "none"; };
+  // Load Gallery
+  async function loadGallery() {
+    gallery.innerHTML = '';
+    allItems = [];
+    const snapshot = await db.ref('gallery').orderByChild('timestamp').once('value');
+    snapshot.forEach(child => {
+      allItems.unshift({ key: child.key, ...child.val() });
+    });
+    displayGallery(allItems);
+  }
 
-renderFriendsList();
-renderChat();
+  // Display Items
+  function displayGallery(items) {
+    gallery.innerHTML = '';
+    items.forEach(item => {
+      const media = item.type === "video"
+        ? `<video src="${item.data}" controls class="w-full rounded"></video>`
+        : `<img src="${item.data}" class="w-full rounded cursor-pointer">`;
+      gallery.innerHTML += `
+        <div class="bg-white dark:bg-gray-700 p-2 rounded shadow">
+          ${media}
+          <div class="flex gap-2 mt-2">
+            <button onclick="copyLink('${item.data}')" class="flex-1 bg-gray-200 dark:bg-gray-600 p-1 rounded text-sm">Copy</button>
+            <button onclick="showQR('${item.data}')" class="flex-1 bg-gray-200 dark:bg-gray-600 p-1 rounded text-sm">QR</button>
+            <button onclick="deleteItem('${item.key}')" class="flex-1 bg-red-500 text-white p-1 rounded text-sm">🗑</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  // Search Filter
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase();
+    const filtered = allItems.filter(i => i.name.toLowerCase().includes(q));
+    displayGallery(filtered);
+  });
+
+  // Copy Link
+  function copyLink(url) {
+    navigator.clipboard.writeText(url);
+    alert("Link copied!");
+  }
+
+  // QR Code
+  function showQR(url) {
+    const qrWindow = window.open("", "QR Code", "width=300,height=300");
+    QRCode.toCanvas(url, { width: 250 }, (err, canvas) => {
+      if (!err) qrWindow.document.body.appendChild(canvas);
+    });
+  }
+
+  // Delete with passcode
+  function deleteItem(key) {
+    const pass = prompt("Enter admin passcode:");
+    if (pass === "1234") { // change passcode
+      db.ref('gallery/' + key).remove();
+      alert("Deleted!");
+      loadGallery();
+    } else {
+      alert("Wrong passcode!");
+    }
+  }
+
+  // Theme Toggle
+  document.getElementById('toggleTheme').addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+  });
+
+  // Initial Load
+  loadGallery();
 </script>
-
 </body>
 </html>
