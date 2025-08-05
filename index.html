@@ -1,18 +1,153 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="hi">
 <head>
-    <title>Hello World!</title>
-    <link rel="stylesheet" href="styles.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Friends Chat</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
+  header { background: #4a90e2; color: white; padding: 12px; text-align: center; font-size: 18px; }
+  #friendsList { background: white; border-bottom: 1px solid #ccc; display: flex; overflow-x: auto; }
+  .friend { padding: 10px; cursor: pointer; white-space: nowrap; border-right: 1px solid #eee; }
+  .friend.active { background: #d6e9ff; }
+  #chat { height: calc(100vh - 190px); overflow-y: auto; padding: 10px; }
+  .msg { background: white; margin: 8px 0; padding: 8px 12px; border-radius: 10px; max-width: 80%; word-wrap: break-word; }
+  .msg img { max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; }
+  #input-area { display: flex; padding: 8px; background: white; gap: 6px; border-top: 1px solid #ccc; position: fixed; bottom: 0; width: 100%; }
+  input[type="text"] { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; font-size: 16px; }
+  input[type="file"] { display: none; }
+  .upload-btn, .send-btn, .gallery-btn { background: #4a90e2; color: white; border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+  #galleryModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; overflow-y: auto; }
+  #galleryContent { display: flex; flex-wrap: wrap; padding: 10px; justify-content: center; }
+  #galleryContent img { max-width: 45%; margin: 5px; border-radius: 8px; cursor: pointer; }
+  #fullImageView { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 10000; }
+  #fullImageView img { max-width: 90%; max-height: 90%; border-radius: 8px; }
+</style>
 </head>
-
 <body>
-    <h1 style="color:green;">GeeksforGeeks</h1>
-    <form action="upload.php" method="post" enctype="multipart/form-data">
-        <label for="imageUpload">Choose an image to upload:</label>
-        <input type="file" id="imageUpload" name="image" accept="image/*">
-        <input type="submit" value="Upload Image">
-    </form>
-</body>
 
+<header>📱 Friends Chat</header>
+
+<div id="friendsList"></div>
+
+<div id="chat"></div>
+
+<div id="input-area">
+  <label for="imageInput" class="upload-btn">📷</label>
+  <input type="file" id="imageInput" accept="image/*">
+  <button id="galleryBtn" class="gallery-btn">🖼️</button>
+  <input type="text" id="messageInput" placeholder="Type a message...">
+  <button id="sendBtn" class="send-btn">➡️</button>
+</div>
+
+<!-- Gallery Modal -->
+<div id="galleryModal">
+  <div id="galleryContent"></div>
+</div>
+
+<!-- Full Image View -->
+<div id="fullImageView">
+  <img src="" alt="Full View">
+</div>
+
+<script>
+const friends = ["कमल कुमार", "लखन ठाकुर", "रोहित शर्मा", "अजय वर्मा", "नेहा गुप्ता"];
+let currentFriend = friends[0];
+let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || {};
+
+const friendsListDiv = document.getElementById("friendsList");
+const chatDiv = document.getElementById("chat");
+const imageInput = document.getElementById("imageInput");
+const messageInput = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendBtn");
+const galleryBtn = document.getElementById("galleryBtn");
+const galleryModal = document.getElementById("galleryModal");
+const galleryContent = document.getElementById("galleryContent");
+const fullImageView = document.getElementById("fullImageView");
+const fullImageElement = fullImageView.querySelector("img");
+
+function renderFriendsList() {
+  friendsListDiv.innerHTML = "";
+  friends.forEach(friend => {
+    const div = document.createElement("div");
+    div.classList.add("friend");
+    if (friend === currentFriend) div.classList.add("active");
+    div.textContent = friend;
+    div.onclick = () => { currentFriend = friend; renderFriendsList(); renderChat(); };
+    friendsListDiv.appendChild(div);
+  });
+}
+
+function renderChat() {
+  chatDiv.innerHTML = "";
+  const msgs = chatHistory[currentFriend] || [];
+  msgs.forEach(msg => {
+    const msgDiv = document.createElement("div");
+    msgDiv.classList.add("msg");
+    if (msg.text) msgDiv.innerHTML += `<div>${msg.text}</div>`;
+    if (msg.image) {
+      const img = document.createElement("img");
+      img.src = msg.image;
+      img.onclick = () => openFullImage(msg.image);
+      msgDiv.appendChild(img);
+    }
+    chatDiv.appendChild(msgDiv);
+  });
+  chatDiv.scrollTop = chatDiv.scrollHeight;
+}
+
+function openFullImage(src) {
+  fullImageElement.src = src;
+  fullImageView.style.display = "flex";
+}
+
+fullImageView.onclick = () => { fullImageView.style.display = "none"; };
+
+sendBtn.addEventListener("click", () => {
+  const text = messageInput.value.trim();
+  if (!text && imageInput.files.length === 0) return;
+
+  if (imageInput.files.length > 0) {
+    const formData = new FormData();
+    formData.append("image", imageInput.files[0]);
+
+    fetch("upload.php", { method: "POST", body: formData })
+      .then(res => res.text())
+      .then(url => {
+        saveMessage(text, url);
+      })
+      .catch(err => console.error(err));
+  } else {
+    saveMessage(text, null);
+  }
+});
+
+function saveMessage(text, image) {
+  if (!chatHistory[currentFriend]) chatHistory[currentFriend] = [];
+  chatHistory[currentFriend].push({ text, image });
+  localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+  renderChat();
+  messageInput.value = "";
+  imageInput.value = "";
+}
+
+galleryBtn.addEventListener("click", () => {
+  galleryContent.innerHTML = "";
+  const msgs = chatHistory[currentFriend] || [];
+  msgs.filter(m => m.image).forEach(m => {
+    const img = document.createElement("img");
+    img.src = m.image;
+    img.onclick = () => openFullImage(m.image);
+    galleryContent.appendChild(img);
+  });
+  galleryModal.style.display = "block";
+});
+
+galleryModal.onclick = () => { galleryModal.style.display = "none"; };
+
+renderFriendsList();
+renderChat();
+</script>
+
+</body>
 </html>
