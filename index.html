@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Friends Chat with Mobile Gallery</title>
+<title>Friends Chat</title>
 <style>
   body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
   header { background: #4a90e2; color: white; padding: 12px; text-align: center; font-size: 18px; }
@@ -34,8 +34,8 @@
 
 <div id="input-area">
   <label for="imageInput" class="upload-btn">📷</label>
-  <!-- यहाँ capture="false" ताकि मोबाइल में गैलरी खुले -->
-  <input type="file" id="imageInput" accept="image/*" capture="false">
+  <!-- सिर्फ गैलरी ओपन करने के लिए capture नहीं लगाया -->
+  <input type="file" id="imageInput" accept="image/*">
   <button id="galleryBtn" class="gallery-btn">🖼️</button>
   <input type="text" id="messageInput" placeholder="Type a message...">
   <button id="sendBtn" class="send-btn">➡️</button>
