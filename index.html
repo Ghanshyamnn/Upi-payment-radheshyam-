@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenGallery Final</title>
+<title>OpenGallery Final Fixed</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body.dark { background-color: #1a202c; color: white; }
@@ -66,12 +66,16 @@ let allItems = [];
 let loadedKeys = new Set();
 let currentLightboxIndex = 0;
 
-// Local cache load
+// Local cache load for instant display
 function loadFromCache() {
   const cached = localStorage.getItem("galleryCache");
   if (cached) {
-    allItems = JSON.parse(cached);
-    renderGallery();
+    try {
+      allItems = JSON.parse(cached);
+      renderGallery();
+    } catch(e) {
+      console.error("Cache parse error", e);
+    }
   }
 }
 
@@ -131,8 +135,20 @@ document.getElementById('fileInput').addEventListener('change', async (e) => {
   }
 });
 
-// Real-time load
-function loadGallery() {
+// Initial load (all data once)
+async function loadInitialData() {
+  const snap = await db.ref('gallery').orderByChild('timestamp').once('value');
+  allItems = [];
+  snap.forEach(child => {
+    allItems.unshift({ key: child.key, ...child.val() });
+    loadedKeys.add(child.key);
+  });
+  saveToCache();
+  renderGallery();
+}
+
+// Real-time new data listener
+function startRealtimeUpdates() {
   db.ref('gallery').orderByChild('timestamp').on('child_added', (snap) => {
     if (!loadedKeys.has(snap.key)) {
       loadedKeys.add(snap.key);
@@ -189,7 +205,7 @@ document.getElementById('toggleTheme').addEventListener('click', () => {
 
 // Init
 loadFromCache();
-loadGallery();
+loadInitialData().then(startRealtimeUpdates);
 </script>
 </body>
 </html>
