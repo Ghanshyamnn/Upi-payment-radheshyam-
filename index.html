@@ -123,7 +123,7 @@
     });
   }
 
-  // Upload Files in Parallel
+  // Upload Files in Parallel + Real-time
   fileInput.addEventListener('change', async (e) => {
     const files = [...e.target.files];
     if (!files.length) return;
@@ -136,9 +136,9 @@
 
       let base64Data;
       if (file.type.startsWith("image")) {
-        base64Data = await resizeImage(file, 1280, 0.7); // compress image
+        base64Data = await resizeImage(file, 1280, 0.7);
       } else {
-        base64Data = await fileToBase64(file); // video as is
+        base64Data = await fileToBase64(file);
       }
 
       const fileData = {
@@ -156,25 +156,23 @@
     uploadStatus.innerText = "Upload complete!";
     setTimeout(() => {
       uploadPopup.style.display = 'none';
-      loadGallery();
     }, 800);
   });
 
-  // Load Gallery
-  async function loadGallery() {
-    gallery.innerHTML = '';
+  // Real-time Gallery Listener
+  db.ref('gallery').orderByChild('timestamp').on('value', (snapshot) => {
     allItems = [];
-    const snapshot = await db.ref('gallery').orderByChild('timestamp').once('value');
     snapshot.forEach(child => {
       allItems.unshift({ key: child.key, ...child.val() });
     });
     displayGallery(allItems);
-  }
+  });
 
   // Display Items
   function displayGallery(items) {
     gallery.innerHTML = '';
-    items.forEach((item, index) => {
+    const searchTerm = searchInput.value.toLowerCase();
+    items.filter(i => i.name.toLowerCase().includes(searchTerm)).forEach((item, index) => {
       const media = item.type === "video"
         ? `<video src="${item.data}" controls class="w-full rounded cursor-pointer" onclick="openLightbox(${index})"></video>`
         : `<img src="${item.data}" class="w-full rounded cursor-pointer" onclick="openLightbox(${index})">`;
@@ -184,9 +182,7 @@
 
   // Search
   searchInput.addEventListener('input', () => {
-    const q = searchInput.value.toLowerCase();
-    const filtered = allItems.filter(i => i.name.toLowerCase().includes(q));
-    displayGallery(filtered);
+    displayGallery(allItems);
   });
 
   // Light/Dark Mode
@@ -237,9 +233,6 @@
     currentLightboxIndex = (currentLightboxIndex + 1) % allItems.length;
     openLightbox(currentLightboxIndex);
   }
-
-  // Init
-  loadGallery();
 </script>
 </body>
 </html>
