@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Firebase Real‑time Photo Gallery</title>
+<title>Firebase Photo Gallery (200 Photos Smooth Load)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body { font-family: Arial, sans-serif; margin: 0; background: #ece5dd; display: flex; flex-direction: column; height: 100vh; }
@@ -10,6 +10,8 @@
   #gallery { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
   .photo { width: 32%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; cursor: pointer; transition: transform 0.2s; }
   .photo:hover { transform: scale(1.05); }
+  #loadMore { width: 100%; padding: 10px; background: #25D366; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px 0; }
+  #loadMore:hover { background: #128C7E; }
   #uploadArea { display: flex; justify-content: center; padding: 8px; background: #f0f0f0; border-top: 1px solid #ddd; }
   button.uploadBtn { padding: 10px; border: none; border-radius: 50%; background: #25D366; color: white; font-size: 20px; width: 50px; height: 50px; }
   button.uploadBtn:hover { background: #128C7E; cursor: pointer; }
@@ -31,6 +33,7 @@
 </div>
 
 <div id="gallery"></div>
+<button id="loadMore" onclick="loadMorePhotos()">📂 Load More</button>
 
 <div id="uploadArea">
   <button class="uploadBtn" onclick="chooseImage()">📷</button>
@@ -69,17 +72,51 @@ const photoCountEl = document.getElementById("photoCount");
 
 let images = [];
 let currentIndex = 0;
+let lastLoadedKey = null;
+let totalPhotos = 0;
+const BATCH_LIMIT = 50;
 
-// ✅ Real‑time load: जब भी नई फोटो आए, तुरंत जोड़ो
-db.limitToLast(50).on("child_added", snap => {
+// 🔹 रीयल‑टाइम नया डेटा (आखिरी 50)
+db.limitToLast(BATCH_LIMIT).on("child_added", snap => {
   const data = snap.val();
-  if (data.imageData) {
-    images.push({ src: data.imageData, time: data.timestamp || Date.now() });
+  if (data.imageData && !images.find(img => img.key === snap.key)) {
+    images.push({ src: data.imageData, time: data.timestamp || Date.now(), key: snap.key });
     renderImages();
   }
 });
 
-// ✅ गैलरी रेंडर करो
+// 🔹 टोटल फोटो काउंट
+db.on("value", snapshot => {
+  totalPhotos = snapshot.numChildren();
+  photoCountEl.textContent = `Total: ${totalPhotos} Photos`;
+});
+
+// 🔹 पुराना डेटा लोड (50‑50)
+function loadMorePhotos() {
+  if (!lastLoadedKey && images.length) {
+    lastLoadedKey = images[0].key;
+  }
+  if (!lastLoadedKey) return;
+
+  db.orderByKey().endBefore(lastLoadedKey).limitToLast(BATCH_LIMIT).once("value", snapshot => {
+    let older = [];
+    snapshot.forEach(child => {
+      const data = child.val();
+      if (data.imageData) {
+        older.push({ src: data.imageData, time: data.timestamp || Date.now(), key: child.key });
+      }
+    });
+    if (older.length > 0) {
+      lastLoadedKey = older[0].key;
+      images = [...older, ...images];
+      renderImages();
+    } else {
+      alert("No more photos!");
+    }
+  });
+}
+
+// 🔹 गैलरी रेंडर
 function renderImages() {
   galleryBox.innerHTML = "";
   images.forEach((imgData, i) => {
@@ -89,10 +126,9 @@ function renderImages() {
     img.onclick = () => openViewer(i);
     galleryBox.appendChild(img);
   });
-  photoCountEl.textContent = `Total: ${images.length} Photos`;
 }
 
-// ✅ फुल‑स्क्रीन व्यूअर
+// 🔹 फुल‑स्क्रीन व्यूअर
 function openViewer(index) {
   currentIndex = index;
   const img = images[currentIndex];
@@ -106,7 +142,7 @@ function showNext() { currentIndex = (currentIndex + 1) % images.length; openVie
 function showPrev() { currentIndex = (currentIndex - 1 + images.length) % images.length; openViewer(currentIndex); }
 function formatDate(ts) { const d = new Date(ts); return d.toLocaleDateString() + " " + d.toLocaleTimeString(); }
 
-// ✅ फोटो अपलोड
+// 🔹 अपलोड
 function chooseImage() {
   const input = document.createElement("input");
   input.type = "file";
@@ -137,7 +173,7 @@ function compressAndSendImage(file) {
   reader.readAsDataURL(file);
 }
 
-// ✅ Swipe सपोर्ट
+// 🔹 Swipe
 let touchStartX = 0;
 document.getElementById("viewer").addEventListener("touchstart", e => {
   touchStartX = e.changedTouches[0].screenX;
