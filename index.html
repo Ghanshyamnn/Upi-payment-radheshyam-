@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Firebase Photo Gallery</title>
+<title>Firebase Photo Gallery (Auto Load)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body { font-family: Arial, sans-serif; margin: 0; background: #ece5dd; display: flex; flex-direction: column; height: 100vh; }
@@ -10,8 +10,6 @@
   #gallery { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
   .photo { width: 32%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; cursor: pointer; transition: transform 0.2s; }
   .photo:hover { transform: scale(1.05); }
-  #loadMore { width: 100%; padding: 10px; margin: 10px 0; background: #25D366; color: white; border: none; border-radius: 5px; cursor: pointer; }
-  #loadMore:hover { background: #128C7E; }
   #uploadArea { display: flex; justify-content: center; padding: 8px; background: #f0f0f0; border-top: 1px solid #ddd; }
   button.uploadBtn { padding: 10px; border: none; border-radius: 50%; background: #25D366; color: white; font-size: 20px; width: 50px; height: 50px; }
   button.uploadBtn:hover { background: #128C7E; cursor: pointer; }
@@ -33,7 +31,6 @@
 </div>
 
 <div id="gallery"></div>
-<button id="loadMore" onclick="loadMorePhotos()">📂 Load More Photos</button>
 
 <div id="uploadArea">
   <button class="uploadBtn" onclick="chooseImage()">📷</button>
@@ -75,44 +72,38 @@ let currentIndex = 0;
 let lastLoadedKey = null;
 const LOAD_LIMIT = 50;
 
-// Load first batch
-function loadLatestPhotos() {
+// First load
+loadPhotos();
+
+// Auto refresh every 1 minute
+setInterval(loadPhotos, 60000);
+
+// Load latest photos
+function loadPhotos() {
   db.limitToLast(LOAD_LIMIT).once("value", snapshot => {
+    let newImages = [];
+    snapshot.forEach(child => {
+      const data = child.val();
+      if (data.imageData) {
+        newImages.push({ src: data.imageData, time: data.timestamp || Date.now(), key: child.key });
+      }
+    });
+
+    // Show one by one
     galleryBox.innerHTML = "";
     images = [];
-    snapshot.forEach(child => {
-      const data = child.val();
-      if (data.imageData) {
-        images.push({ src: data.imageData, time: data.timestamp || Date.now(), key: child.key });
-      }
+    let delay = 0;
+    newImages.forEach((img, i) => {
+      setTimeout(() => {
+        images.push(img);
+        renderImages();
+      }, delay);
+      delay += 100; // 0.1 sec delay between images
     });
-    lastLoadedKey = images[0]?.key || null;
-    renderImages();
   });
 }
 
-// Load more
-function loadMorePhotos() {
-  if (!lastLoadedKey) return;
-  db.orderByKey().endBefore(lastLoadedKey).limitToLast(LOAD_LIMIT).once("value", snapshot => {
-    let older = [];
-    snapshot.forEach(child => {
-      const data = child.val();
-      if (data.imageData) {
-        older.push({ src: data.imageData, time: data.timestamp || Date.now(), key: child.key });
-      }
-    });
-    if (older.length > 0) {
-      lastLoadedKey = older[0].key;
-      images = [...older, ...images];
-      renderImages();
-    } else {
-      alert("No more photos!");
-    }
-  });
-}
-
-// Render
+// Render gallery
 function renderImages() {
   galleryBox.innerHTML = "";
   images.forEach((imgData, i) => {
@@ -164,7 +155,7 @@ function compressAndSendImage(file) {
       canvas.width = w; canvas.height = h;
       ctx.drawImage(img, 0, 0, w, h);
       const compressed = canvas.toDataURL("image/jpeg", 0.7);
-      db.push({ imageData: compressed, timestamp: Date.now() }).then(() => loadLatestPhotos());
+      db.push({ imageData: compressed, timestamp: Date.now() }).then(() => loadPhotos());
     };
   };
   reader.readAsDataURL(file);
@@ -180,9 +171,6 @@ document.getElementById("viewer").addEventListener("touchend", e => {
   if (touchEndX < touchStartX - 50) showNext();
   if (touchEndX > touchStartX + 50) showPrev();
 });
-
-// Start
-loadLatestPhotos();
 </script>
 
 </body>
