@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenGallery Mobile Optimized</title>
+<title>OpenGallery Fast Upload</title>
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 <style>
   body.dark { background-color: #1a202c; color: white; }
@@ -95,7 +95,7 @@
   let allItems = [];
   let currentLightboxIndex = 0;
 
-  // Compress Image to Base64 (~500KB)
+  // Compress Image (~300KB target)
   function resizeImage(file, maxWidth = 1024, quality = 0.6) {
     return new Promise((resolve) => {
       const img = new Image();
@@ -117,7 +117,7 @@
     });
   }
 
-  // Upload Files
+  // Upload Files Fast
   fileInput.addEventListener('change', async (e) => {
     const files = [...e.target.files];
     if (!files.length) return;
@@ -130,27 +130,30 @@
       uploadStatus.innerText = `Uploading ${uploaded} of ${files.length}`;
 
       if (file.type.startsWith("image")) {
-        // Compress and upload image as Base64 to DB
+        // Compress image & push to DB instantly
         const base64Data = await resizeImage(file);
-        const fileData = {
+        const newRef = db.ref('gallery').push();
+        await newRef.set({
           name: file.name,
           data: base64Data,
           type: "image",
           timestamp: Date.now()
-        };
-        await db.ref('gallery').push(fileData);
+        });
       } else if (file.type.startsWith("video")) {
+        // Add placeholder in DB instantly
+        const newRef = db.ref('gallery').push();
+        const placeholderKey = newRef.key;
+        await newRef.set({
+          name: file.name,
+          data: "", // will update after upload
+          type: "video",
+          timestamp: Date.now()
+        });
         // Upload video to Storage
         const storageRef = storage.ref('videos/' + Date.now() + '-' + file.name);
         await storageRef.put(file);
         const url = await storageRef.getDownloadURL();
-        const fileData = {
-          name: file.name,
-          data: url,
-          type: "video",
-          timestamp: Date.now()
-        };
-        await db.ref('gallery').push(fileData);
+        await db.ref('gallery/' + placeholderKey).update({ data: url });
       }
     }));
 
