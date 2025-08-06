@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenGallery Responsive</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body.dark { background-color: #1a202c; color: white; }
+  #lightbox {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: none; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 9999;
+  }
+  #lightbox img, #lightbox video {
+    max-width: 95%; max-height: 85%;
+    border-radius: 8px;
+  }
+  #downloadBtn {
+    margin-top: 10px;
+    background: rgba(255,255,255,0.2);
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+  }
+  #uploadPopup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none; align-items: center; justify-content: center;
+    z-index: 99999;
+  }
+</style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+
+<!-- Header -->
+<header class="p-4 bg-white dark:bg-gray-800 flex flex-col sm:flex-row sm:justify-between sm:items-center shadow gap-3">
+  <div class="flex justify-between items-center w-full sm:w-auto">
+    <h1 class="text-xl font-bold">📸 OpenGallery</h1>
+    <button id="toggleTheme" class="px-2 py-1 bg-gray-300 dark:bg-gray-600 rounded ml-2">🌓</button>
+  </div>
+  <div class="flex gap-2 items-center w-full sm:w-auto">
+    <input type="text" id="search" placeholder="Search..." class="flex-1 border px-3 py-2 rounded text-sm">
+    <label class="px-4 py-2 bg-blue-500 text-white rounded cursor-pointer text-sm hover:bg-blue-600">
+      Upload
+      <input type="file" id="fileInput" class="hidden" multiple accept="image/*,video/*">
+    </label>
+  </div>
+</header>
+
+<!-- Gallery -->
+<main id="gallery" class="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></main>
+
+<!-- Lightbox -->
+<div id="lightbox" onclick="closeLightbox()">
+  <div id="lightboxContent"></div>
+  <button id="downloadBtn" onclick="event.stopPropagation(); downloadCurrent()">⬇ Download</button>
+</div>
+
+<!-- Upload Popup -->
+<div id="uploadPopup">
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+    <h2 class="text-lg font-bold mb-2">Uploading...</h2>
+    <p id="uploadStatus" class="text-sm">Please wait</p>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-storage-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAa-r7rwMxNMZGKucXtwdHimKq77iX7MpM",
+  authDomain: "grsc-chet.firebaseapp.com",
+  databaseURL: "https://grsc-chet-default-rtdb.firebaseio.com",
+  projectId: "grsc-chet",
+  storageBucket: "grsc-chet.appspot.com",
+  messagingSenderId: "1029401721470",
+  appId: "1:1029401721470:web:c75cb33423c7f567ec362f"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const storage = firebase.storage();
+
+const fileInput = document.getElementById('fileInput');
+const gallery = document.getElementById('gallery');
+const searchInput = document.getElementById('search');
+const uploadPopup = document.getElementById('uploadPopup');
+const uploadStatus = document.getElementById('uploadStatus');
+let allItems = [];
+let currentLightboxIndex = 0;
+
+// Compress Image (~300KB)
+function resizeImage(file, maxWidth = 1024, quality = 0.6) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = e => {
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let scale = maxWidth / img.width;
+        if (img.width < maxWidth) scale = 1;
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL(file.type, quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Upload Files Fast
+fileInput.addEventListener('change', async (e) => {
+  const files = [...e.target.files];
+  if (!files.length) return;
+
+  uploadPopup.style.display = 'flex';
+  let uploaded = 0;
+
+  await Promise.all(files.map(async (file) => {
+    uploaded++;
+    uploadStatus.innerText = `Uploading ${uploaded} of ${files.length}`;
+
+    if (file.type.startsWith("image")) {
+      const base64Data = await resizeImage(file);
+      const newRef = db.ref('gallery').push();
+      await newRef.set({
+        name: file.name,
+        data: base64Data,
+        type: "image",
+        timestamp: Date.now()
+      });
+    } else if (file.type.startsWith("video")) {
+      const newRef = db.ref('gallery').push();
+      const placeholderKey = newRef.key;
+      await newRef.set({
+        name: file.name,
+        data: "",
+        type: "video",
+        timestamp: Date.now()
+      });
+      const storageRef = storage.ref('videos/' + Date.now() + '-' + file.name);
+      await storageRef.put(file);
+      const url = await storageRef.getDownloadURL();
+      await db.ref('gallery/' + placeholderKey).update({ data: url });
+    }
+  }));
+
+  uploadStatus.innerText = "Upload complete!";
+  setTimeout(() => {
+    uploadPopup.style.display = 'none';
+  }, 800);
+});
+
+// Real-time Gallery Load
+db.ref('gallery').orderByChild('timestamp').on('value', (snapshot) => {
+  allItems = [];
+  snapshot.forEach(child => {
+    allItems.unshift({ key: child.key, ...child.val() });
+  });
+  displayGallery();
+});
+
+// Display Gallery
+function displayGallery() {
+  gallery.innerHTML = '';
+  const searchTerm = searchInput.value.toLowerCase();
+  allItems.filter(i => i.name.toLowerCase().includes(searchTerm)).forEach((item, index) => {
+    const media = item.type === "video"
+      ? `<video src="${item.data}" controls class="w-full rounded shadow hover:scale-105 transition-transform duration-200 cursor-pointer" onclick="openLightbox(${index})"></video>`
+      : `<img src="${item.data}" class="w-full rounded shadow hover:scale-105 transition-transform duration-200 cursor-pointer" onclick="openLightbox(${index})">`;
+    gallery.innerHTML += `<div class="bg-white dark:bg-gray-700 p-2 rounded shadow">${media}</div>`;
+  });
+}
+
+// Search
+searchInput.addEventListener('input', displayGallery);
+
+// Light/Dark Mode
+document.getElementById('toggleTheme').addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+});
+
+// Lightbox
+function openLightbox(index) {
+  currentLightboxIndex = index;
+  const item = allItems[index];
+  const content = item.type === "video"
+    ? `<video src="${item.data}" controls autoplay></video>`
+    : `<img src="${item.data}">`;
+  document.getElementById('lightboxContent').innerHTML = content;
+  document.getElementById('lightbox').style.display = 'flex';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').style.display = 'none';
+}
+
+// Download
+function downloadCurrent() {
+  const item = allItems[currentLightboxIndex];
+  const a = document.createElement('a');
+  a.href = item.data;
+  a.download = item.name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// Swipe Lightbox
+let touchStartX = 0;
+document.getElementById('lightbox').addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+});
+document.getElementById('lightbox').addEventListener('touchend', e => {
+  const diffX = e.changedTouches[0].screenX - touchStartX;
+  if (diffX > 50) showPrev();
+  if (diffX < -50) showNext();
+});
+function showPrev() {
+  currentLightboxIndex = (currentLightboxIndex - 1 + allItems.length) % allItems.length;
+  openLightbox(currentLightboxIndex);
+}
+function showNext() {
+  currentLightboxIndex = (currentLightboxIndex + 1) % allItems.length;
+  openLightbox(currentLightboxIndex);
+}
+</script>
+</body>
+</html>
