@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>WhatsApp Style Firebase Chat (Full Screen + Swipe)</title>
+<title>WhatsApp Style Firebase Chat (Full Screen + Count)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body { font-family: Arial, sans-serif; margin: 0; background: #ece5dd; display: flex; flex-direction: column; height: 100vh; }
@@ -30,6 +30,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
   }
   #viewer img {
     max-width: 95%; max-height: 85%;
@@ -64,7 +65,7 @@
 <!-- Full screen viewer -->
 <div id="viewer">
   <div id="viewerHeader">
-    <span id="viewerDate"></span>
+    <span id="viewerCount"></span>
     <span style="cursor:pointer;" onclick="closeViewer()">❌ Close</span>
   </div>
   <span class="nav-btn" id="prevBtn" onclick="showPrev()">❮</span>
@@ -114,7 +115,8 @@ function openViewer(index) {
   currentIndex = index;
   const currentImage = images[currentIndex];
   document.getElementById("viewerImg").src = currentImage.src;
-  document.getElementById("viewerDate").innerText = formatDate(currentImage.time);
+  document.getElementById("viewerCount").innerText =
+    `${currentIndex + 1}/${images.length} | ${formatDate(currentImage.time)}`;
   document.getElementById("viewer").style.display = "flex";
 }
 
@@ -135,7 +137,7 @@ function showPrev() {
   openViewer(currentIndex);
 }
 
-// Date formatter
+// Format date & time
 function formatDate(ts) {
   const date = new Date(ts);
   return date.toLocaleDateString() + " " + date.toLocaleTimeString();
@@ -182,18 +184,6 @@ function compressAndSendImage(file) {
   };
   reader.readAsDataURL(file);
 }
-
-// Touch swipe support
-let touchStartX = 0;
-let touchEndX = 0;
-document.getElementById("viewer").addEventListener("touchstart", e => {
-  touchStartX = e.changedTouches[0].screenX;
-});
-document.getElementById("viewer").addEventListener("touchend", e => {
-  touchEndX = e.changedTouches[0].screenX;
-  if (touchEndX < touchStartX - 50) showNext();
-  if (touchEndX > touchStartX + 50) showPrev();
-});
 </script>
 
 </body>
