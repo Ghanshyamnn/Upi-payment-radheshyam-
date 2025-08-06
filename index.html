@@ -10,6 +10,8 @@
   #chat { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
   .chat-img { width: 32%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; cursor: pointer; transition: transform 0.2s; }
   .chat-img:hover { transform: scale(1.05); }
+  #loadMore { width: 100%; padding: 10px; margin-top: 10px; text-align: center; background: #25D366; color: white; border: none; border-radius: 5px; cursor: pointer; }
+  #loadMore:hover { background: #128C7E; }
   #inputArea { display: flex; justify-content: center; padding: 8px; background: #f0f0f0; border-top: 1px solid #ddd; }
   button { padding: 10px; border: none; border-radius: 50%; background: #25D366; color: white; font-size: 20px; width: 50px; height: 50px; }
   button:hover { background: #128C7E; cursor: pointer; }
@@ -61,6 +63,7 @@
 </div>
 
 <div id="chat"></div>
+<button id="loadMore" onclick="loadMorePhotos()">📂 Load More Photos</button>
 
 <div id="inputArea">
   <button onclick="chooseImage()">📷</button>
@@ -94,29 +97,65 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database().ref("global_chat");
-const userId = Math.random().toString(36).substr(2, 9);
 const chatBox = document.getElementById("chat");
 const photoCountEl = document.getElementById("photoCount");
 
 let images = [];
 let currentIndex = 0;
+let lastLoadedKey = null;
+const LOAD_LIMIT = 50;
 
-// Load images from Firebase
-db.on("child_added", snap => {
-  const msg = snap.val();
-  if (msg.imageData) {
-    images.push({ src: msg.imageData, time: msg.timestamp || Date.now() });
-    updatePhotoCount();
+// Load latest photos
+function loadLatestPhotos() {
+  db.limitToLast(LOAD_LIMIT).once("value", snapshot => {
+    chatBox.innerHTML = "";
+    images = [];
+    snapshot.forEach(child => {
+      const msg = child.val();
+      if (msg.imageData) {
+        images.push({ src: msg.imageData, time: msg.timestamp || Date.now(), key: child.key });
+      }
+    });
+    lastLoadedKey = images[0] ? images[0].key : null;
+    renderImages();
+  });
+}
+
+// Load more photos
+function loadMorePhotos() {
+  if (!lastLoadedKey) return;
+  db.orderByKey().endBefore(lastLoadedKey).limitToLast(LOAD_LIMIT).once("value", snapshot => {
+    let olderImages = [];
+    snapshot.forEach(child => {
+      const msg = child.val();
+      if (msg.imageData) {
+        olderImages.push({ src: msg.imageData, time: msg.timestamp || Date.now(), key: child.key });
+      }
+    });
+    if (olderImages.length > 0) {
+      lastLoadedKey = olderImages[0].key;
+      images = [...olderImages, ...images];
+      renderImages();
+    } else {
+      alert("No more photos!");
+    }
+  });
+}
+
+// Render images in chat
+function renderImages() {
+  chatBox.innerHTML = "";
+  images.forEach((imgData, i) => {
     const img = document.createElement("img");
-    img.src = msg.imageData;
+    img.src = imgData.src;
     img.className = "chat-img";
-    img.onclick = () => openViewer(images.findIndex(i => i.src === msg.imageData));
+    img.onclick = () => openViewer(i);
     chatBox.appendChild(img);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-});
+  });
+  updatePhotoCount();
+}
 
-// Update photo count in header
+// Update photo count
 function updatePhotoCount() {
   photoCountEl.textContent = `Total: ${images.length} Photos`;
 }
@@ -190,7 +229,9 @@ function compressAndSendImage(file) {
 
       const compressedData = canvas.toDataURL("image/jpeg", 0.7);
 
-      db.push({ userId, imageData: compressedData, timestamp: Date.now() });
+      db.push({ imageData: compressedData, timestamp: Date.now() }).then(() => {
+        loadLatestPhotos();
+      });
     };
   };
   reader.readAsDataURL(file);
@@ -207,6 +248,9 @@ document.getElementById("viewer").addEventListener("touchend", e => {
   if (touchEndX < touchStartX - 50) showNext();
   if (touchEndX > touchStartX + 50) showPrev();
 });
+
+// Load latest on start
+loadLatestPhotos();
 </script>
 
 </body>
