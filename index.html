@@ -123,7 +123,7 @@
     });
   }
 
-  // Upload Files in Parallel + Real-time
+  // Upload Files in Parallel
   fileInput.addEventListener('change', async (e) => {
     const files = [...e.target.files];
     if (!files.length) return;
@@ -159,20 +159,20 @@
     }, 800);
   });
 
-  // Real-time Gallery Listener
+  // Real-time Gallery Load
   db.ref('gallery').orderByChild('timestamp').on('value', (snapshot) => {
     allItems = [];
     snapshot.forEach(child => {
       allItems.unshift({ key: child.key, ...child.val() });
     });
-    displayGallery(allItems);
+    displayGallery();
   });
 
-  // Display Items
-  function displayGallery(items) {
+  // Display Gallery
+  function displayGallery() {
     gallery.innerHTML = '';
     const searchTerm = searchInput.value.toLowerCase();
-    items.filter(i => i.name.toLowerCase().includes(searchTerm)).forEach((item, index) => {
+    allItems.filter(i => i.name.toLowerCase().includes(searchTerm)).forEach((item, index) => {
       const media = item.type === "video"
         ? `<video src="${item.data}" controls class="w-full rounded cursor-pointer" onclick="openLightbox(${index})"></video>`
         : `<img src="${item.data}" class="w-full rounded cursor-pointer" onclick="openLightbox(${index})">`;
@@ -181,9 +181,7 @@
   }
 
   // Search
-  searchInput.addEventListener('input', () => {
-    displayGallery(allItems);
-  });
+  searchInput.addEventListener('input', displayGallery);
 
   // Light/Dark Mode
   document.getElementById('toggleTheme').addEventListener('click', () => {
