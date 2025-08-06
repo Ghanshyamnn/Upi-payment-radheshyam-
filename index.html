@@ -85,17 +85,41 @@ function chooseImage() {
   input.accept = "image/*";
   input.onchange = e => {
     const file = e.target.files[0];
-    if (file) sendImage(file);
+    if (file) compressAndSendImage(file);
   };
   input.click();
 }
 
-// ✅ Send image as Base64 to Realtime Database
-function sendImage(file) {
+// ✅ Compress & send image as Base64 to Firebase Realtime Database
+function compressAndSendImage(file) {
   const reader = new FileReader();
   reader.onload = e => {
-    const base64Image = e.target.result;
-    db.push({ userId, imageData: base64Image, timestamp: Date.now() });
+    const img = new Image();
+    img.src = e.target.result;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // Set max size for compression
+      const MAX_WIDTH = 800;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > MAX_WIDTH) {
+        height *= MAX_WIDTH / width;
+        width = MAX_WIDTH;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Compress to JPEG 70%
+      const compressedData = canvas.toDataURL("image/jpeg", 0.7);
+
+      // Save to Firebase Realtime Database
+      db.push({ userId, imageData: compressedData, timestamp: Date.now() });
+    };
   };
   reader.readAsDataURL(file);
 }
