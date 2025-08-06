@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Firebase Photo Gallery (Auto Load)</title>
+<title>Firebase Real‑time Photo Gallery</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body { font-family: Arial, sans-serif; margin: 0; background: #ece5dd; display: flex; flex-direction: column; height: 100vh; }
@@ -69,41 +69,17 @@ const photoCountEl = document.getElementById("photoCount");
 
 let images = [];
 let currentIndex = 0;
-let lastLoadedKey = null;
-const LOAD_LIMIT = 50;
 
-// First load
-loadPhotos();
+// ✅ Real‑time load: जब भी नई फोटो आए, तुरंत जोड़ो
+db.limitToLast(50).on("child_added", snap => {
+  const data = snap.val();
+  if (data.imageData) {
+    images.push({ src: data.imageData, time: data.timestamp || Date.now() });
+    renderImages();
+  }
+});
 
-// Auto refresh every 1 minute
-setInterval(loadPhotos, 60000);
-
-// Load latest photos
-function loadPhotos() {
-  db.limitToLast(LOAD_LIMIT).once("value", snapshot => {
-    let newImages = [];
-    snapshot.forEach(child => {
-      const data = child.val();
-      if (data.imageData) {
-        newImages.push({ src: data.imageData, time: data.timestamp || Date.now(), key: child.key });
-      }
-    });
-
-    // Show one by one
-    galleryBox.innerHTML = "";
-    images = [];
-    let delay = 0;
-    newImages.forEach((img, i) => {
-      setTimeout(() => {
-        images.push(img);
-        renderImages();
-      }, delay);
-      delay += 100; // 0.1 sec delay between images
-    });
-  });
-}
-
-// Render gallery
+// ✅ गैलरी रेंडर करो
 function renderImages() {
   galleryBox.innerHTML = "";
   images.forEach((imgData, i) => {
@@ -116,7 +92,7 @@ function renderImages() {
   photoCountEl.textContent = `Total: ${images.length} Photos`;
 }
 
-// Full viewer
+// ✅ फुल‑स्क्रीन व्यूअर
 function openViewer(index) {
   currentIndex = index;
   const img = images[currentIndex];
@@ -130,7 +106,7 @@ function showNext() { currentIndex = (currentIndex + 1) % images.length; openVie
 function showPrev() { currentIndex = (currentIndex - 1 + images.length) % images.length; openViewer(currentIndex); }
 function formatDate(ts) { const d = new Date(ts); return d.toLocaleDateString() + " " + d.toLocaleTimeString(); }
 
-// Upload
+// ✅ फोटो अपलोड
 function chooseImage() {
   const input = document.createElement("input");
   input.type = "file";
@@ -155,13 +131,13 @@ function compressAndSendImage(file) {
       canvas.width = w; canvas.height = h;
       ctx.drawImage(img, 0, 0, w, h);
       const compressed = canvas.toDataURL("image/jpeg", 0.7);
-      db.push({ imageData: compressed, timestamp: Date.now() }).then(() => loadPhotos());
+      db.push({ imageData: compressed, timestamp: Date.now() });
     };
   };
   reader.readAsDataURL(file);
 }
 
-// Swipe support
+// ✅ Swipe सपोर्ट
 let touchStartX = 0;
 document.getElementById("viewer").addEventListener("touchstart", e => {
   touchStartX = e.changedTouches[0].screenX;
