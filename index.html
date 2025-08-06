@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenGallery Ultra-Fast</title>
+<title>OpenGallery Final</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body.dark { background-color: #1a202c; color: white; }
@@ -122,7 +122,7 @@ document.getElementById('fileInput').addEventListener('change', async (e) => {
       const url = await ref.getDownloadURL();
       db.ref('gallery').push({
         name: file.name,
-        thumb: "", // Optional: could generate a video thumbnail
+        thumb: "",
         data: url,
         type: "video",
         timestamp: Date.now()
@@ -131,9 +131,9 @@ document.getElementById('fileInput').addEventListener('change', async (e) => {
   }
 });
 
-// Real-time load (last 20)
-function loadLatest() {
-  db.ref('gallery').orderByChild('timestamp').limitToLast(20).on('child_added', (snap) => {
+// Real-time load
+function loadGallery() {
+  db.ref('gallery').orderByChild('timestamp').on('child_added', (snap) => {
     if (!loadedKeys.has(snap.key)) {
       loadedKeys.add(snap.key);
       allItems.unshift({ key: snap.key, ...snap.val() });
@@ -189,7 +189,7 @@ document.getElementById('toggleTheme').addEventListener('click', () => {
 
 // Init
 loadFromCache();
-loadLatest();
+loadGallery();
 </script>
 </body>
 </html>
