@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenGallery Mobile</title>
+<title>OpenGallery Mobile Fast Upload</title>
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 <style>
   body.dark { background-color: #1a202c; color: white; }
@@ -26,7 +26,6 @@
     color: white;
     font-size: 14px;
   }
-  /* Upload Popup */
   #uploadPopup {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.6);
@@ -74,7 +73,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
 
 <script>
-  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyAa-r7rwMxNMZGKucXtwdHimKq77iX7MpM",
     authDomain: "grsc-chet.firebaseapp.com",
@@ -83,7 +81,6 @@
     messagingSenderId: "1029401721470",
     appId: "1:1029401721470:web:c75cb33423c7f567ec362f"
   };
-
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
@@ -95,30 +92,55 @@
   let allItems = [];
   let currentLightboxIndex = 0;
 
-  // File to Base64
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
+  // Resize & Compress Image
+  function resizeImage(file, maxWidth = 1280, quality = 0.7) {
+    return new Promise((resolve) => {
+      const img = new Image();
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
+      reader.onload = e => {
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let scale = maxWidth / img.width;
+          if (img.width < maxWidth) scale = 1;
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL(file.type, quality));
+        };
+        img.src = e.target.result;
+      };
       reader.readAsDataURL(file);
     });
   }
 
-  // Upload Files with Popup
+  // File to Base64 (video)
+  function fileToBase64(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Upload Files in Parallel
   fileInput.addEventListener('change', async (e) => {
-    const files = e.target.files;
+    const files = [...e.target.files];
     if (!files.length) return;
 
     uploadPopup.style.display = 'flex';
-    let total = files.length;
-    let count = 0;
+    let uploaded = 0;
 
-    for (let file of files) {
-      count++;
-      uploadStatus.innerText = `Uploading ${count} of ${total}`;
+    await Promise.all(files.map(async (file) => {
+      uploadStatus.innerText = `Uploading ${uploaded + 1} of ${files.length}`;
 
-      const base64Data = await fileToBase64(file);
+      let base64Data;
+      if (file.type.startsWith("image")) {
+        base64Data = await resizeImage(file, 1280, 0.7); // compress image
+      } else {
+        base64Data = await fileToBase64(file); // video as is
+      }
+
       const fileData = {
         name: file.name,
         data: base64Data,
@@ -126,7 +148,10 @@
         timestamp: Date.now()
       };
       await db.ref('gallery').push(fileData);
-    }
+
+      uploaded++;
+      uploadStatus.innerText = `Uploading ${uploaded} of ${files.length}`;
+    }));
 
     uploadStatus.innerText = "Upload complete!";
     setTimeout(() => {
@@ -153,15 +178,11 @@
       const media = item.type === "video"
         ? `<video src="${item.data}" controls class="w-full rounded cursor-pointer" onclick="openLightbox(${index})"></video>`
         : `<img src="${item.data}" class="w-full rounded cursor-pointer" onclick="openLightbox(${index})">`;
-      gallery.innerHTML += `
-        <div class="bg-white dark:bg-gray-700 p-2 rounded shadow">
-          ${media}
-        </div>
-      `;
+      gallery.innerHTML += `<div class="bg-white dark:bg-gray-700 p-2 rounded shadow">${media}</div>`;
     });
   }
 
-  // Search Filter
+  // Search
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.toLowerCase();
     const filtered = allItems.filter(i => i.name.toLowerCase().includes(q));
@@ -187,7 +208,7 @@
     document.getElementById('lightbox').style.display = 'none';
   }
 
-  // Download from Lightbox
+  // Download
   function downloadCurrent() {
     const item = allItems[currentLightboxIndex];
     const a = document.createElement('a');
@@ -198,7 +219,7 @@
     document.body.removeChild(a);
   }
 
-  // Swipe for Lightbox
+  // Swipe in Lightbox
   let touchStartX = 0;
   document.getElementById('lightbox').addEventListener('touchstart', e => {
     touchStartX = e.changedTouches[0].screenX;
@@ -208,7 +229,6 @@
     if (diffX > 50) showPrev();
     if (diffX < -50) showNext();
   });
-
   function showPrev() {
     currentLightboxIndex = (currentLightboxIndex - 1 + allItems.length) % allItems.length;
     openLightbox(currentLightboxIndex);
