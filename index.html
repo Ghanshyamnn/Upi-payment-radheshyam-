@@ -2,55 +2,25 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>WhatsApp Style Firebase Gallery</title>
+<title>Firebase Photo Gallery</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body { font-family: Arial, sans-serif; margin: 0; background: #ece5dd; display: flex; flex-direction: column; height: 100vh; }
   #header { background: #075E54; color: white; padding: 12px; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
-  #chat { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
-  .chat-img { width: 32%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; cursor: pointer; transition: transform 0.2s; }
-  .chat-img:hover { transform: scale(1.05); }
-  #loadMore { width: 100%; padding: 10px; margin-top: 10px; text-align: center; background: #25D366; color: white; border: none; border-radius: 5px; cursor: pointer; }
+  #gallery { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .photo { width: 32%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; cursor: pointer; transition: transform 0.2s; }
+  .photo:hover { transform: scale(1.05); }
+  #loadMore { width: 100%; padding: 10px; margin: 10px 0; background: #25D366; color: white; border: none; border-radius: 5px; cursor: pointer; }
   #loadMore:hover { background: #128C7E; }
-  #inputArea { display: flex; justify-content: center; padding: 8px; background: #f0f0f0; border-top: 1px solid #ddd; }
-  button { padding: 10px; border: none; border-radius: 50%; background: #25D366; color: white; font-size: 20px; width: 50px; height: 50px; }
-  button:hover { background: #128C7E; cursor: pointer; }
+  #uploadArea { display: flex; justify-content: center; padding: 8px; background: #f0f0f0; border-top: 1px solid #ddd; }
+  button.uploadBtn { padding: 10px; border: none; border-radius: 50%; background: #25D366; color: white; font-size: 20px; width: 50px; height: 50px; }
+  button.uploadBtn:hover { background: #128C7E; cursor: pointer; }
 
   /* Full screen viewer */
-  #viewer {
-    display: none;
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.95);
-    flex-direction: column;
-    z-index: 1000;
-  }
-  #viewerHeader {
-    background: rgba(0,0,0,0.6);
-    color: white;
-    padding: 8px 12px;
-    font-size: 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  #viewer img {
-    max-width: 95%; max-height: 85%;
-    border-radius: 8px;
-    box-shadow: 0px 0px 15px black;
-    margin: auto;
-    transition: transform 0.3s ease;
-  }
-  .nav-btn {
-    color: white;
-    font-size: 40px;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    user-select: none;
-    padding: 10px;
-  }
+  #viewer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); flex-direction: column; z-index: 1000; }
+  #viewerHeader { background: rgba(0,0,0,0.6); color: white; padding: 8px 12px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+  #viewer img { max-width: 95%; max-height: 85%; border-radius: 8px; box-shadow: 0px 0px 15px black; margin: auto; }
+  .nav-btn { color: white; font-size: 40px; position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer; padding: 10px; }
   #prevBtn { left: 10px; }
   #nextBtn { right: 10px; }
 </style>
@@ -58,15 +28,15 @@
 <body>
 
 <div id="header">
-  <span>💬 My WhatsApp Chat</span>
+  <span>📷 My Gallery</span>
   <span id="photoCount">Total: 0 Photos</span>
 </div>
 
-<div id="chat"></div>
+<div id="gallery"></div>
 <button id="loadMore" onclick="loadMorePhotos()">📂 Load More Photos</button>
 
-<div id="inputArea">
-  <button onclick="chooseImage()">📷</button>
+<div id="uploadArea">
+  <button class="uploadBtn" onclick="chooseImage()">📷</button>
 </div>
 
 <!-- Full screen viewer -->
@@ -96,8 +66,8 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 
-const db = firebase.database().ref("global_chat");
-const chatBox = document.getElementById("chat");
+const db = firebase.database().ref("gallery");
+const galleryBox = document.getElementById("gallery");
 const photoCountEl = document.getElementById("photoCount");
 
 let images = [];
@@ -105,36 +75,36 @@ let currentIndex = 0;
 let lastLoadedKey = null;
 const LOAD_LIMIT = 50;
 
-// Load latest photos
+// Load first batch
 function loadLatestPhotos() {
   db.limitToLast(LOAD_LIMIT).once("value", snapshot => {
-    chatBox.innerHTML = "";
+    galleryBox.innerHTML = "";
     images = [];
     snapshot.forEach(child => {
-      const msg = child.val();
-      if (msg.imageData) {
-        images.push({ src: msg.imageData, time: msg.timestamp || Date.now(), key: child.key });
+      const data = child.val();
+      if (data.imageData) {
+        images.push({ src: data.imageData, time: data.timestamp || Date.now(), key: child.key });
       }
     });
-    lastLoadedKey = images[0] ? images[0].key : null;
+    lastLoadedKey = images[0]?.key || null;
     renderImages();
   });
 }
 
-// Load more photos
+// Load more
 function loadMorePhotos() {
   if (!lastLoadedKey) return;
   db.orderByKey().endBefore(lastLoadedKey).limitToLast(LOAD_LIMIT).once("value", snapshot => {
-    let olderImages = [];
+    let older = [];
     snapshot.forEach(child => {
-      const msg = child.val();
-      if (msg.imageData) {
-        olderImages.push({ src: msg.imageData, time: msg.timestamp || Date.now(), key: child.key });
+      const data = child.val();
+      if (data.imageData) {
+        older.push({ src: data.imageData, time: data.timestamp || Date.now(), key: child.key });
       }
     });
-    if (olderImages.length > 0) {
-      lastLoadedKey = olderImages[0].key;
-      images = [...olderImages, ...images];
+    if (older.length > 0) {
+      lastLoadedKey = older[0].key;
+      images = [...older, ...images];
       renderImages();
     } else {
       alert("No more photos!");
@@ -142,70 +112,44 @@ function loadMorePhotos() {
   });
 }
 
-// Render images in chat
+// Render
 function renderImages() {
-  chatBox.innerHTML = "";
+  galleryBox.innerHTML = "";
   images.forEach((imgData, i) => {
     const img = document.createElement("img");
     img.src = imgData.src;
-    img.className = "chat-img";
+    img.className = "photo";
     img.onclick = () => openViewer(i);
-    chatBox.appendChild(img);
+    galleryBox.appendChild(img);
   });
-  updatePhotoCount();
-}
-
-// Update photo count
-function updatePhotoCount() {
   photoCountEl.textContent = `Total: ${images.length} Photos`;
 }
 
-// Open viewer
+// Full viewer
 function openViewer(index) {
   currentIndex = index;
-  const currentImage = images[currentIndex];
-  document.getElementById("viewerImg").src = currentImage.src;
+  const img = images[currentIndex];
+  document.getElementById("viewerImg").src = img.src;
   document.getElementById("viewerCount").innerText =
-    `Image ${currentIndex + 1} of ${images.length} | ${formatDate(currentImage.time)}`;
+    `Image ${currentIndex + 1} of ${images.length} | ${formatDate(img.time)}`;
   document.getElementById("viewer").style.display = "flex";
 }
+function closeViewer() { document.getElementById("viewer").style.display = "none"; }
+function showNext() { currentIndex = (currentIndex + 1) % images.length; openViewer(currentIndex); }
+function showPrev() { currentIndex = (currentIndex - 1 + images.length) % images.length; openViewer(currentIndex); }
+function formatDate(ts) { const d = new Date(ts); return d.toLocaleDateString() + " " + d.toLocaleTimeString(); }
 
-// Close viewer
-function closeViewer() {
-  document.getElementById("viewer").style.display = "none";
-}
-
-// Next image
-function showNext() {
-  currentIndex = (currentIndex + 1) % images.length;
-  openViewer(currentIndex);
-}
-
-// Previous image
-function showPrev() {
-  currentIndex = (currentIndex - 1 + images.length) % images.length;
-  openViewer(currentIndex);
-}
-
-// Format date & time
-function formatDate(ts) {
-  const date = new Date(ts);
-  return date.toLocaleDateString() + " " + date.toLocaleTimeString();
-}
-
-// Choose and upload image
+// Upload
 function chooseImage() {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
   input.multiple = true;
   input.onchange = e => {
-    [...e.target.files].forEach(file => compressAndSendImage(file));
+    [...e.target.files].forEach(f => compressAndSendImage(f));
   };
   input.click();
 }
-
-// Compress before saving
 function compressAndSendImage(file) {
   const reader = new FileReader();
   reader.onload = e => {
@@ -214,42 +158,30 @@ function compressAndSendImage(file) {
     img.onload = () => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-
       const MAX_WIDTH = 800;
-      let width = img.width;
-      let height = img.height;
-      if (width > MAX_WIDTH) {
-        height *= MAX_WIDTH / width;
-        width = MAX_WIDTH;
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
-
-      const compressedData = canvas.toDataURL("image/jpeg", 0.7);
-
-      db.push({ imageData: compressedData, timestamp: Date.now() }).then(() => {
-        loadLatestPhotos();
-      });
+      let w = img.width, h = img.height;
+      if (w > MAX_WIDTH) { h *= MAX_WIDTH / w; w = MAX_WIDTH; }
+      canvas.width = w; canvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL("image/jpeg", 0.7);
+      db.push({ imageData: compressed, timestamp: Date.now() }).then(() => loadLatestPhotos());
     };
   };
   reader.readAsDataURL(file);
 }
 
-// Swipe support for mobile
+// Swipe support
 let touchStartX = 0;
-let touchEndX = 0;
 document.getElementById("viewer").addEventListener("touchstart", e => {
   touchStartX = e.changedTouches[0].screenX;
 });
 document.getElementById("viewer").addEventListener("touchend", e => {
-  touchEndX = e.changedTouches[0].screenX;
+  let touchEndX = e.changedTouches[0].screenX;
   if (touchEndX < touchStartX - 50) showNext();
   if (touchEndX > touchStartX + 50) showPrev();
 });
 
-// Load latest on start
+// Start
 loadLatestPhotos();
 </script>
 
