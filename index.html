@@ -2,19 +2,18 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>WhatsApp Style Firebase Chat (Image Only)</title>
+<title>WhatsApp Style Firebase Chat (3 Images per Row)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body { font-family: Arial, sans-serif; margin: 0; background: #ece5dd; display: flex; flex-direction: column; height: 100vh; }
   #header { background: #075E54; color: white; padding: 12px; font-size: 18px; text-align: center; }
-  #chat { flex: 1; overflow-y: auto; padding: 10px; }
-  .msg { margin: 5px 0; padding: 8px; border-radius: 8px; max-width: 75%; word-wrap: break-word; font-size: 15px; }
-  .me { background: #DCF8C6; margin-left: auto; }
-  .other { background: white; margin-right: auto; }
+  #chat { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .msg { background: #DCF8C6; padding: 5px; border-radius: 8px; }
+  .other { background: white; }
+  .chat-img { width: 32%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; }
   #inputArea { display: flex; justify-content: center; padding: 8px; background: #f0f0f0; border-top: 1px solid #ddd; }
   button { padding: 10px; border: none; border-radius: 50%; background: #25D366; color: white; font-size: 20px; width: 50px; height: 50px; }
   button:hover { background: #128C7E; cursor: pointer; }
-  img.chat-img { max-width: 150px; border-radius: 6px; }
 </style>
 </head>
 <body>
@@ -47,37 +46,31 @@ const db = firebase.database().ref("global_chat");
 const userId = Math.random().toString(36).substr(2, 9);
 const chatBox = document.getElementById("chat");
 
-// ✅ Listen for new messages
+// ✅ Listen for images
 db.on("child_added", snap => {
   const msg = snap.val();
-  addMessage(msg, msg.userId === userId);
-});
-
-function addMessage(msg, isMe) {
-  const div = document.createElement("div");
-  div.classList.add("msg", isMe ? "me" : "other");
-
   if (msg.imageData) {
-    div.innerHTML = `<img src="${msg.imageData}" class="chat-img">`;
+    const img = document.createElement("img");
+    img.src = msg.imageData;
+    img.className = "chat-img";
+    chatBox.appendChild(img);
+    chatBox.scrollTop = chatBox.scrollHeight;
   }
-
-  chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
+});
 
 // ✅ Choose image
 function chooseImage() {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
+  input.multiple = true; // multiple images allowed
   input.onchange = e => {
-    const file = e.target.files[0];
-    if (file) compressAndSendImage(file);
+    [...e.target.files].forEach(file => compressAndSendImage(file));
   };
   input.click();
 }
 
-// ✅ Compress & send image as Base64
+// ✅ Compress & send image to DB
 function compressAndSendImage(file) {
   const reader = new FileReader();
   reader.onload = e => {
@@ -87,7 +80,6 @@ function compressAndSendImage(file) {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
 
-      // Set max width for compression
       const MAX_WIDTH = 800;
       let width = img.width;
       let height = img.height;
@@ -100,10 +92,8 @@ function compressAndSendImage(file) {
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Compress to JPEG 70%
       const compressedData = canvas.toDataURL("image/jpeg", 0.7);
 
-      // Save to Firebase Database
       db.push({ userId, imageData: compressedData, timestamp: Date.now() });
     };
   };
