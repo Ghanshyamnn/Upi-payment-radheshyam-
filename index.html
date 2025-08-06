@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Super Fast Chat</title>
+<title>File Upload Chat</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body { font-family: Arial; margin: 0; background: #f5f5f5; display: flex; flex-direction: column; height: 100vh; }
@@ -15,20 +15,17 @@
   button { padding: 10px; margin-left: 5px; border: none; border-radius: 50%; background: #007bff; color: white; font-size: 18px; width: 42px; height: 42px; }
   button:hover { background: #0056b3; cursor: pointer; }
   a { color: #007bff; text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  .progress-container { width: 100%; background: #ddd; border-radius: 5px; margin-top: 5px; }
-  .progress-bar { width: 0%; height: 6px; background: #007bff; border-radius: 5px; }
 </style>
 </head>
 <body>
 
-<h2 style="text-align:center;background:#007bff;color:white;padding:12px;margin:0;font-size:18px;">📩 Super Fast Chat</h2>
+<h2 style="text-align:center;background:#007bff;color:white;padding:12px;margin:0;font-size:18px;">📩 File Upload Chat</h2>
 <div id="chat"></div>
 
 <div id="inputArea">
   <input type="text" id="message" placeholder="Type message..." onkeypress="if(event.key==='Enter'){sendMessage()}">
   <button onclick="sendMessage()">➤</button>
-  <button onclick="selectImage()">📷</button>
+  <button onclick="sendFile()">📎</button>
 </div>
 
 <!-- Firebase SDK -->
@@ -53,34 +50,27 @@ const storage = firebase.storage().ref("chat_files");
 const userId = Math.random().toString(36).substr(2, 9);
 const chatBox = document.getElementById("chat");
 
-// Listen only for new messages
-db.limitToLast(50).on("child_added", snap => {
+// Listen for messages
+db.on("child_added", snap => {
   const msg = snap.val();
-  addMessageToDOM(msg, msg.userId === userId);
-});
-
-function addMessageToDOM(msg, isMe) {
   const div = document.createElement("div");
-  div.classList.add("msg", isMe ? "me" : "other");
+  div.classList.add("msg", msg.userId === userId ? "me" : "other");
 
   if (msg.fileUrl) {
-    // Show image
     if (msg.fileUrl.match(/\.(jpeg|jpg|png|gif)$/i)) {
-      div.innerHTML = `<img src="${msg.fileUrl}" style="max-width:150px;display:block;border-radius:6px;">`;
+      div.innerHTML = `<img src="${msg.fileUrl}" style="max-width:150px;border-radius:6px;">`;
     } else {
       div.innerHTML = `📎 <a href="${msg.fileUrl}" target="_blank">${msg.fileName}</a>`;
     }
-  } else if (msg.previewUrl) {
-    div.innerHTML = `<img src="${msg.previewUrl}" style="max-width:150px;opacity:0.5;border-radius:6px;"> 
-      <div class="progress-container"><div class="progress-bar" id="prog-${msg.tempId}"></div></div>`;
   } else {
     div.textContent = msg.text;
   }
 
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
-}
+});
 
+// Send text message
 function sendMessage() {
   const text = document.getElementById("message").value.trim();
   if (!text) return;
@@ -88,57 +78,24 @@ function sendMessage() {
   document.getElementById("message").value = "";
 }
 
-function selectImage() {
+// Send file
+function sendFile() {
   const input = document.createElement("input");
   input.type = "file";
-  input.accept = "image/*";
-  input.onchange = e => compressAndUpload(e.target.files[0]);
-  input.click();
-}
-
-function compressAndUpload(file) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.src = e.target.result;
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      const maxW = 800;
-      const scale = Math.min(maxW / img.width, 1);
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      canvas.toBlob(blob => {
-        const tempId = Math.random().toString(36).substr(2, 5);
-        const previewUrl = URL.createObjectURL(blob);
-
-        // Push preview to chat instantly
-        const tempRef = db.push({
-          userId, previewUrl, tempId, timestamp: Date.now()
-        });
-
-        // Upload compressed image to Firebase
-        const fileRef = storage.child(Date.now() + "_" + file.name);
-        const uploadTask = fileRef.put(blob);
-
-        uploadTask.on("state_changed", snap => {
-          const prog = (snap.bytesTransferred / snap.totalBytes) * 100;
-          const bar = document.getElementById(`prog-${tempId}`);
-          if (bar) bar.style.width = prog + "%";
-        }, err => {
-          console.error(err);
-        }, async () => {
-          const url = await fileRef.getDownloadURL();
-          tempRef.update({ previewUrl: null, fileUrl: url, fileName: file.name });
-        });
-      }, "image/jpeg", 0.7); // 70% quality for speed
-    };
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fileRef = storage.child(Date.now() + "_" + file.name);
+    await fileRef.put(file);
+    const url = await fileRef.getDownloadURL();
+    db.push({
+      userId,
+      fileUrl: url,
+      fileName: file.name,
+      timestamp: Date.now()
+    });
   };
-  reader.readAsDataURL(file);
+  input.click();
 }
 </script>
 
