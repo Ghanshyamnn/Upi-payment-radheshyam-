@@ -2,11 +2,11 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>WhatsApp Style Firebase Chat (Full Screen + Count)</title>
+<title>WhatsApp Style Firebase Gallery</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body { font-family: Arial, sans-serif; margin: 0; background: #ece5dd; display: flex; flex-direction: column; height: 100vh; }
-  #header { background: #075E54; color: white; padding: 12px; font-size: 18px; text-align: center; }
+  #header { background: #075E54; color: white; padding: 12px; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
   #chat { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
   .chat-img { width: 32%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; cursor: pointer; transition: transform 0.2s; }
   .chat-img:hover { transform: scale(1.05); }
@@ -55,7 +55,11 @@
 </head>
 <body>
 
-<div id="header">💬 My WhatsApp Chat</div>
+<div id="header">
+  <span>💬 My WhatsApp Chat</span>
+  <span id="photoCount">Total: 0 Photos</span>
+</div>
+
 <div id="chat"></div>
 
 <div id="inputArea">
@@ -92,6 +96,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database().ref("global_chat");
 const userId = Math.random().toString(36).substr(2, 9);
 const chatBox = document.getElementById("chat");
+const photoCountEl = document.getElementById("photoCount");
 
 let images = [];
 let currentIndex = 0;
@@ -101,6 +106,7 @@ db.on("child_added", snap => {
   const msg = snap.val();
   if (msg.imageData) {
     images.push({ src: msg.imageData, time: msg.timestamp || Date.now() });
+    updatePhotoCount();
     const img = document.createElement("img");
     img.src = msg.imageData;
     img.className = "chat-img";
@@ -110,13 +116,18 @@ db.on("child_added", snap => {
   }
 });
 
+// Update photo count in header
+function updatePhotoCount() {
+  photoCountEl.textContent = `Total: ${images.length} Photos`;
+}
+
 // Open viewer
 function openViewer(index) {
   currentIndex = index;
   const currentImage = images[currentIndex];
   document.getElementById("viewerImg").src = currentImage.src;
   document.getElementById("viewerCount").innerText =
-    `${currentIndex + 1}/${images.length} | ${formatDate(currentImage.time)}`;
+    `Image ${currentIndex + 1} of ${images.length} | ${formatDate(currentImage.time)}`;
   document.getElementById("viewer").style.display = "flex";
 }
 
@@ -184,6 +195,18 @@ function compressAndSendImage(file) {
   };
   reader.readAsDataURL(file);
 }
+
+// Swipe support for mobile
+let touchStartX = 0;
+let touchEndX = 0;
+document.getElementById("viewer").addEventListener("touchstart", e => {
+  touchStartX = e.changedTouches[0].screenX;
+});
+document.getElementById("viewer").addEventListener("touchend", e => {
+  touchEndX = e.changedTouches[0].screenX;
+  if (touchEndX < touchStartX - 50) showNext();
+  if (touchEndX > touchStartX + 50) showPrev();
+});
 </script>
 
 </body>
