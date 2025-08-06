@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenGallery Fast Load</title>
+<title>OpenGallery Fast Child-Added</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body.dark { background-color: #1a202c; color: white; }
@@ -94,13 +94,11 @@ const uploadStatus = document.getElementById('uploadStatus');
 let allItems = [];
 let currentLightboxIndex = 0;
 
-// Skeleton Loader
+// Skeleton Loader (1-2s)
 function showSkeleton() {
   gallery.innerHTML = '';
   for (let i = 0; i < 10; i++) {
-    gallery.innerHTML += `
-      <div class="bg-gray-300 dark:bg-gray-700 animate-pulse rounded h-40"></div>
-    `;
+    gallery.innerHTML += `<div class="bg-gray-300 dark:bg-gray-700 animate-pulse rounded h-40"></div>`;
   }
 }
 
@@ -169,20 +167,19 @@ fileInput.addEventListener('change', async (e) => {
   }, 800);
 });
 
-// Real-time Gallery Load
+// Real-time Load with child_added
 showSkeleton();
-db.ref('gallery').orderByChild('timestamp').on('value', (snapshot) => {
-  allItems = [];
-  snapshot.forEach(child => {
-    allItems.unshift({ key: child.key, ...child.val() });
-  });
+setTimeout(() => { gallery.innerHTML = ''; }, 1500); // skeleton hide after 1.5s
+db.ref('gallery').orderByChild('timestamp').on('child_added', (snapshot) => {
+  const item = { key: snapshot.key, ...snapshot.val() };
+  allItems.unshift(item);
   displayGallery();
 });
 
 // Display Gallery
 function displayGallery() {
-  gallery.innerHTML = '';
   const searchTerm = searchInput.value.toLowerCase();
+  gallery.innerHTML = '';
   allItems.filter(i => i.name.toLowerCase().includes(searchTerm)).forEach((item, index) => {
     const media = item.type === "video"
       ? `<video src="${item.data}" controls class="w-full rounded shadow hover:scale-105 transition-transform duration-200 cursor-pointer" onclick="openLightbox(${index})"></video>`
