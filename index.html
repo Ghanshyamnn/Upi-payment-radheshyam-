@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenGallery Responsive</title>
+<title>OpenGallery Fast Load</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body.dark { background-color: #1a202c; color: white; }
@@ -94,6 +94,16 @@ const uploadStatus = document.getElementById('uploadStatus');
 let allItems = [];
 let currentLightboxIndex = 0;
 
+// Skeleton Loader
+function showSkeleton() {
+  gallery.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    gallery.innerHTML += `
+      <div class="bg-gray-300 dark:bg-gray-700 animate-pulse rounded h-40"></div>
+    `;
+  }
+}
+
 // Compress Image (~300KB)
 function resizeImage(file, maxWidth = 1024, quality = 0.6) {
   return new Promise((resolve) => {
@@ -160,6 +170,7 @@ fileInput.addEventListener('change', async (e) => {
 });
 
 // Real-time Gallery Load
+showSkeleton();
 db.ref('gallery').orderByChild('timestamp').on('value', (snapshot) => {
   allItems = [];
   snapshot.forEach(child => {
