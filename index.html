@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>A4 पेपर कार्ड ऐप</title>
-<meta name="theme-color" content="#2563eb">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:#f3f4f6;font-family:system-ui,Arial}
@@ -26,7 +25,9 @@ html,body{height:100%;background:#f3f4f6;font-family:system-ui,Arial}
   object-fit:cover;z-index:0;
 }
 .number-box {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 1;
   background: rgba(255,255,255,0.9);
   padding: 6px 12px;
@@ -74,10 +75,11 @@ html,body{height:100%;background:#f3f4f6;font-family:system-ui,Arial}
     <div class="paper" id="paper"></div>
     <div class="bottom-bar">
       <div class="size-info" id="sizeInfo">कार्ड साइज: --mm × --mm</div>
-      <label>प्रति लाइन कार्ड: <input type="number" id="cards" value="4" min="1" max="10"></label>
+      <label>प्रति लाइन: <input type="number" id="cards" value="4" min="1" max="10"></label>
       <label>कुल लाइनें: <input type="number" id="lines" value="2" min="1" max="20"></label>
       <label>कोने (px): <input type="number" id="radius" value="4" min="0" max="50"></label>
       <label>गैप (mm): <input type="number" id="gap" value="2" min="0" max="20" step="0.5"></label>
+      <label>नंबर पोज़ (mm): <input type="number" id="numPos" value="50" min="0" max="200"></label>
       <label>इमेज: <input type="file" id="imageUpload" accept="image/*"></label>
       <button id="make">बनाएं</button>
       <button id="downloadPdf" style="background:#10b981">PDF डाउनलोड</button>
@@ -85,7 +87,6 @@ html,body{height:100%;background:#f3f4f6;font-family:system-ui,Arial}
   </div>
 </div>
 
-<!-- PDF और Canvas लाइब्रेरी -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -99,6 +100,7 @@ function makeCards(){
   const lines=parseInt(document.getElementById('lines').value)||1;
   const radius=parseInt(document.getElementById('radius').value)||0;
   const gap=parseFloat(document.getElementById('gap').value)||0;
+  const numPos=parseFloat(document.getElementById('numPos').value)||50;
 
   paper.style.gap = gap + 'mm';
 
@@ -128,6 +130,7 @@ function makeCards(){
       }
       const numberBox = document.createElement('div');
       numberBox.className = 'number-box';
+      numberBox.style.top = numPos + 'mm';
       numberBox.textContent = cardNumber++;
       div.appendChild(numberBox);
       paper.appendChild(div);
@@ -162,12 +165,7 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
   const canvas = await html2canvas(paperElement, { scale: 2 });
   const imgData = canvas.toDataURL('image/png');
 
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-
+  const pdf = new jsPDF({orientation: 'portrait',unit: 'mm',format: 'a4'});
   pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
   pdf.save('A4-paper.pdf');
 
