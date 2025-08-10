@@ -25,6 +25,17 @@ html,body{height:100%;background:#f3f4f6;font-family:system-ui,Arial}
   position:absolute;top:0;left:0;width:100%;height:100%;
   object-fit:cover;z-index:0;
 }
+.number-box {
+  position: relative;
+  z-index: 1;
+  background: rgba(255,255,255,0.9);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #111;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
 .bottom-bar{
   position:absolute;top:100%;left:0;width:100%;
   background:#e0e7ff;border-top:1px solid #c7d2fe;
@@ -102,6 +113,7 @@ function makeCards(){
   document.getElementById('sizeInfo').textContent =
     `कार्ड साइज: ${cardWidthMM.toFixed(1)}mm × ${cardHeightMM.toFixed(1)}mm`;
 
+  let cardNumber = 1;
   for(let r=0;r<lines;r++){
     for(let c=0;c<perLine;c++){
       const div=document.createElement('div');
@@ -114,6 +126,10 @@ function makeCards(){
         img.src = savedImage;
         div.appendChild(img);
       }
+      const numberBox = document.createElement('div');
+      numberBox.className = 'number-box';
+      numberBox.textContent = cardNumber++;
+      div.appendChild(numberBox);
       paper.appendChild(div);
     }
   }
@@ -139,16 +155,13 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
   const { jsPDF } = window.jspdf;
   const paperElement = document.getElementById('paper');
 
-  // पहले पेपर को प्रिंट मोड जैसा बनाएं (शैडो हटाएं)
   paperElement.style.boxShadow = 'none';
   paperElement.style.borderRadius = '0';
   paperElement.style.transform = 'none';
 
-  // कैनवास बनाएं
   const canvas = await html2canvas(paperElement, { scale: 2 });
   const imgData = canvas.toDataURL('image/png');
 
-  // PDF बनाएं
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -158,7 +171,6 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
   pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
   pdf.save('A4-paper.pdf');
 
-  // स्टाइल वापस
   paperElement.style.boxShadow = '';
   paperElement.style.borderRadius = '8px';
   paperElement.style.transform = `scale(${getComputedStyle(document.documentElement).getPropertyValue('--scale-factor')})`;
