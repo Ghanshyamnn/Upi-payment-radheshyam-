@@ -27,7 +27,7 @@ html,body{height:100%;background:#f3f4f6;font-family:system-ui,Arial}
 .number-box {
   position: absolute;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   z-index: 1;
   background: rgba(255,255,255,0.9);
   padding: 6px 12px;
@@ -79,7 +79,7 @@ html,body{height:100%;background:#f3f4f6;font-family:system-ui,Arial}
       <label>कुल लाइनें: <input type="number" id="lines" value="2" min="1" max="20"></label>
       <label>कोने (px): <input type="number" id="radius" value="4" min="0" max="50"></label>
       <label>गैप (mm): <input type="number" id="gap" value="2" min="0" max="20" step="0.5"></label>
-      <label>नंबर पोज़ (mm): <input type="number" id="numPos" value="50" min="0" max="200"></label>
+      <label>नंबर पोज़ नीचे से (mm): <input type="number" id="numPos" value="5" min="0" max="200"></label>
       <label>इमेज: <input type="file" id="imageUpload" accept="image/*"></label>
       <button id="make">बनाएं</button>
       <button id="downloadPdf" style="background:#10b981">PDF डाउनलोड</button>
@@ -100,7 +100,7 @@ function makeCards(){
   const lines=parseInt(document.getElementById('lines').value)||1;
   const radius=parseInt(document.getElementById('radius').value)||0;
   const gap=parseFloat(document.getElementById('gap').value)||0;
-  const numPos=parseFloat(document.getElementById('numPos').value)||50;
+  const numPos=parseFloat(document.getElementById('numPos').value)||0;
 
   paper.style.gap = gap + 'mm';
 
@@ -130,7 +130,7 @@ function makeCards(){
       }
       const numberBox = document.createElement('div');
       numberBox.className = 'number-box';
-      numberBox.style.top = numPos + 'mm';
+      numberBox.style.bottom = numPos + 'mm'; // नीचे से दूरी
       numberBox.textContent = cardNumber++;
       div.appendChild(numberBox);
       paper.appendChild(div);
