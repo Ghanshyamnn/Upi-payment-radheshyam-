@@ -1,180 +1,94 @@
 <!doctype html>
 <html lang="hi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>A4 पेपर कार्ड ऐप</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>A4 पेपर कार्ड</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:#f3f4f6;font-family:system-ui,Arial}
-.stage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:8px}
-.paper-wrap{position:relative;width:max-content}
-.paper{
-  position:relative;width:210mm;height:297mm;background:#fff;
-  box-shadow:0 8px 24px rgba(0,0,0,.15);
-  border-radius:8px;transform:scale(var(--scale-factor));
-  transform-origin:top center;padding:10mm;
-  display:flex;flex-wrap:wrap;align-content:flex-start;
-}
-.card{
-  position:relative;overflow:hidden;background:#fef9c3;
-  display:flex;align-items:center;justify-content:center;
-}
-.card img{
-  position:absolute;top:0;left:0;width:100%;height:100%;
-  object-fit:cover;z-index:0;
-}
-.number-box {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
-  background: rgba(255,255,255,0.9);
-  border-radius: 6px;
-  font-weight: bold;
-  color: #111;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
-.bottom-bar{
-  position:absolute;top:100%;left:0;width:100%;
-  background:#e0e7ff;border-top:1px solid #c7d2fe;
-  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
-  gap:6px;padding:4px
-}
-.bottom-bar label{display:flex;align-items:center;gap:4px;font-size:14px}
-.bottom-bar input{
-  padding:6px;border:1px solid #94a3b8;border-radius:6px;text-align:center
-}
-.bottom-bar button{
-  padding:8px 12px;background:#3b82f6;color:#fff;
-  border:none;border-radius:6px;cursor:pointer
-}
-.size-info{
-  font-weight:bold;
-  color:#1f2937;
-  margin-right:12px;
-  white-space:nowrap;
-}
-:root{--scale-factor:0.9}
-@media (max-width:768px){
-  :root{--scale-factor:calc((100vw / 210mm) * 0.9)}
-  .size-info{flex-basis:100%;text-align:center;margin-bottom:4px}
-}
-@media print{
-  html,body{background:#fff}
-  .paper{box-shadow:none;border-radius:0;transform:none;padding:20mm 10mm 10mm 10mm}
-  @page{size:A4;margin:0}
-}
+  * {box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#f3f4f6;font-family:sans-serif}
+  .stage{min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .paper{
+    position:relative;width:210mm;height:297mm;background:white;
+    box-shadow:0 8px 24px rgba(0,0,0,0.15);
+    transform:scale(var(--scale-factor));transform-origin:center center;
+    display:grid;gap:var(--gap);padding:10mm;
+  }
+  :root{--scale-factor:0.9;--gap:5mm;--num-box-size:16;--num-box-bottom:10}
+  @media(max-width:768px){
+    :root{--scale-factor:calc((100vw / 210mm) * 0.9)}
+    .controls{flex-direction:column;align-items:stretch}
+  }
+  .card{
+    position:relative;overflow:hidden;background:#fef9c3;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .number-box{
+    position:absolute;bottom:calc(var(--num-box-bottom) * 1mm);
+    background:rgba(255,255,255,0.9);
+    padding:calc(var(--num-box-size) * 0.4px) calc(var(--num-box-size) * 0.6px);
+    border-radius:6px;font-size:calc(var(--num-box-size) * 1px);
+    font-weight:bold;color:#111;box-shadow:0 2px 4px rgba(0,0,0,0.15);
+  }
+  .controls{
+    position:fixed;bottom:0;left:0;right:0;background:#e0e7ff;
+    border-top:1px solid #c7d2fe;padding:8px;display:flex;
+    flex-wrap:wrap;gap:8px;justify-content:center;
+  }
+  .controls input{padding:4px 8px;font-size:14px;min-width:60px}
+  .controls label{font-size:13px;display:flex;align-items:center;gap:4px}
 </style>
 </head>
 <body>
+
 <div class="stage">
-  <div class="paper-wrap">
-    <div class="paper" id="paper"></div>
-    <div class="bottom-bar">
-      <div class="size-info" id="sizeInfo">कार्ड साइज: --mm × --mm</div>
-      <label>प्रति लाइन: <input type="number" id="cards" value="4" min="1" max="10"></label>
-      <label>कुल लाइनें: <input type="number" id="lines" value="2" min="1" max="20"></label>
-      <label>कोने (px): <input type="number" id="radius" value="4" min="0" max="50"></label>
-      <label>गैप (mm): <input type="number" id="gap" value="2" min="0" max="20" step="0.5"></label>
-      <label>नंबर पोज़ नीचे से (mm): <input type="number" id="numPos" value="5" min="0" max="200"></label>
-      <label>नंबर बॉक्स साइज (px): <input type="number" id="numSize" value="16" min="8" max="50"></label>
-      <label>इमेज: <input type="file" id="imageUpload" accept="image/*"></label>
-      <button id="make">बनाएं</button>
-      <button id="downloadPdf" style="background:#10b981">PDF डाउनलोड</button>
-    </div>
-  </div>
+  <div class="paper" id="paper"></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<div class="controls">
+  <label>कॉलम: <input type="number" id="cols" value="3" min="1"></label>
+  <label>पंक्तियाँ: <input type="number" id="rows" value="4" min="1"></label>
+  <label>गैप(mm): <input type="number" id="gap" value="5" min="0"></label>
+  <label>नंबर बॉक्स साइज(px): <input type="number" id="numSize" value="16" min="8"></label>
+  <label>नंबर बॉक्स नीचे से(mm): <input type="number" id="numBottom" value="10" min="0"></label>
+  <label>नंबर सीक्वेंस: <input type="text" id="numSeq" placeholder="8,6,5,3,7"></label>
+  <button id="updateBtn">अपडेट</button>
+</div>
 
 <script>
-let savedImage = localStorage.getItem("cardImage") || null;
-
 function makeCards(){
-  const paper=document.getElementById('paper');
-  paper.innerHTML='';
-  const perLine=parseInt(document.getElementById('cards').value)||1;
-  const lines=parseInt(document.getElementById('lines').value)||1;
-  const radius=parseInt(document.getElementById('radius').value)||0;
-  const gap=parseFloat(document.getElementById('gap').value)||0;
-  const numPos=parseFloat(document.getElementById('numPos').value)||0;
-  const numSize=parseInt(document.getElementById('numSize').value)||16;
+  const paper = document.getElementById('paper');
+  paper.innerHTML = '';
+  const cols = parseInt(document.getElementById('cols').value);
+  const rows = parseInt(document.getElementById('rows').value);
+  const gap = parseFloat(document.getElementById('gap').value);
+  const numSize = parseInt(document.getElementById('numSize').value);
+  const numBottom = parseFloat(document.getElementById('numBottom').value);
+  const seq = document.getElementById('numSeq').value
+              .split(',').map(s=>s.trim()).filter(s=>s!=='');
+  
+  document.documentElement.style.setProperty('--gap', gap+'mm');
+  document.documentElement.style.setProperty('--num-box-size', numSize);
+  document.documentElement.style.setProperty('--num-box-bottom', numBottom);
 
-  paper.style.gap = gap + 'mm';
+  paper.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  paper.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-  const paperWidthMM = 210 - 20; 
-  const paperHeightMM = 297 - 20;
-  const totalGapWidth = gap * (perLine - 1);
-  const totalGapHeight = gap * (lines - 1);
-
-  const cardWidthMM = (paperWidthMM - totalGapWidth) / perLine;
-  const cardHeightMM = (paperHeightMM - totalGapHeight) / lines;
-
-  document.getElementById('sizeInfo').textContent =
-    `कार्ड साइज: ${cardWidthMM.toFixed(1)}mm × ${cardHeightMM.toFixed(1)}mm`;
-
-  let cardNumber = 1;
-  for(let r=0;r<lines;r++){
-    for(let c=0;c<perLine;c++){
-      const div=document.createElement('div');
-      div.className='card';
-      div.style.borderRadius = radius + 'px';
-      div.style.width = cardWidthMM + 'mm';
-      div.style.height = cardHeightMM + 'mm';
-      if(savedImage){
-        const img = document.createElement('img');
-        img.src = savedImage;
-        div.appendChild(img);
-      }
-      const numberBox = document.createElement('div');
-      numberBox.className = 'number-box';
-      numberBox.style.bottom = numPos + 'mm';
-      numberBox.style.fontSize = numSize + 'px';
-      numberBox.style.padding = (numSize / 3) + 'px ' + (numSize / 2) + 'px';
-      numberBox.textContent = cardNumber++;
-      div.appendChild(numberBox);
-      paper.appendChild(div);
-    }
+  const totalCards = cols * rows;
+  for(let i=0;i<totalCards;i++){
+    const div = document.createElement('div');
+    div.className = 'card';
+    const numberBox = document.createElement('div');
+    numberBox.className = 'number-box';
+    numberBox.textContent = seq[i] !== undefined ? seq[i] : (i+1);
+    div.appendChild(numberBox);
+    paper.appendChild(div);
   }
 }
 
-document.getElementById('imageUpload').addEventListener('change',function(e){
-  const file = e.target.files[0];
-  if(file){
-    const reader = new FileReader();
-    reader.onload = function(evt){
-      savedImage = evt.target.result;
-      localStorage.setItem("cardImage", savedImage);
-      makeCards();
-    };
-    reader.readAsDataURL(file);
-  }
-});
-
-document.getElementById('make').addEventListener('click',makeCards);
-window.addEventListener('load',makeCards);
-
-document.getElementById('downloadPdf').addEventListener('click', async () => {
-  const { jsPDF } = window.jspdf;
-  const paperElement = document.getElementById('paper');
-
-  paperElement.style.boxShadow = 'none';
-  paperElement.style.borderRadius = '0';
-  paperElement.style.transform = 'none';
-
-  const canvas = await html2canvas(paperElement, { scale: 2 });
-  const imgData = canvas.toDataURL('image/png');
-
-  const pdf = new jsPDF({orientation: 'portrait',unit: 'mm',format: 'a4'});
-  pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
-  pdf.save('A4-paper.pdf');
-
-  paperElement.style.boxShadow = '';
-  paperElement.style.borderRadius = '8px';
-  paperElement.style.transform = `scale(${getComputedStyle(document.documentElement).getPropertyValue('--scale-factor')})`;
-});
+document.getElementById('updateBtn').addEventListener('click', makeCards);
+makeCards();
 </script>
+
 </body>
 </html>
