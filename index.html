@@ -17,7 +17,7 @@
   :root{--scale-factor:0.9;--gap:5mm;--num-box-size:16;--num-box-bottom:10}
   @media(max-width:768px){
     :root{--scale-factor:calc((100vw / 210mm) * 0.9)}
-    .controls{flex-direction:column;align-items:stretch}
+    .controls{flex-direction:column;align-items:stretch;max-height:50vh;overflow:auto}
   }
   .card{
     position:relative;overflow:hidden;background:#fef9c3;
@@ -35,8 +35,15 @@
     border-top:1px solid #c7d2fe;padding:8px;display:flex;
     flex-wrap:wrap;gap:8px;justify-content:center;
   }
-  .controls input{padding:4px 8px;font-size:14px;min-width:60px}
+  .controls input{padding:4px 8px;font-size:14px;min-width:50px}
   .controls label{font-size:13px;display:flex;align-items:center;gap:4px}
+  .number-inputs{
+    display:flex;flex-wrap:wrap;gap:4px;justify-content:center;
+    background:#eef2ff;padding:4px;border-radius:4px;max-width:100%;
+  }
+  .number-inputs input{
+    width:50px;text-align:center;
+  }
 </style>
 </head>
 <body>
@@ -51,11 +58,26 @@
   <label>गैप(mm): <input type="number" id="gap" value="5" min="0"></label>
   <label>नंबर बॉक्स साइज(px): <input type="number" id="numSize" value="16" min="8"></label>
   <label>नंबर बॉक्स नीचे से(mm): <input type="number" id="numBottom" value="10" min="0"></label>
-  <label>नंबर सीक्वेंस: <input type="text" id="numSeq" placeholder="8,6,5,3,7"></label>
+  <button id="autoFillBtn">ऑटो फिल</button>
   <button id="updateBtn">अपडेट</button>
+  <div class="number-inputs" id="numberInputs"></div>
 </div>
 
 <script>
+function generateNumberInputs(){
+  const cols = parseInt(document.getElementById('cols').value);
+  const rows = parseInt(document.getElementById('rows').value);
+  const totalCards = cols * rows;
+  const container = document.getElementById('numberInputs');
+  container.innerHTML = '';
+  for(let i=0;i<totalCards;i++){
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.value = i+1;
+    container.appendChild(inp);
+  }
+}
+
 function makeCards(){
   const paper = document.getElementById('paper');
   paper.innerHTML = '';
@@ -64,8 +86,7 @@ function makeCards(){
   const gap = parseFloat(document.getElementById('gap').value);
   const numSize = parseInt(document.getElementById('numSize').value);
   const numBottom = parseFloat(document.getElementById('numBottom').value);
-  const seq = document.getElementById('numSeq').value
-              .split(',').map(s=>s.trim()).filter(s=>s!=='');
+  const numberInputs = document.getElementById('numberInputs').querySelectorAll('input');
   
   document.documentElement.style.setProperty('--gap', gap+'mm');
   document.documentElement.style.setProperty('--num-box-size', numSize);
@@ -74,19 +95,28 @@ function makeCards(){
   paper.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   paper.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-  const totalCards = cols * rows;
-  for(let i=0;i<totalCards;i++){
+  numberInputs.forEach(numInput=>{
     const div = document.createElement('div');
     div.className = 'card';
     const numberBox = document.createElement('div');
     numberBox.className = 'number-box';
-    numberBox.textContent = seq[i] !== undefined ? seq[i] : (i+1);
+    numberBox.textContent = numInput.value;
     div.appendChild(numberBox);
     paper.appendChild(div);
-  }
+  });
 }
 
 document.getElementById('updateBtn').addEventListener('click', makeCards);
+document.getElementById('autoFillBtn').addEventListener('click', ()=>{
+  const numberInputs = document.getElementById('numberInputs').querySelectorAll('input');
+  numberInputs.forEach((inp,i)=> inp.value = i+1);
+  makeCards();
+});
+
+document.getElementById('cols').addEventListener('change', generateNumberInputs);
+document.getElementById('rows').addEventListener('change', generateNumberInputs);
+
+generateNumberInputs();
 makeCards();
 </script>
 
