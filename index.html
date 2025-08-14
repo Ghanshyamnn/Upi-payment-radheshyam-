@@ -1,100 +1,228 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>A4 पेपर कार्ड</title>
-<style>
-  * {box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;background:#f3f4f6;font-family:sans-serif}
-  .stage{min-height:100vh;display:flex;align-items:center;justify-content:center}
-  .paper{
-    position:relative;width:210mm;height:297mm;background:white;
-    box-shadow:0 8px 24px rgba(0,0,0,0.15);
-    transform:scale(var(--scale-factor));transform-origin:center center;
-    display:grid;gap:var(--gap);padding:10mm;
-  }
-  :root{--scale-factor:0.9;--gap:5mm;--num-box-size:16;--num-box-bottom:10}
-  @media(max-width:768px){
-    :root{--scale-factor:calc((100vw / 210mm) * 0.9)}
-    .controls{flex-direction:column;align-items:stretch}
-  }
-  .card{
-    position:relative;overflow:hidden;background:#fef9c3;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .number-box{
-    position:absolute;bottom:calc(var(--num-box-bottom) * 1mm);
-    background:rgba(255,255,255,0.9);
-    padding:calc(var(--num-box-size) * 0.4px) calc(var(--num-box-size) * 0.6px);
-    border-radius:6px;font-size:calc(var(--num-box-size) * 1px);
-    font-weight:bold;color:#111;box-shadow:0 2px 4px rgba(0,0,0,0.15);
-  }
-  .controls{
-    position:fixed;bottom:0;left:0;right:0;background:#e0e7ff;
-    border-top:1px solid #c7d2fe;padding:8px;display:flex;
-    flex-wrap:wrap;gap:8px;justify-content:center;
-  }
-  .controls input{padding:4px 8px;font-size:14px;min-width:60px}
-  .controls label{font-size:13px;display:flex;align-items:center;gap:4px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF कूपन जेनरेटर</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .main-container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h2 { margin: 0; color: #0d6efd; }
+    .clear-all-btn {
+      background: none; color: red; border: none; cursor: pointer;
+    }
+    .coupon-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .coupon-row input { width: 80px; padding: 5px; }
+    .card-count { flex-grow: 1; font-size: 14px; color: #555; }
+    .delete-btn {
+      background: #fbebee; color: red; border: none; border-radius: 50%;
+      width: 28px; height: 28px; cursor: pointer;
+    }
+    .add-row-btn {
+      margin-top: 10px; padding: 8px; border: 2px dashed #0d6efd;
+      background: #e7f1ff; color: #0d6efd; cursor: pointer; width: 100%;
+    }
+    .total-summary {
+      margin-top: 15px; background: #e7f1ff; color: #0d6efd;
+      padding: 10px; text-align: center; font-weight: bold;
+    }
+    #preview-container {
+      margin-top:20px; background:white; border:1px solid #ccc;
+      aspect-ratio:210/297;
+      width:100%;
+      display:grid;
+      grid-template-columns:repeat(10,1fr);
+      grid-template-rows:repeat(15,1fr);
+      gap:1px;
+    }
+    #preview-container div {
+      border: 0.5px solid #999;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+    }
+    .generate-btn {
+      margin-top: 15px; background: #0d6efd; color: white;
+      border: none; padding: 12px; width: 100%;
+      font-size: 16px; border-radius: 8px; cursor: pointer;
+    }
+  </style>
 </head>
+
 <body>
+  <div class="main-container">
+    <div class="header">
+      <h2>PDF कूपन</h2>
+      <button class="clear-all-btn">सब साफ़</button>
+    </div>
 
-<div class="stage">
-  <div class="paper" id="paper"></div>
-</div>
+    <div id="rows-container"></div>
+    <button class="add-row-btn" id="add-row-btn">+ नयी पंक्ति</button>
 
-<div class="controls">
-  <label>कॉलम: <input type="number" id="cols" value="3" min="1"></label>
-  <label>पंक्तियाँ: <input type="number" id="rows" value="4" min="1"></label>
-  <label>गैप(mm): <input type="number" id="gap" value="5" min="0"></label>
-  <label>नंबर बॉक्स साइज(px): <input type="number" id="numSize" value="16" min="8"></label>
-  <label>नंबर बॉक्स नीचे से(mm): <input type="number" id="numBottom" value="10" min="0"></label>
-  <label>शुरुआती नंबर: <input type="number" id="startNum" value="1"></label>
-  <label>नंबर सीक्वेंस: <input type="text" id="numSeq" placeholder="8,6,5,3,7"></label>
-  <button id="updateBtn">अपडेट</button>
-</div>
+    <div class="total-summary">
+      कुल: <span id="total-cards-display">0</span>
+    </div>
+
+    <label>
+      PDF क्वालिटी:
+      <select id="quality-select">
+        <option value="2">ड्राफ़्ट</option>
+        <option value="4" selected>HD</option>
+        <option value="10">अल्ट्रा HD</option>
+      </select>
+    </label>
+
+    <!-- लाइव A4 प्रीव्यू -->
+    <div id="preview-container"></div>
+
+    <button class="generate-btn" id="generate-pdf-btn">📄 PDF बनाएं</button>
+  </div>
 
 <script>
-function makeCards(){
-  const paper = document.getElementById('paper');
-  paper.innerHTML = '';
-  const cols = parseInt(document.getElementById('cols').value);
-  const rows = parseInt(document.getElementById('rows').value);
-  const gap = parseFloat(document.getElementById('gap').value);
-  const numSize = parseInt(document.getElementById('numSize').value);
-  const numBottom = parseFloat(document.getElementById('numBottom').value);
-  const startNum = parseInt(document.getElementById('startNum').value);
-  const seqInput = document.getElementById('numSeq').value
-              .split(',').map(s=>s.trim()).filter(s=>s!=='');
-  
-  document.documentElement.style.setProperty('--gap', gap+'mm');
-  document.documentElement.style.setProperty('--num-box-size', numSize);
-  document.documentElement.style.setProperty('--num-box-bottom', numBottom);
+const { jsPDF } = window.jspdf;
+const A4_WIDTH = 210, A4_HEIGHT = 297;
+const COLS = 10, ROWS = 15;
 
-  paper.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-  paper.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+const dom = {
+  rowsContainer: document.getElementById('rows-container'),
+  addRowBtn: document.getElementById('add-row-btn'),
+  totalCardsDisplay: document.getElementById('total-cards-display'),
+  clearAllBtn: document.querySelector('.clear-all-btn'),
+  generatePdfBtn: document.getElementById('generate-pdf-btn'),
+  qualitySelect: document.getElementById('quality-select'),
+  preview: document.getElementById('preview-container')
+};
 
-  const totalCards = cols * rows;
-  for(let i=0;i<totalCards;i++){
-    const div = document.createElement('div');
-    div.className = 'card';
-    const numberBox = document.createElement('div');
-    numberBox.className = 'number-box';
-    if(seqInput.length > 0){
-      numberBox.textContent = seqInput[i] !== undefined ? seqInput[i] : '';
-    } else {
-      numberBox.textContent = startNum + i;
+function getAllCouponNumbers() {
+  const numbers = [];
+  dom.rowsContainer.querySelectorAll('.coupon-row').forEach(row => {
+    const start = parseInt(row.querySelector('.start-num').value, 10);
+    const end = parseInt(row.querySelector('.end-num').value, 10);
+    if (!isNaN(start) && !isNaN(end) && end >= start) {
+      for (let i = start; i <= end; i++) numbers.push(i);
     }
-    div.appendChild(numberBox);
-    paper.appendChild(div);
+  });
+  return numbers;
+}
+
+function createNewRow(startVal = '', endVal = '') {
+  const row = document.createElement('div');
+  row.className = 'coupon-row';
+  row.innerHTML = `
+    <input type="number" class="start-num" placeholder="शुरू" value="${startVal}">
+    <span>से</span>
+    <input type="number" class="end-num" placeholder="अंत" value="${endVal}">
+    <span class="card-count">=0</span>
+    <button class="delete-btn">×</button>
+  `;
+  dom.rowsContainer.appendChild(row);
+  updateTotals();
+}
+
+function updatePreview() {
+  const numbers = getAllCouponNumbers();
+  dom.preview.innerHTML = '';
+  let i=0;
+  for(let r=0; r<ROWS; r++) {
+    for(let c=0; c<COLS; c++) {
+      const cell = document.createElement('div');
+      if(i < numbers.length) cell.textContent = numbers[i];
+      dom.preview.appendChild(cell);
+      i++;
+    }
   }
 }
 
-document.getElementById('updateBtn').addEventListener('click', makeCards);
-makeCards();
-</script>
+function updateTotals() {
+  let total = 0;
+  document.querySelectorAll('.coupon-row').forEach(row => {
+    const start = parseInt(row.querySelector('.start-num').value, 10);
+    const end = parseInt(row.querySelector('.end-num').value, 10);
+    let count = 0;
+    if (!isNaN(start) && !isNaN(end) && end >= start) count = end - start + 1;
+    row.querySelector('.card-count').textContent = `=${count}`;
+    total += count;
+  });
+  dom.totalCardsDisplay.textContent = total;
+  updatePreview();
+}
 
+async function generatePdf() {
+  const numbers = getAllCouponNumbers();
+  if (numbers.length === 0) {
+    alert("पहले कूपन नंबर डालें!");
+    return;
+  }
+  const pageCapacity = COLS * ROWS;
+  const totalPages = Math.ceil(numbers.length / pageCapacity);
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  for (let p = 0; p < totalPages; p++) {
+    const startIdx = p * pageCapacity;
+    const pageData = numbers.slice(startIdx, startIdx + pageCapacity);
+
+    let xStart = 10, yStart = 15, cellW = 18, cellH = 12;
+    let i = 0;
+    for(let r=0; r<ROWS; r++) {
+      for(let c=0; c<COLS; c++) {
+        const x = xStart + c*cellW;
+        const y = yStart + r*cellH;
+        doc.rect(x, y-8, cellW, cellH); // बॉर्डर
+        if(i < pageData.length) {
+          doc.text(String(pageData[i]), x + cellW/2, y, {align:"center"});
+        }
+        i++;
+      }
+    }
+    if (p < totalPages-1) doc.addPage();
+  }
+  doc.save("Coupons.pdf");
+}
+
+// Events
+dom.addRowBtn.addEventListener('click', () => createNewRow());
+dom.rowsContainer.addEventListener('input', updateTotals);
+dom.rowsContainer.addEventListener('click', e => {
+  if (e.target.classList.contains('delete-btn')) {
+    e.target.closest('.coupon-row').remove();
+    updateTotals();
+  }
+});
+dom.clearAllBtn.addEventListener('click', () => {
+  dom.rowsContainer.innerHTML = '';
+  updateTotals();
+});
+dom.generatePdfBtn.addEventListener('click', generatePdf);
+
+// Start
+createNewRow();
+updatePreview();
+</script>
 </body>
 </html>
