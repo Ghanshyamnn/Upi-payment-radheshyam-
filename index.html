@@ -68,17 +68,17 @@
 <body>
   <h1>कहानी आवाज़ में सुनें</h1>
   <textarea id="text">एक बार की बात है, एक छोटे से गाँव में एक चतुर खरगोश रहता था। वह अपनी बुद्धि से बड़े-बड़े जानवरों को भी मात दे देता था।</textarea>  <div class="controls">
-    <label>Voice: <select id="voiceSelect"></select></label>
-    <label>Rate: <input type="range" id="rate" min="0.5" max="2" step="0.1" value="1"></label>
-    <label>Pitch: <input type="range" id="pitch" min="0.5" max="2" step="0.1" value="1"></label>
-    <label>Volume: <input type="range" id="volume" min="0" max="1" step="0.1" value="1"></label>
+    <label>आवाज़: <select id="voiceSelect"></select></label>
+    <label>गति: <input type="range" id="rate" min="0.5" max="2" step="0.1" value="1"></label>
+    <label>स्वर (Pitch): <input type="range" id="pitch" min="0.5" max="2" step="0.1" value="1"></label>
+    <label>वॉल्यूम: <input type="range" id="volume" min="0" max="1" step="0.1" value="1"></label>
   </div>  <div class="controls">
     <button class="play" onclick="speakText()">▶ कहानी सुनाओ</button>
     <button class="pause" onclick="togglePause()">⏸ रोकें/जारी रखें</button>
     <button class="stop" onclick="stopSpeaking()">⏹ बंद करो</button>
   </div>  <div class="story-sample">
     👉 उदाहरण कहानी: “एक शेर जंगल में रहता था। वह रोज़ शिकार करता, पर एक दिन…”
-  </div>  <footer>Web Speech API द्वारा संचालित • कोई ऑडियो सर्वर को नहीं भेजा जाता</footer>  <script>
+  </div>  <footer>Web Speech API द्वारा संचालित • सिस्टम की नैचुरल आवाज़ें अपने आप चुनें</footer>  <script>
     const textArea = document.getElementById("text");
     const voiceSelect = document.getElementById("voiceSelect");
     const rateInput = document.getElementById("rate");
@@ -99,7 +99,18 @@
         option.textContent = `${v.name} — ${v.lang}`;
         voiceSelect.appendChild(option);
       });
+
+      // Auto-select Hindi natural voice if available
+      const hindiVoice = voices.find(v => v.lang.startsWith("hi"));
+      if (hindiVoice) {
+        voiceSelect.value = hindiVoice.voiceURI;
+      } else {
+        // fallback to any Google/Microsoft natural voice
+        const natural = voices.find(v => /Google|Microsoft/i.test(v.name));
+        if (natural) voiceSelect.value = natural.voiceURI;
+      }
     }
+
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
