@@ -50,6 +50,7 @@
     button.play { background: #2563eb; color: white; }
     button.pause { background: #fbbf24; }
     button.stop { background: #ef4444; color: white; }
+    button.modi { background: #10b981; color: white; }
     .story-sample {
       background: #fef9c3;
       padding: 12px;
@@ -76,6 +77,7 @@
     <button class="play" onclick="speakText()">▶ कहानी सुनाओ</button>
     <button class="pause" onclick="togglePause()">⏸ रोकें/जारी रखें</button>
     <button class="stop" onclick="stopSpeaking()">⏹ बंद करो</button>
+    <button class="modi" onclick="speakModiStyle()">🇮🇳 मोदी स्टाइल</button>
   </div>  <div class="story-sample">
     👉 उदाहरण कहानी: “एक शेर जंगल में रहता था। वह रोज़ शिकार करता, पर एक दिन…”
   </div>  <footer>Web Speech API द्वारा संचालित • सिस्टम की नैचुरल आवाज़ें अपने आप चुनें</footer>  <script>
@@ -105,30 +107,63 @@
       if (hindiVoice) {
         voiceSelect.value = hindiVoice.voiceURI;
       } else {
-        // fallback to any Google/Microsoft natural voice
         const natural = voices.find(v => /Google|Microsoft/i.test(v.name));
         if (natural) voiceSelect.value = natural.voiceURI;
+      }
+
+      // Load saved preference
+      const savedVoice = localStorage.getItem("preferredVoice");
+      if (savedVoice && voices.find(v => v.voiceURI === savedVoice)) {
+        voiceSelect.value = savedVoice;
       }
     }
 
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
+    voiceSelect.addEventListener("change", () => {
+      localStorage.setItem("preferredVoice", voiceSelect.value);
+    });
+
+    function createUtterance(text) {
+      const u = new SpeechSynthesisUtterance(text);
+      const selected = voices.find(v => v.voiceURI === voiceSelect.value);
+      if (selected) u.voice = selected;
+      u.rate = parseFloat(rateInput.value);
+      u.pitch = parseFloat(pitchInput.value);
+      u.volume = parseFloat(volumeInput.value);
+      u.onstart = () => speaking = true;
+      u.onend = () => { speaking = false; paused = false; };
+      return u;
+    }
+
     function speakText() {
       const text = textArea.value.trim();
       if (!text) return;
+      if (speaking) stopSpeaking();
+      utterance = createUtterance(text);
+      window.speechSynthesis.speak(utterance);
+    }
 
+    function speakModiStyle() {
+      let text = textArea.value.trim();
+      if (!text) return;
       if (speaking) stopSpeaking();
 
-      utterance = new SpeechSynthesisUtterance(text);
-      const selected = voices.find(v => v.voiceURI === voiceSelect.value);
-      if (selected) utterance.voice = selected;
-      utterance.rate = parseFloat(rateInput.value);
-      utterance.pitch = parseFloat(pitchInput.value);
-      utterance.volume = parseFloat(volumeInput.value);
+      // Add pauses and emphasis for Modi-style narration
+      const sentences = text.split(/([.!?।])/).filter(Boolean);
+      let modiText = "";
+      sentences.forEach((s, i) => {
+        if (/[.!?।]/.test(s)) {
+          modiText += s + " \n\n"; // Pause after sentence
+        } else {
+          modiText += s.toUpperCase() + " "; // Emphasis
+        }
+      });
 
-      utterance.onstart = () => speaking = true;
-      utterance.onend = () => { speaking = false; paused = false; };
+      utterance = createUtterance(modiText);
+      utterance.rate = 0.9; // slightly slower
+      utterance.pitch = 0.9; // deeper tone
 
       window.speechSynthesis.speak(utterance);
     }
