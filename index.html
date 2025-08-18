@@ -1,191 +1,176 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PDF कूपन जेनरेटर</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<style>
-  body {font-family: sans-serif; background:#f0f2f5; padding:20px; display:flex; justify-content:center;}
-  .main-container {background:white; padding:20px; border-radius:12px; max-width:460px; width:100%; box-shadow:0 4px 12px rgba(0,0,0,0.1);}
-  .header {display:flex; justify-content:space-between; align-items:center;}
-  h2 {margin:0; color:#0d6efd;}
-  .clear-all-btn {background:none; color:red; border:none; cursor:pointer;}
-  .coupon-row {display:flex; gap:8px; align-items:center; margin-top:10px;}
-  .coupon-row input {width:80px; padding:5px;}
-  .card-count {flex-grow:1; font-size:14px; color:#555;}
-  .delete-btn {background:#fbebee; color:red; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer;}
-  .add-row-btn {margin-top:10px; padding:8px; border:2px dashed #0d6efd; background:#e7f1ff; color:#0d6efd; cursor:pointer; width:100%;}
-  .total-summary {margin-top:15px; background:#e7f1ff; color:#0d6efd; padding:10px; text-align:center; font-weight:bold;}
-  label {display:block; margin-top:8px;}
-  #preview-container {margin-top:20px; background:white; border:1px solid #ccc; aspect-ratio:210/297; width:100%; display:grid; grid-template-columns:repeat(10,1fr); grid-template-rows:repeat(15,1fr); gap:2px; padding:4px; box-sizing:border-box;}
-  .card {border:1px solid #0d6efd; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:white; font-size:10px; padding:2px;}
-  .card-title {font-weight:bold; color:#0d6efd; margin-bottom:3px; font-size:9px;}
-  .num-box {border:1px solid #0d6efd; border-radius:4px; padding:2px 6px; color:#0d6efd; font-weight:600; font-size:10px; min-width:20px; text-align:center;}
-  .generate-btn {margin-top:15px; background:#0d6efd; color:white; border:none; padding:12px; width:100%; font-size:16px; border-radius:8px; cursor:pointer;}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Chat (No Time + Copy)</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    h2 {
+      margin: 10px;
+      text-align: center;
+    }
+    #messages {
+      flex: 1;
+      list-style: none;
+      padding: 10px;
+      margin: 0;
+      overflow-y: auto;
+      background: #f2f2f2;
+    }
+    #messages li {
+      background: #fff;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .msg-text {
+      flex: 1;
+      margin-right: 10px;
+      word-break: break-word;
+    }
+    .copy-btn {
+      background: #0b74de;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .copy-btn:hover {
+      background: #095bb0;
+    }
+    form {
+      display: flex;
+      padding: 10px;
+      background: #ddd;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button[type="submit"] {
+      margin-left: 8px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      background: #0b74de;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button[type="submit"]:hover {
+      background: #095bb0;
+    }
+  </style>
 </head>
 <body>
-<div class="main-container">
-  <div class="header">
-    <h2>PDF कूपन</h2>
-    <button class="clear-all-btn">सब साफ़</button>
-  </div>
-  <div id="rows-container"></div>
-  <button class="add-row-btn" id="add-row-btn">+ नयी पंक्ति</button>
-  <div class="total-summary">कुल: <span id="total-cards-display">0</span></div>
-  <label>PDF क्वालिटी:
-    <select id="quality-select">
-      <option value="2">ड्राफ़्ट</option>
-      <option value="4" selected>HD</option>
-      <option value="10">अल्ट्रा HD</option>
-    </select>
-  </label>
-  <div id="preview-container"></div>
-  <button class="generate-btn" id="generate-pdf-btn">📄 PDF बनाएं</button>
-</div>
+  <h2>💬 Firebase Chat (सिर्फ़ संदेश + Copy)</h2>
 
-<script>
-const { jsPDF } = window.jspdf;
-const A4_WIDTH = 210, A4_HEIGHT = 297;
-const COLS = 10, ROWS = 15;
+  <ul id="messages"></ul>
 
-const dom = {
-  rowsContainer: document.getElementById('rows-container'),
-  addRowBtn: document.getElementById('add-row-btn'),
-  totalCardsDisplay: document.getElementById('total-cards-display'),
-  clearAllBtn: document.querySelector('.clear-all-btn'),
-  generatePdfBtn: document.getElementById('generate-pdf-btn'),
-  qualitySelect: document.getElementById('quality-select'),
-  preview: document.getElementById('preview-container')
-};
+  <form id="msgForm">
+    <input type="text" id="message" placeholder="अपना संदेश लिखें..." required>
+    <button type="submit">भेजें</button>
+  </form>
 
-function getAllCouponNumbers() {
-  const numbers = [];
-  dom.rowsContainer.querySelectorAll('.coupon-row').forEach(row => {
-    const start = parseInt(row.querySelector('.start-num').value, 10);
-    const end = parseInt(row.querySelector('.end-num').value, 10);
-    if (!isNaN(start) && !isNaN(end) && end >= start) {
-      for (let i = start; i <= end; i++) numbers.push(i);
-    }
-  });
-  return numbers;
-}
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-function createNewRow(startVal = '', endVal = '') {
-  const row = document.createElement('div');
-  row.className = 'coupon-row';
-  row.innerHTML = `
-    <input type="number" class="start-num" placeholder="शुरू" value="${startVal}">
-    <span>से</span>
-    <input type="number" class="end-num" placeholder="अंत" value="${endVal}">
-    <span class="card-count">=0</span>
-    <button class="delete-btn">×</button>
-  `;
-  dom.rowsContainer.appendChild(row);
-  updateTotals();
-}
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAtGYH7Z1BF8Efeqgxv4CIMHcnoR_gNbQk",
+      authDomain: "gr-chet.firebaseapp.com",
+      databaseURL: "https://gr-chet-default-rtdb.firebaseio.com",
+      projectId: "gr-chet",
+      storageBucket: "gr-chet.firebasestorage.app",
+      messagingSenderId: "945097840520",
+      appId: "1:945097840520:web:2e57b5900849a53d550c3d",
+      measurementId: "G-24MP1L0X71"
+    };
 
-function updatePreview() {
-  const numbers = getAllCouponNumbers();
-  dom.preview.innerHTML = '';
-  let i=0;
-  for(let r=0; r<ROWS; r++) {
-    for(let c=0; c<COLS; c++) {
-      const card = document.createElement('div');
-      card.className = 'card';
-      if(i < numbers.length) {
-        const title = document.createElement('div');
-        title.className = 'card-title';
-        title.textContent = 'इनाम';
-        const numBox = document.createElement('div');
-        numBox.className = 'num-box';
-        numBox.textContent = numbers[i];
-        card.appendChild(title);
-        card.appendChild(numBox);
-      }
-      dom.preview.appendChild(card);
-      i++;
-    }
-  }
-}
+    // Init Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-function updateTotals() {
-  let total = 0;
-  document.querySelectorAll('.coupon-row').forEach(row => {
-    const start = parseInt(row.querySelector('.start-num').value, 10);
-    const end = parseInt(row.querySelector('.end-num').value, 10);
-    let count = 0;
-    if (!isNaN(start) && !isNaN(end) && end >= start) count = end - start + 1;
-    row.querySelector('.card-count').textContent = `=${count}`;
-    total += count;
-  });
-  dom.totalCardsDisplay.textContent = total;
-  updatePreview();
-}
+    // Handle form submit
+    document.getElementById("msgForm").addEventListener("submit", (e) => {
+      e.preventDefault();
 
-async function generatePdf() {
-  const numbers = getAllCouponNumbers();
-  if (numbers.length === 0) {
-    alert("पहले कूपन नंबर डालें!");
-    return;
-  }
-  const pageCapacity = COLS * ROWS;
-  const totalPages = Math.ceil(numbers.length / pageCapacity);
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const qualityScale = parseFloat(dom.qualitySelect.value);
+      const msg = document.getElementById("message").value;
 
-  const previewElement = dom.preview;
-  for (let p = 0; p < totalPages; p++) {
-    const startIdx = p * pageCapacity;
-    const pageData = numbers.slice(startIdx, startIdx + pageCapacity);
+      // अब सिर्फ़ text save करेंगे (time/date हटाया गया)
+      push(ref(db, "messages"), {
+        text: msg
+      });
 
-    // प्रीव्यू में फिल्टर लगाकर सिर्फ इस पेज के लिए
-    dom.preview.querySelectorAll('.card').forEach((card, idx) => {
-      const num = pageData[idx];
-      card.querySelector('.num-box')?.remove();
-      card.querySelector('.card-title')?.remove();
-      if(idx < pageData.length) {
-        const title = document.createElement('div');
-        title.className = 'card-title';
-        title.textContent = 'इनाम';
-        const numBox = document.createElement('div');
-        numBox.className = 'num-box';
-        numBox.textContent = num;
-        card.appendChild(title);
-        card.appendChild(numBox);
-      }
+      document.getElementById("msgForm").reset();
     });
 
-    await new Promise(r => setTimeout(r, 50));
-    const canvas = await html2canvas(previewElement, {scale: qualityScale, backgroundColor:'#fff'});
-    const imgData = canvas.toDataURL('image/png');
-    if(p>0) doc.addPage();
-    doc.addImage(imgData, 'PNG', 0, 0, A4_WIDTH, A4_HEIGHT);
-  }
+    // Copy helper
+    function copyToClipboard(text, button) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          button.textContent = "✅ Copied";
+          setTimeout(() => button.textContent = "Copy", 1500);
+        });
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand("copy");
+          button.textContent = "✅ Copied";
+          setTimeout(() => button.textContent = "Copy", 1500);
+        } catch (err) {
+          alert("Copy failed: " + err);
+        }
+        document.body.removeChild(textarea);
+      }
+    }
 
-  doc.save("Coupons.pdf");
-}
+    // Show realtime messages
+    const messagesList = document.getElementById("messages");
+    const messagesRef = ref(db, "messages");
 
-// Events
-dom.addRowBtn.addEventListener('click', () => createNewRow());
-dom.rowsContainer.addEventListener('input', updateTotals);
-dom.rowsContainer.addEventListener('click', e => {
-  if (e.target.classList.contains('delete-btn')) {
-    e.target.closest('.coupon-row').remove();
-    updateTotals();
-  }
-});
-dom.clearAllBtn.addEventListener('click', () => {
-  dom.rowsContainer.innerHTML = '';
-  updateTotals();
-});
-dom.generatePdfBtn.addEventListener('click', generatePdf);
+    onChildAdded(messagesRef, (snapshot) => {
+      const data = snapshot.val();
 
-// Init
-createNewRow();
-updatePreview();
-</script>
+      const li = document.createElement("li");
+
+      const span = document.createElement("span");
+      span.className = "msg-text";
+      span.textContent = data.text;
+
+      const copyBtn = document.createElement("button");
+      copyBtn.className = "copy-btn";
+      copyBtn.textContent = "Copy";
+      copyBtn.addEventListener("click", () => copyToClipboard(data.text, copyBtn));
+
+      li.appendChild(span);
+      li.appendChild(copyBtn);
+      messagesList.appendChild(li);
+
+      // auto-scroll
+      messagesList.scrollTop = messagesList.scrollHeight;
+    });
+  </script>
 </body>
 </html>
