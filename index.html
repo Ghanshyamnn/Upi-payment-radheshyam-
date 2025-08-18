@@ -1,264 +1,142 @@
-<!doctype html>
-
-<html lang="hi">
+<!DOCTYPE html><html lang="hi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Text‑to‑Voice (Web Speech API)</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>कहानी सुनाओ (Text to Voice)</title>
   <style>
-    :root {
-      --bg: #0b1020;
-      --panel: #131a2a;
-      --text: #e8eefc;
-      --muted: #9fb2d9;
-      --accent: #6ea8ff;
-      --accent-2: #b78cff;
-      --danger: #ff6b6b;
-      --ok: #6bffa6;
-      --border: #1f2a44;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-    }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
     body {
+      font-family: Georgia, serif;
+      background: #fdfcf7;
+      color: #1f2937;
       margin: 0;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Noto Sans",sans-serif;
-      background: linear-gradient(180deg, #0b1020, #0e1630);
-      color: var(--text);
-      display: grid;
-      place-items: start center;
-      padding: 24px;
-    }
-    .app {
-      width: min(920px, 100%);
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
       padding: 20px;
+      line-height: 1.6;
     }
-    h1 { margin: 0 0 4px; font-weight: 700; letter-spacing: .2px; }
-    .sub { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
     textarea {
-      width: 100%; min-height: 170px; resize: vertical; padding: 14px 12px; font-size: 16px;
-      color: var(--text); background: #0e1527; border: 1px solid var(--border); border-radius: 12px;
-      outline: none; box-shadow: inset 0 0 0 1px transparent; transition: box-shadow .15s ease, border-color .15s ease;
+      width: 100%;
+      min-height: 200px;
+      padding: 12px;
+      font-size: 17px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: #fffdf9;
     }
-    textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(110,168,255,.2); }
-    .row { display: grid; grid-template-columns: 1fr; gap: 14px; }
-    @media (min-width: 720px) { .row { grid-template-columns: 1fr 1fr; } }
-    label { font-size: 13px; color: var(--muted); display: block; margin: 6px 0; }
-    select, input[type="range"] {
-      width: 100%; padding: 10px; border-radius: 12px; border: 1px solid var(--border); background: #0e1527; color: var(--text);
+    .controls {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
     }
-    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .controls label {
+      font-size: 14px;
+    }
+    .controls input, select {
+      margin-left: 5px;
+    }
     button {
-      appearance: none; border: 1px solid var(--border); background: #0f1830; color: var(--text);
-      padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: transform .02s ease, background .2s ease, border-color .2s ease;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
     }
-    button:hover { background: #121e3b; }
-    button:active { transform: translateY(1px); }
-    .primary { background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-color: transparent; color: #081122; font-weight: 700; }
-    .danger { background: #2a1114; border-color: #4e1820; color: #ffd7d7; }
-    .ghost { background: transparent; }
-    .muted { color: var(--muted); font-size: 12px; }
-    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .footer { margin-top: 16px; color: var(--muted); font-size: 12px; text-align: center; }
-    .chip { display:inline-block; padding:.2rem .6rem; border:1px solid var(--border); border-radius:999px; font-size:12px; color:var(--muted); }
-    .hidden { display: none; }
+    button.play { background: #2563eb; color: white; }
+    button.pause { background: #fbbf24; }
+    button.stop { background: #ef4444; color: white; }
+    .story-sample {
+      background: #fef9c3;
+      padding: 12px;
+      margin-top: 20px;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #6b7280;
+    }
   </style>
 </head>
 <body>
-  <main class="app" role="main">
-    <h1>Text‑to‑Voice (वेब)</h1>
-    <div class="sub">ब्राउज़र के <b>Web Speech API</b> से चलने वाला हल्का, प्राइवेसी‑फ्रेंडली TTS। कोई सर्वर जरूरी नहीं।</div><section>
-  <label for="text">अपना टेक्स्ट लिखें / Type your text</label>
-  <textarea id="text" placeholder="यहाँ टेक्स्ट लिखें…">नमस्ते! यह एक टेक्स्ट‑टू‑वॉइस डेमो है. Hello! This is a text‑to‑voice demo.</textarea>
-  <div class="muted" id="charCount">0 characters</div>
-</section>
+  <h1>कहानी आवाज़ में सुनें</h1>
+  <textarea id="text">एक बार की बात है, एक छोटे से गाँव में एक चतुर खरगोश रहता था। वह अपनी बुद्धि से बड़े-बड़े जानवरों को भी मात दे देता था।</textarea>  <div class="controls">
+    <label>Voice: <select id="voiceSelect"></select></label>
+    <label>Rate: <input type="range" id="rate" min="0.5" max="2" step="0.1" value="1"></label>
+    <label>Pitch: <input type="range" id="pitch" min="0.5" max="2" step="0.1" value="1"></label>
+    <label>Volume: <input type="range" id="volume" min="0" max="1" step="0.1" value="1"></label>
+  </div>  <div class="controls">
+    <button class="play" onclick="speakText()">▶ कहानी सुनाओ</button>
+    <button class="pause" onclick="togglePause()">⏸ रोकें/जारी रखें</button>
+    <button class="stop" onclick="stopSpeaking()">⏹ बंद करो</button>
+  </div>  <div class="story-sample">
+    👉 उदाहरण कहानी: “एक शेर जंगल में रहता था। वह रोज़ शिकार करता, पर एक दिन…”
+  </div>  <footer>Web Speech API द्वारा संचालित • कोई ऑडियो सर्वर को नहीं भेजा जाता</footer>  <script>
+    const textArea = document.getElementById("text");
+    const voiceSelect = document.getElementById("voiceSelect");
+    const rateInput = document.getElementById("rate");
+    const pitchInput = document.getElementById("pitch");
+    const volumeInput = document.getElementById("volume");
 
-<div class="row" style="margin-top:16px">
-  <div>
-    <label for="voice">आवाज़ (Voice)</label>
-    <select id="voice"></select>
-  </div>
-  <div class="grid3">
-    <div>
-      <label for="rate">गति (Rate): <span id="rateVal">1.00</span></label>
-      <input type="range" id="rate" min="0.5" max="2" step="0.05" value="1">
-    </div>
-    <div>
-      <label for="pitch">पिच (Pitch): <span id="pitchVal">1.00</span></label>
-      <input type="range" id="pitch" min="0.5" max="2" step="0.05" value="1">
-    </div>
-    <div>
-      <label for="volume">वॉल्यूम (Volume): <span id="volumeVal">1.00</span></label>
-      <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
-    </div>
-  </div>
-</div>
+    let voices = [];
+    let speaking = false;
+    let paused = false;
+    let utterance;
 
-<div class="controls">
-  <button class="primary" id="speakBtn">▶ Speak (Ctrl/Cmd+Enter)</button>
-  <button id="pauseBtn">⏸ Pause / Resume</button>
-  <button class="danger" id="stopBtn">■ Stop</button>
-  <button class="ghost" id="hiPreset">HI Preset</button>
-  <button class="ghost" id="enPreset">EN Preset</button>
-  <span class="chip" id="status">idle</span>
-</div>
-
-<p class="muted" style="margin-top:10px">
-  नोट: अधिकतर ब्राउज़र्स speechSynthesis की रिकॉर्डिंग/डाउनलोड नहीं देते। MP3/WAV के लिए सर्वर‑साइड TTS (जैसे OpenAI TTS) जोड़ें या स्क्रीन रिकॉर्डर का उपयोग करें।
-</p>
-
-<div class="footer">Built with Web Speech API • कोई ऑडियो सर्वर को नहीं भेजा जाता</div>
-
-  </main>  <script>
-    (function(){
-      const text = document.getElementById('text');
-      const charCount = document.getElementById('charCount');
-      const voiceSel = document.getElementById('voice');
-      const rate = document.getElementById('rate');
-      const pitch = document.getElementById('pitch');
-      const volume = document.getElementById('volume');
-      const rateVal = document.getElementById('rateVal');
-      const pitchVal = document.getElementById('pitchVal');
-      const volumeVal = document.getElementById('volumeVal');
-      const speakBtn = document.getElementById('speakBtn');
-      const pauseBtn = document.getElementById('pauseBtn');
-      const stopBtn = document.getElementById('stopBtn');
-      const hiPreset = document.getElementById('hiPreset');
-      const enPreset = document.getElementById('enPreset');
-      const statusChip = document.getElementById('status');
-
-      const supports = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
-      if (!supports) {
-        alert('Your browser does not support the Web Speech API (speechSynthesis). Try Chrome, Edge, or Safari.');
-      }
-
-      // Load settings
-      try {
-        const saved = JSON.parse(localStorage.getItem('ttv-html-settings') || 'null');
-        if (saved) {
-          if (typeof saved.text === 'string') text.value = saved.text;
-          if (saved.voiceURI) selectedVoiceURI = saved.voiceURI;
-          if (typeof saved.rate === 'number') rate.value = saved.rate;
-          if (typeof saved.pitch === 'number') pitch.value = saved.pitch;
-          if (typeof saved.volume === 'number') volume.value = saved.volume;
-        }
-      } catch(e){}
-
-      function save() {
-        localStorage.setItem('ttv-html-settings', JSON.stringify({
-          text: text.value,
-          voiceURI: selectedVoiceURI,
-          rate: +rate.value,
-          pitch: +pitch.value,
-          volume: +volume.value,
-        }));
-      }
-
-      let selectedVoiceURI = '';
-      let utter = null;
-
-      function setStatus(s){ statusChip.textContent = s; }
-      function updateMeters(){
-        charCount.textContent = `${text.value.length} characters`;
-        rateVal.textContent = (+rate.value).toFixed(2);
-        pitchVal.textContent = (+pitch.value).toFixed(2);
-        volumeVal.textContent = (+volume.value).toFixed(2);
-      }
-      updateMeters();
-
-      text.addEventListener('input', () => { updateMeters(); save(); });
-      rate.addEventListener('input', () => { updateMeters(); save(); });
-      pitch.addEventListener('input', () => { updateMeters(); save(); });
-      volume.addEventListener('input', () => { updateMeters(); save(); });
-
-      function populateVoices(){
-        const list = speechSynthesis.getVoices();
-        voiceSel.innerHTML = '';
-        if (!list.length) {
-          const opt = document.createElement('option');
-          opt.textContent = 'No voices found (reload page)';
-          voiceSel.appendChild(opt);
-          return;
-        }
-        list.forEach(v => {
-          const o = document.createElement('option');
-          o.value = v.voiceURI;
-          o.textContent = `${v.name} — ${v.lang}`;
-          voiceSel.appendChild(o);
-        });
-        // Auto-select: prefer Hindi, else English, else first
-        let preferred = list.find(v => /hi-|Hindi/i.test(v.lang)) || list.find(v => /en-/i.test(v.lang)) || list[0];
-        if (selectedVoiceURI) {
-          const found = list.find(v => v.voiceURI === selectedVoiceURI);
-          if (found) preferred = found;
-        }
-        selectedVoiceURI = preferred.voiceURI;
-        voiceSel.value = selectedVoiceURI;
-      }
-
-      populateVoices();
-      speechSynthesis.onvoiceschanged = populateVoices;
-
-      voiceSel.addEventListener('change', () => {
-        selectedVoiceURI = voiceSel.value;
-        save();
+    function loadVoices() {
+      voices = window.speechSynthesis.getVoices();
+      voiceSelect.innerHTML = "";
+      voices.forEach(v => {
+        const option = document.createElement("option");
+        option.value = v.voiceURI;
+        option.textContent = `${v.name} — ${v.lang}`;
+        voiceSelect.appendChild(option);
       });
+    }
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
 
-      function stop(){
-        speechSynthesis.cancel();
-        utter = null;
-        setStatus('idle');
+    function speakText() {
+      const text = textArea.value.trim();
+      if (!text) return;
+
+      if (speaking) stopSpeaking();
+
+      utterance = new SpeechSynthesisUtterance(text);
+      const selected = voices.find(v => v.voiceURI === voiceSelect.value);
+      if (selected) utterance.voice = selected;
+      utterance.rate = parseFloat(rateInput.value);
+      utterance.pitch = parseFloat(pitchInput.value);
+      utterance.volume = parseFloat(volumeInput.value);
+
+      utterance.onstart = () => speaking = true;
+      utterance.onend = () => { speaking = false; paused = false; };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function togglePause() {
+      if (!speaking) return;
+      if (paused) {
+        window.speechSynthesis.resume();
+        paused = false;
+      } else {
+        window.speechSynthesis.pause();
+        paused = true;
       }
+    }
 
-      function speak(){
-        const t = text.value.trim();
-        if (!t) return;
-        stop(); // cancel any existing
-        utter = new SpeechSynthesisUtterance(t);
-        const list = speechSynthesis.getVoices();
-        const chosen = list.find(v => v.voiceURI === selectedVoiceURI);
-        if (chosen) utter.voice = chosen;
-        utter.rate = +rate.value;
-        utter.pitch = +pitch.value;
-        utter.volume = +volume.value;
-        utter.onstart = () => setStatus('speaking');
-        utter.onend = () => { setStatus('done'); setTimeout(() => setStatus('idle'), 800); };
-        utter.onerror = () => { setStatus('error'); };
-        speechSynthesis.speak(utter);
-      }
-
-      function pauseResume(){
-        if (!speechSynthesis.speaking) return;
-        if (speechSynthesis.paused) { speechSynthesis.resume(); setStatus('speaking'); }
-        else { speechSynthesis.pause(); setStatus('paused'); }
-      }
-
-      function applyPreset(lang){
-        const list = speechSynthesis.getVoices();
-        const pick = list.find(v => lang==='hi' ? /hi-|Hindi/i.test(v.lang) : /en-/i.test(v.lang));
-        if (pick) { selectedVoiceURI = pick.voiceURI; voiceSel.value = selectedVoiceURI; }
-        if (lang==='hi') { rate.value = 0.95; pitch.value = 1.0; }
-        else { rate.value = 1.0; pitch.value = 1.0; }
-        updateMeters(); save();
-      }
-
-      speakBtn.addEventListener('click', speak);
-      stopBtn.addEventListener('click', stop);
-      pauseBtn.addEventListener('click', pauseResume);
-      hiPreset.addEventListener('click', () => applyPreset('hi'));
-      enPreset.addEventListener('click', () => applyPreset('en'));
-
-      // Keyboard shortcut: Ctrl/Cmd + Enter
-      window.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-          e.preventDefault();
-          speak();
-        }
-      });
-    })();
+    function stopSpeaking() {
+      window.speechSynthesis.cancel();
+      speaking = false;
+      paused = false;
+    }
   </script></body>
 </html>
