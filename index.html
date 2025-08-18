@@ -1,176 +1,264 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Firebase Chat (No Time + Copy)</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Text‑to‑Voice (Web Speech API)</title>
   <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #131a2a;
+      --text: #e8eefc;
+      --muted: #9fb2d9;
+      --accent: #6ea8ff;
+      --accent-2: #b78cff;
+      --danger: #ff6b6b;
+      --ok: #6bffa6;
+      --border: #1f2a44;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Noto Sans",sans-serif;
+      background: linear-gradient(180deg, #0b1020, #0e1630);
+      color: var(--text);
+      display: grid;
+      place-items: start center;
+      padding: 24px;
     }
-    h2 {
-      margin: 10px;
-      text-align: center;
+    .app {
+      width: min(920px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 20px;
     }
-    #messages {
-      flex: 1;
-      list-style: none;
-      padding: 10px;
-      margin: 0;
-      overflow-y: auto;
-      background: #f2f2f2;
+    h1 { margin: 0 0 4px; font-weight: 700; letter-spacing: .2px; }
+    .sub { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+    textarea {
+      width: 100%; min-height: 170px; resize: vertical; padding: 14px 12px; font-size: 16px;
+      color: var(--text); background: #0e1527; border: 1px solid var(--border); border-radius: 12px;
+      outline: none; box-shadow: inset 0 0 0 1px transparent; transition: box-shadow .15s ease, border-color .15s ease;
     }
-    #messages li {
-      background: #fff;
-      margin-bottom: 8px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(110,168,255,.2); }
+    .row { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 720px) { .row { grid-template-columns: 1fr 1fr; } }
+    label { font-size: 13px; color: var(--muted); display: block; margin: 6px 0; }
+    select, input[type="range"] {
+      width: 100%; padding: 10px; border-radius: 12px; border: 1px solid var(--border); background: #0e1527; color: var(--text);
     }
-    .msg-text {
-      flex: 1;
-      margin-right: 10px;
-      word-break: break-word;
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    button {
+      appearance: none; border: 1px solid var(--border); background: #0f1830; color: var(--text);
+      padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: transform .02s ease, background .2s ease, border-color .2s ease;
     }
-    .copy-btn {
-      background: #0b74de;
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    .copy-btn:hover {
-      background: #095bb0;
-    }
-    form {
-      display: flex;
-      padding: 10px;
-      background: #ddd;
-    }
-    input[type="text"] {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    button[type="submit"] {
-      margin-left: 8px;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 6px;
-      background: #0b74de;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button[type="submit"]:hover {
-      background: #095bb0;
-    }
+    button:hover { background: #121e3b; }
+    button:active { transform: translateY(1px); }
+    .primary { background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-color: transparent; color: #081122; font-weight: 700; }
+    .danger { background: #2a1114; border-color: #4e1820; color: #ffd7d7; }
+    .ghost { background: transparent; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .footer { margin-top: 16px; color: var(--muted); font-size: 12px; text-align: center; }
+    .chip { display:inline-block; padding:.2rem .6rem; border:1px solid var(--border); border-radius:999px; font-size:12px; color:var(--muted); }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h2>💬 Firebase Chat (सिर्फ़ संदेश + Copy)</h2>
+  <main class="app" role="main">
+    <h1>Text‑to‑Voice (वेब)</h1>
+    <div class="sub">ब्राउज़र के <b>Web Speech API</b> से चलने वाला हल्का, प्राइवेसी‑फ्रेंडली TTS। कोई सर्वर जरूरी नहीं।</div><section>
+  <label for="text">अपना टेक्स्ट लिखें / Type your text</label>
+  <textarea id="text" placeholder="यहाँ टेक्स्ट लिखें…">नमस्ते! यह एक टेक्स्ट‑टू‑वॉइस डेमो है. Hello! This is a text‑to‑voice demo.</textarea>
+  <div class="muted" id="charCount">0 characters</div>
+</section>
 
-  <ul id="messages"></ul>
+<div class="row" style="margin-top:16px">
+  <div>
+    <label for="voice">आवाज़ (Voice)</label>
+    <select id="voice"></select>
+  </div>
+  <div class="grid3">
+    <div>
+      <label for="rate">गति (Rate): <span id="rateVal">1.00</span></label>
+      <input type="range" id="rate" min="0.5" max="2" step="0.05" value="1">
+    </div>
+    <div>
+      <label for="pitch">पिच (Pitch): <span id="pitchVal">1.00</span></label>
+      <input type="range" id="pitch" min="0.5" max="2" step="0.05" value="1">
+    </div>
+    <div>
+      <label for="volume">वॉल्यूम (Volume): <span id="volumeVal">1.00</span></label>
+      <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+    </div>
+  </div>
+</div>
 
-  <form id="msgForm">
-    <input type="text" id="message" placeholder="अपना संदेश लिखें..." required>
-    <button type="submit">भेजें</button>
-  </form>
+<div class="controls">
+  <button class="primary" id="speakBtn">▶ Speak (Ctrl/Cmd+Enter)</button>
+  <button id="pauseBtn">⏸ Pause / Resume</button>
+  <button class="danger" id="stopBtn">■ Stop</button>
+  <button class="ghost" id="hiPreset">HI Preset</button>
+  <button class="ghost" id="enPreset">EN Preset</button>
+  <span class="chip" id="status">idle</span>
+</div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+<p class="muted" style="margin-top:10px">
+  नोट: अधिकतर ब्राउज़र्स speechSynthesis की रिकॉर्डिंग/डाउनलोड नहीं देते। MP3/WAV के लिए सर्वर‑साइड TTS (जैसे OpenAI TTS) जोड़ें या स्क्रीन रिकॉर्डर का उपयोग करें।
+</p>
 
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAtGYH7Z1BF8Efeqgxv4CIMHcnoR_gNbQk",
-      authDomain: "gr-chet.firebaseapp.com",
-      databaseURL: "https://gr-chet-default-rtdb.firebaseio.com",
-      projectId: "gr-chet",
-      storageBucket: "gr-chet.firebasestorage.app",
-      messagingSenderId: "945097840520",
-      appId: "1:945097840520:web:2e57b5900849a53d550c3d",
-      measurementId: "G-24MP1L0X71"
-    };
+<div class="footer">Built with Web Speech API • कोई ऑडियो सर्वर को नहीं भेजा जाता</div>
 
-    // Init Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  </main>  <script>
+    (function(){
+      const text = document.getElementById('text');
+      const charCount = document.getElementById('charCount');
+      const voiceSel = document.getElementById('voice');
+      const rate = document.getElementById('rate');
+      const pitch = document.getElementById('pitch');
+      const volume = document.getElementById('volume');
+      const rateVal = document.getElementById('rateVal');
+      const pitchVal = document.getElementById('pitchVal');
+      const volumeVal = document.getElementById('volumeVal');
+      const speakBtn = document.getElementById('speakBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const hiPreset = document.getElementById('hiPreset');
+      const enPreset = document.getElementById('enPreset');
+      const statusChip = document.getElementById('status');
 
-    // Handle form submit
-    document.getElementById("msgForm").addEventListener("submit", (e) => {
-      e.preventDefault();
+      const supports = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+      if (!supports) {
+        alert('Your browser does not support the Web Speech API (speechSynthesis). Try Chrome, Edge, or Safari.');
+      }
 
-      const msg = document.getElementById("message").value;
+      // Load settings
+      try {
+        const saved = JSON.parse(localStorage.getItem('ttv-html-settings') || 'null');
+        if (saved) {
+          if (typeof saved.text === 'string') text.value = saved.text;
+          if (saved.voiceURI) selectedVoiceURI = saved.voiceURI;
+          if (typeof saved.rate === 'number') rate.value = saved.rate;
+          if (typeof saved.pitch === 'number') pitch.value = saved.pitch;
+          if (typeof saved.volume === 'number') volume.value = saved.volume;
+        }
+      } catch(e){}
 
-      // अब सिर्फ़ text save करेंगे (time/date हटाया गया)
-      push(ref(db, "messages"), {
-        text: msg
+      function save() {
+        localStorage.setItem('ttv-html-settings', JSON.stringify({
+          text: text.value,
+          voiceURI: selectedVoiceURI,
+          rate: +rate.value,
+          pitch: +pitch.value,
+          volume: +volume.value,
+        }));
+      }
+
+      let selectedVoiceURI = '';
+      let utter = null;
+
+      function setStatus(s){ statusChip.textContent = s; }
+      function updateMeters(){
+        charCount.textContent = `${text.value.length} characters`;
+        rateVal.textContent = (+rate.value).toFixed(2);
+        pitchVal.textContent = (+pitch.value).toFixed(2);
+        volumeVal.textContent = (+volume.value).toFixed(2);
+      }
+      updateMeters();
+
+      text.addEventListener('input', () => { updateMeters(); save(); });
+      rate.addEventListener('input', () => { updateMeters(); save(); });
+      pitch.addEventListener('input', () => { updateMeters(); save(); });
+      volume.addEventListener('input', () => { updateMeters(); save(); });
+
+      function populateVoices(){
+        const list = speechSynthesis.getVoices();
+        voiceSel.innerHTML = '';
+        if (!list.length) {
+          const opt = document.createElement('option');
+          opt.textContent = 'No voices found (reload page)';
+          voiceSel.appendChild(opt);
+          return;
+        }
+        list.forEach(v => {
+          const o = document.createElement('option');
+          o.value = v.voiceURI;
+          o.textContent = `${v.name} — ${v.lang}`;
+          voiceSel.appendChild(o);
+        });
+        // Auto-select: prefer Hindi, else English, else first
+        let preferred = list.find(v => /hi-|Hindi/i.test(v.lang)) || list.find(v => /en-/i.test(v.lang)) || list[0];
+        if (selectedVoiceURI) {
+          const found = list.find(v => v.voiceURI === selectedVoiceURI);
+          if (found) preferred = found;
+        }
+        selectedVoiceURI = preferred.voiceURI;
+        voiceSel.value = selectedVoiceURI;
+      }
+
+      populateVoices();
+      speechSynthesis.onvoiceschanged = populateVoices;
+
+      voiceSel.addEventListener('change', () => {
+        selectedVoiceURI = voiceSel.value;
+        save();
       });
 
-      document.getElementById("msgForm").reset();
-    });
-
-    // Copy helper
-    function copyToClipboard(text, button) {
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => {
-          button.textContent = "✅ Copied";
-          setTimeout(() => button.textContent = "Copy", 1500);
-        });
-      } else {
-        const textarea = document.createElement("textarea");
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-          document.execCommand("copy");
-          button.textContent = "✅ Copied";
-          setTimeout(() => button.textContent = "Copy", 1500);
-        } catch (err) {
-          alert("Copy failed: " + err);
-        }
-        document.body.removeChild(textarea);
+      function stop(){
+        speechSynthesis.cancel();
+        utter = null;
+        setStatus('idle');
       }
-    }
 
-    // Show realtime messages
-    const messagesList = document.getElementById("messages");
-    const messagesRef = ref(db, "messages");
+      function speak(){
+        const t = text.value.trim();
+        if (!t) return;
+        stop(); // cancel any existing
+        utter = new SpeechSynthesisUtterance(t);
+        const list = speechSynthesis.getVoices();
+        const chosen = list.find(v => v.voiceURI === selectedVoiceURI);
+        if (chosen) utter.voice = chosen;
+        utter.rate = +rate.value;
+        utter.pitch = +pitch.value;
+        utter.volume = +volume.value;
+        utter.onstart = () => setStatus('speaking');
+        utter.onend = () => { setStatus('done'); setTimeout(() => setStatus('idle'), 800); };
+        utter.onerror = () => { setStatus('error'); };
+        speechSynthesis.speak(utter);
+      }
 
-    onChildAdded(messagesRef, (snapshot) => {
-      const data = snapshot.val();
+      function pauseResume(){
+        if (!speechSynthesis.speaking) return;
+        if (speechSynthesis.paused) { speechSynthesis.resume(); setStatus('speaking'); }
+        else { speechSynthesis.pause(); setStatus('paused'); }
+      }
 
-      const li = document.createElement("li");
+      function applyPreset(lang){
+        const list = speechSynthesis.getVoices();
+        const pick = list.find(v => lang==='hi' ? /hi-|Hindi/i.test(v.lang) : /en-/i.test(v.lang));
+        if (pick) { selectedVoiceURI = pick.voiceURI; voiceSel.value = selectedVoiceURI; }
+        if (lang==='hi') { rate.value = 0.95; pitch.value = 1.0; }
+        else { rate.value = 1.0; pitch.value = 1.0; }
+        updateMeters(); save();
+      }
 
-      const span = document.createElement("span");
-      span.className = "msg-text";
-      span.textContent = data.text;
+      speakBtn.addEventListener('click', speak);
+      stopBtn.addEventListener('click', stop);
+      pauseBtn.addEventListener('click', pauseResume);
+      hiPreset.addEventListener('click', () => applyPreset('hi'));
+      enPreset.addEventListener('click', () => applyPreset('en'));
 
-      const copyBtn = document.createElement("button");
-      copyBtn.className = "copy-btn";
-      copyBtn.textContent = "Copy";
-      copyBtn.addEventListener("click", () => copyToClipboard(data.text, copyBtn));
-
-      li.appendChild(span);
-      li.appendChild(copyBtn);
-      messagesList.appendChild(li);
-
-      // auto-scroll
-      messagesList.scrollTop = messagesList.scrollHeight;
-    });
-  </script>
-</body>
+      // Keyboard shortcut: Ctrl/Cmd + Enter
+      window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          speak();
+        }
+      });
+    })();
+  </script></body>
 </html>
