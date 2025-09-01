@@ -1,28 +1,132 @@
 <!doctype html>
+
 <html lang="hi">
 <head>
   <meta charset="utf-8" />
-  <title>Google Drive Photo Live</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Image — LMC_20250901_183528_Prime Colour.jpg</title>
   <style>
-    body {
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: #0f1724;
+    :root {
+      --bg: #0b0f14;
+      --panel: #111822;
+      --text: #e6edf3;
+      --sub: #8b9bb0;
+      --accent: #4da3ff;
+      --ok: #2ecc71;
+      --err: #ff5c5c;
     }
-    img {
-      max-width: 95%;
-      max-height: 95%;
-      border-radius: 12px;
-      box-shadow: 0 6px 30px rgba(0,0,0,.6);
-    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
+    header { padding: 16px 20px; border-bottom: 1px solid #1d2633; background: linear-gradient(180deg, #0f1520, #0b0f14); position: sticky; top: 0; z-index: 10; }
+    h1 { font-size: 18px; margin: 0; }
+    main { max-width: 1100px; margin: 0 auto; padding: 18px; }
+    .panel { background: var(--panel); border: 1px solid #1d2633; border-radius: 16px; padding: 14px; box-shadow: 0 4px 24px rgba(0,0,0,.25); }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+    .controls > * { margin: 0; }
+    button, select { background: #0f1722; color: var(--text); border: 1px solid #263041; border-radius: 12px; padding: 8px 12px; cursor: pointer; }
+    button:hover { border-color: var(--accent); }
+    .status { font-size: 13px; color: var(--sub); }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+    figure { margin: 0; }
+    .frame { width: 100%; aspect-ratio: 16/9; background: #0a0f15; border: 1px solid #1b2533; border-radius: 14px; display: grid; place-items: center; overflow: hidden; }
+    img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain; image-rendering: -webkit-optimize-contrast; }
+    .footer-note { margin-top: 10px; font-size: 12px; color: var(--sub); }
+    .row { display: flex; gap: 10px; align-items: center; }
+    input[type="text"] { width: 100%; max-width: 520px; background: #0f1722; color: var(--text); border: 1px solid #263041; border-radius: 12px; padding: 8px 12px; }
   </style>
 </head>
 <body>
-  <!-- यहाँ बस FILE_ID बदलना है -->
-  <img src="https://drive.google.com/uc?export=view&id=1Z7M87tsJ0u362xnwppReAJH0PSkSumVQ" 
-       alt="Google Drive Photo" />
-</body>
+  <header>
+    <h1>Live Image Viewer — LMC_20250901_183528_Prime Colour.jpg</h1>
+  </header>  <main>
+    <div class="panel">
+      <div class="controls">
+        <div class="row" style="flex: 1 1 auto;">
+          <input id="imagePath" type="text" value="LMC_20250901_183528_Prime Colour.jpg" aria-label="Image path" />
+        </div>
+        <label for="interval">रीफ़्रेश (sec)</label>
+        <select id="interval" aria-label="Refresh interval">
+          <option value="2">2</option>
+          <option value="5" selected>5</option>
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="30">30</option>
+          <option value="60">60</option>
+        </select>
+        <button id="toggle">Start</button>
+        <button id="refresh">Refresh Now</button>
+      </div><div class="status" id="status">Paused</div>
+
+  <figure class="frame" aria-live="polite">
+    <img id="liveImg" alt="Live feed" />
+  </figure>
+
+  <div class="footer-note">नोट: इस फाइल को <code>index.html</code> के साथ उसी फ़ोल्डर में रखें। स्पेसेज़ अपने-आप %20 में एन्कोड हो जाएँगे। ब्राउज़र कैश से बचने के लिए हर लोड पर टाइमस्टैम्प जोड़ा जाता है।</div>
+</div>
+
+  </main>  <script>
+    (function(){
+      const img = document.getElementById('liveImg');
+      const statusEl = document.getElementById('status');
+      const toggleBtn = document.getElementById('toggle');
+      const refreshBtn = document.getElementById('refresh');
+      const intervalSel = document.getElementById('interval');
+      const pathInput = document.getElementById('imagePath');
+
+      let timer = null;
+
+      function buildUrl(){
+        const raw = pathInput.value.trim();
+        const encoded = encodeURI(raw); // safely handle spaces and unicode
+        const bust = Date.now();
+        return `${encoded}?t=${bust}`;
+      }
+
+      function setStatus(text, cls){
+        statusEl.className = 'status ' + (cls || '');
+        statusEl.textContent = text;
+      }
+
+      function loadOnce(){
+        const url = buildUrl();
+        const tmp = new Image();
+        const t0 = performance.now();
+        tmp.onload = () => {
+          img.src = url;
+          const dt = Math.round(performance.now() - t0);
+          setStatus(`Loaded ${new Date().toLocaleTimeString()} (${dt} ms)`, 'ok');
+        };
+        tmp.onerror = () => {
+          setStatus('Image load failed — path/permissions?', 'err');
+        };
+        tmp.src = url;
+      }
+
+      function start(){
+        if (timer) return;
+        loadOnce();
+        const ms = parseInt(intervalSel.value, 10) * 1000;
+        timer = setInterval(loadOnce, ms);
+        toggleBtn.textContent = 'Pause';
+        setStatus('Running…');
+      }
+
+      function stop(){
+        if (!timer) return;
+        clearInterval(timer); timer = null;
+        toggleBtn.textContent = 'Start';
+        setStatus('Paused');
+      }
+
+      toggleBtn.addEventListener('click', () => timer ? stop() : start());
+      refreshBtn.addEventListener('click', loadOnce);
+      intervalSel.addEventListener('change', () => {
+        if (timer) { stop(); start(); }
+      });
+
+      // Auto-start for convenience
+      start();
+    })();
+  </script></body>
 </html>
