@@ -1,237 +1,28 @@
 <!doctype html>
-
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Agora Web Quickstart — HTML Only</title>
+  <title>Google Drive Photo Live</title>
   <style>
-    :root { --card:#111827; --muted:#6b7280; --accent:#10b981; --danger:#ef4444; --bg:#0b1220; }
-    *{ box-sizing:border-box; }
-    body{ margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:linear-gradient(180deg,#0b1220,#0e1526 60%); color:#e5e7eb; }
-    header{ padding:24px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #1f2937; }
-    header h1{ font-size:18px; margin:0; letter-spacing:.3px; font-weight:600; }
-    .wrap{ display:grid; grid-template-columns: 340px 1fr; gap:18px; padding:18px; }
-    .card{ background:rgba(17,24,39,.8); border:1px solid #1f2937; border-radius:18px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
-    .panel{ padding:16px; }
-    .row{ display:grid; grid-template-columns: 110px 1fr; gap:10px; align-items:center; margin:10px 0; }
-    label{ color:#9ca3af; font-size:12px; }
-    input{ width:100%; padding:10px 12px; border-radius:12px; border:1px solid #374151; background:#0b1220; color:#e5e7eb; outline:none; }
-    input:focus{ border-color:#4b5563; box-shadow:0 0 0 3px rgba(59,130,246,.12); }
-    .buttons{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
-    button{ appearance:none; border:0; border-radius:14px; padding:10px 14px; font-weight:600; cursor:pointer; background:#111827; color:#e5e7eb; border:1px solid #1f2937; transition:.2s; }
-    button.primary{ background:linear-gradient(180deg,#14b8a6,#0ea5e9); border-color:transparent; }
-    button.danger{ background:#1f2937; border-color:#374151; color:#fca5a5; }
-    button:disabled{ opacity:.5; cursor:not-allowed; }
-    .grids{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; padding:12px; }
-    .tile{ position:relative; border-radius:16px; overflow:hidden; background:#0a0f1a; border:1px solid #1f2937; min-height:220px; display:flex; align-items:center; justify-content:center; }
-    .tile .meta{ position:absolute; left:10px; bottom:10px; background:rgba(0,0,0,.5); padding:6px 10px; border-radius:999px; font-size:12px; color:#d1d5db; }
-    video{ width:100%; height:100%; object-fit:cover; display:block; }
-    .hint{ font-size:12px; color:#9ca3af; margin-top:8px; }
-    footer{ text-align:center; color:#6b7280; font-size:12px; padding:10px 0 24px; }
-    .toggles{ display:flex; gap:8px; margin-top:10px; }
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #0f1724;
+    }
+    img {
+      max-width: 95%;
+      max-height: 95%;
+      border-radius: 12px;
+      box-shadow: 0 6px 30px rgba(0,0,0,.6);
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Agora Web Demo — Join & Publish (HTML + JS only)</h1>
-    <div class="hint">Tip: Use HTTPS (required to access camera/mic).</div>
-  </header>  <div class="wrap">
-    <div class="card panel">
-      <div class="row">
-        <label for="appId">App ID</label>
-        <input id="appId" placeholder="Your Agora App ID" />
-      </div>
-      <div class="row">
-        <label for="channel">Channel</label>
-        <input id="channel" placeholder="testChannel" />
-      </div>
-      <div class="row">
-        <label for="token">Token</label>
-        <input id="token" placeholder="Temp/RTC Token" />
-      </div>
-      <div class="row">
-        <label for="uid">UID</label>
-        <input id="uid" type="number" placeholder="Leave empty for auto" />
-      </div><div class="buttons">
-    <button id="joinBtn" class="primary">Join & Publish</button>
-    <button id="leaveBtn" class="danger" disabled>Leave</button>
-  </div>
-
-  <div class="toggles">
-    <button id="micBtn" disabled>🎤 Mic: On</button>
-    <button id="camBtn" disabled>📷 Cam: On</button>
-    <button id="screenBtn" disabled>🖥️ Share Screen</button>
-  </div>
-
-  <p class="hint">Security: Do not hardcode production tokens in client code. Use a backend to mint short‑lived tokens per user.</p>
-</div>
-
-<div class="card">
-  <div class="grids" id="videos">
-    <div class="tile" id="localTile">
-      <div class="meta">Local</div>
-    </div>
-    <div class="tile" id="remoteTile">
-      <div class="meta">Remote</div>
-    </div>
-  </div>
-</div>
-
-  </div>  <footer>Agora SDK NG (Web) • Minimal example • Works in Chrome/Edge/Firefox/Safari</footer>  <!-- Agora Web SDK NG (UMD) -->  <script src="https://unpkg.com/agora-rtc-sdk-ng/AgoraRTC_N.js"></script>  <script>
-    // ====== State ======
-    const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-    let localAudioTrack, localVideoTrack, screenTrack;
-    let joined = false;
-
-    // Simple helpers
-    const $ = (id) => document.getElementById(id);
-    const log = (...a) => console.log("[AGORA]", ...a);
-
-    // Pre-fill token from your last message (temporary dev token)
-    // You can paste a fresh token anytime.
-    const defaultToken = "007eJxTYHCIOL1TiHFJh5yh5oS15x+VSbapFGu9z7h5offTxagoz/UKDIlmiZZpxqnGiRaWZiYWBuZJqQaGKQaJqaaGQJFkoyQ3z8UZDYGMDKt/VLMyMkAgiM/F4J6RmFecUZmYq8DAAAAKjiHx";
-    $("token").value = defaultToken;
-
-    // ====== Join & Publish ======
-    $("joinBtn").addEventListener("click", async () => {
-      const appId = $("appId").value.trim();
-      const channel = $("channel").value.trim();
-      const token = $("token").value.trim() || null;
-      const uidInput = $("uid").value.trim();
-      const uid = uidInput === "" ? null : Number(uidInput);
-
-      if (!appId || !channel) {
-        alert("Enter App ID and Channel name.");
-        return;
-      }
-      try {
-        $("joinBtn").disabled = true;
-        log("Joining…", { appId, channel, uid });
-
-        await client.join(appId, channel, token, uid);
-        joined = true;
-
-        // Create microphone + camera tracks
-        [localAudioTrack, localVideoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
-
-        // Play local video immediately
-        const localContainer = document.createElement("div");
-        localContainer.style.width = "100%";
-        localContainer.style.height = "100%";
-        $("localTile").innerHTML = ""; // clear placeholder
-        $("localTile").appendChild(localContainer);
-        localVideoTrack.play(localContainer);
-
-        // Publish to channel
-        await client.publish([localAudioTrack, localVideoTrack]);
-        log("Published local tracks");
-
-        // Enable controls
-        ["leaveBtn","micBtn","camBtn","screenBtn"].forEach(id => $(id).disabled = false);
-
-      } catch (err) {
-        console.error(err);
-        alert("Join/Publish failed: " + err.message);
-        $("joinBtn").disabled = false;
-      }
-    });
-
-    // ====== Leave ======
-    $("leaveBtn").addEventListener("click", async () => {
-      try {
-        if (screenTrack) { screenTrack.close(); screenTrack = null; }
-        if (localAudioTrack) { localAudioTrack.stop(); localAudioTrack.close(); localAudioTrack = null; }
-        if (localVideoTrack) { localVideoTrack.stop(); localVideoTrack.close(); localVideoTrack = null; }
-        $("localTile").innerHTML = '<div class="meta">Local</div>';
-        $("remoteTile").innerHTML = '<div class="meta">Remote</div>';
-        await client.leave();
-        joined = false;
-        ["leaveBtn","micBtn","camBtn","screenBtn"].forEach(id => $(id).disabled = true);
-        $("joinBtn").disabled = false;
-        log("Left the channel");
-      } catch (err) {
-        console.error(err);
-        alert("Leave failed: " + err.message);
-      }
-    });
-
-    // ====== Toggle Mic ======
-    $("micBtn").addEventListener("click", async () => {
-      if (!localAudioTrack) return;
-      if (localAudioTrack.isPlaying) {
-        await localAudioTrack.setEnabled(false);
-        localAudioTrack.isPlaying = false;
-        $("micBtn").textContent = "🎤 Mic: Off";
-      } else {
-        await localAudioTrack.setEnabled(true);
-        localAudioTrack.isPlaying = true;
-        $("micBtn").textContent = "🎤 Mic: On";
-      }
-    });
-
-    // ====== Toggle Cam ======
-    $("camBtn").addEventListener("click", async () => {
-      if (!localVideoTrack) return;
-      if (localVideoTrack.isPlaying) {
-        await localVideoTrack.setEnabled(false);
-        localVideoTrack.isPlaying = false;
-        $("camBtn").textContent = "📷 Cam: Off";
-      } else {
-        await localVideoTrack.setEnabled(true);
-        localVideoTrack.isPlaying = true;
-        $("camBtn").textContent = "📷 Cam: On";
-      }
-    });
-
-    // ====== Screen Share (basic) ======
-    $("screenBtn").addEventListener("click", async () => {
-      try {
-        if (!joined) return;
-        if (!screenTrack) {
-          screenTrack = await AgoraRTC.createScreenVideoTrack({ encoderConfig: "1080p_1" });
-          await client.publish(screenTrack);
-          const remote = document.createElement("div");
-          remote.style.width = "100%";
-          remote.style.height = "100%";
-          $("remoteTile").innerHTML = "";
-          $("remoteTile").appendChild(remote);
-          screenTrack.play(remote);
-          $("screenBtn").textContent = "🛑 Stop Share";
-        } else {
-          await client.unpublish(screenTrack);
-          screenTrack.stop();
-          screenTrack.close();
-          screenTrack = null;
-          $("remoteTile").innerHTML = '<div class="meta">Remote</div>';
-          $("screenBtn").textContent = "🖥️ Share Screen";
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Screen share error: " + err.message);
-      }
-    });
-
-    // ====== Remote user handling ======
-    client.on("user-published", async (user, mediaType) => {
-      log("user-published", user.uid, mediaType);
-      await client.subscribe(user, mediaType);
-      if (mediaType === "video") {
-        const remoteContainer = document.createElement("div");
-        remoteContainer.style.width = "100%";
-        remoteContainer.style.height = "100%";
-        $("remoteTile").innerHTML = "";
-        $("remoteTile").appendChild(remoteContainer);
-        user.videoTrack.play(remoteContainer);
-      }
-      if (mediaType === "audio") {
-        user.audioTrack.play();
-      }
-    });
-
-    client.on("user-unpublished", (user) => {
-      log("user-unpublished", user.uid);
-      $("remoteTile").innerHTML = '<div class="meta">Remote</div>';
-    });
-  </script></body>
+  <!-- यहाँ बस FILE_ID बदलना है -->
+  <img src="https://drive.google.com/uc?export=view&id=1Z7M87tsJ0u362xnwppReAJH0PSkSumVQ" 
+       alt="Google Drive Photo" />
+</body>
 </html>
