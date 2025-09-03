@@ -1,132 +1,161 @@
-<!doctype html>
-
-<html lang="hi">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Live Image — LMC_20250901_183528_Prime Colour.jpg</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Firebase Chat App</title>
   <style>
-    :root {
-      --bg: #0b0f14;
-      --panel: #111822;
-      --text: #e6edf3;
-      --sub: #8b9bb0;
-      --accent: #4da3ff;
-      --ok: #2ecc71;
-      --err: #ff5c5c;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
-    header { padding: 16px 20px; border-bottom: 1px solid #1d2633; background: linear-gradient(180deg, #0f1520, #0b0f14); position: sticky; top: 0; z-index: 10; }
-    h1 { font-size: 18px; margin: 0; }
-    main { max-width: 1100px; margin: 0 auto; padding: 18px; }
-    .panel { background: var(--panel); border: 1px solid #1d2633; border-radius: 16px; padding: 14px; box-shadow: 0 4px 24px rgba(0,0,0,.25); }
-    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
-    .controls > * { margin: 0; }
-    button, select { background: #0f1722; color: var(--text); border: 1px solid #263041; border-radius: 12px; padding: 8px 12px; cursor: pointer; }
-    button:hover { border-color: var(--accent); }
-    .status { font-size: 13px; color: var(--sub); }
-    .status.ok { color: var(--ok); }
-    .status.err { color: var(--err); }
-    figure { margin: 0; }
-    .frame { width: 100%; aspect-ratio: 16/9; background: #0a0f15; border: 1px solid #1b2533; border-radius: 14px; display: grid; place-items: center; overflow: hidden; }
-    img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain; image-rendering: -webkit-optimize-contrast; }
-    .footer-note { margin-top: 10px; font-size: 12px; color: var(--sub); }
-    .row { display: flex; gap: 10px; align-items: center; }
-    input[type="text"] { width: 100%; max-width: 520px; background: #0f1722; color: var(--text); border: 1px solid #263041; border-radius: 12px; padding: 8px 12px; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f5f5f5; }
+    header { background: #4dd0e1; padding: 12px; text-align: center; font-size: 22px; font-weight: bold; }
+    #container { display: flex; height: 90vh; }
+    #users { width: 150px; border-right: 1px solid #ccc; background: #fff; padding: 10px; overflow-y: auto; }
+    #chat { flex: 1; display: flex; flex-direction: column; }
+    #messages { flex: 1; padding: 10px; overflow-y: auto; background: #fafafa; }
+    .msg { max-width: 70%; margin: 5px; padding: 8px 12px; border-radius: 15px; }
+    .me { background: #dcf8c6; align-self: flex-end; }
+    .other { background: #fff; align-self: flex-start; border: 1px solid #eee; }
+    .preview { max-width: 120px; margin-top: 5px; border-radius: 8px; }
+    #controls { display: flex; padding: 8px; background: #eee; }
+    #msg { flex: 1; border: none; padding: 10px; border-radius: 20px; margin-right: 5px; }
+    #file { display: none; }
+    button { border: none; background: #4dd0e1; color: #fff; padding: 10px 15px; border-radius: 50%; margin-left: 5px; cursor: pointer; }
   </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push, set, onChildAdded, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAa-r7rwMxNMZGKucXtwdHimKq77iX7MpM",
+      authDomain: "grsc-chet.firebaseapp.com",
+      databaseURL: "https://grsc-chet-default-rtdb.firebaseio.com",
+      projectId: "grsc-chet",
+      storageBucket: "grsc-chet.appspot.com",
+      messagingSenderId: "1029401721470",
+      appId: "1:1029401721470:web:c75cb33423c7f567ec362f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const ROOM_KEY = "publicRoom";
+
+    const messagesEl = document.getElementById("messages");
+    const inputEl = document.getElementById("msg");
+    const fileEl = document.getElementById("file");
+    const usersEl = document.getElementById("users");
+
+    const userId = "user_" + Math.floor(Math.random()*100000);
+    const nick = localStorage.getItem("nick") || prompt("Enter your name") || "Guest";
+    localStorage.setItem("nick", nick);
+
+    // यूज़र डेटा सेव करें
+    const userRef = ref(db, `users/${userId}`);
+    set(userRef, { name: nick, online: true, lastSeen: Date.now() });
+    onDisconnect(userRef).update({ online: false, lastSeen: Date.now() });
+
+    document.getElementById("send").onclick = sendText;
+    document.getElementById("sendFile").onclick = () => fileEl.click();
+    fileEl.onchange = sendFile;
+
+    function sendText() {
+      if (!inputEl.value.trim()) return;
+      const msgRef = push(ref(db, `groups/${ROOM_KEY}/messages`));
+      set(msgRef, { senderId: userId, senderName: nick, text: inputEl.value.trim(), timestamp: Date.now(), type: "text" })
+        .then(() => console.log("✅ Text saved"))
+        .catch(err => console.error("❌ Error:", err));
+      inputEl.value = "";
+    }
+
+    function sendFile() {
+      const file = fileEl.files[0];
+      if (!file) return;
+
+      if (file.size > 9 * 1024 * 1024) { 
+        alert("⚠️ File बहुत बड़ी है (10MB limit in Realtime DB)।");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64 = e.target.result;
+        const msgRef = push(ref(db, `groups/${ROOM_KEY}/messages`));
+        set(msgRef, { 
+          senderId: userId, 
+          senderName: nick, 
+          fileData: base64, 
+          fileName: file.name, 
+          mimeType: file.type, 
+          timestamp: Date.now(), 
+          type: "file" 
+        }).then(() => console.log("✅ File uploaded:", file.name));
+      };
+      reader.readAsDataURL(file);
+    }
+
+    const messagesRef = ref(db, `groups/${ROOM_KEY}/messages`);
+    onChildAdded(messagesRef, (snap) => {
+      const data = snap.val();
+      appendMessageDom(data);
+    });
+
+    function appendMessageDom(data) {
+      const div = document.createElement("div");
+      div.className = "msg " + (data.senderId === userId ? "me" : "other");
+
+      if (data.type === "text") {
+        div.textContent = `${data.senderName}: ${data.text}`;
+      } else if (data.type === "file") {
+        div.textContent = `${data.senderName}: ${data.fileName}`;
+        if ((data.mimeType || '').startsWith('image/')) {
+          const img = document.createElement("img");
+          img.src = data.fileData;
+          img.className = "preview";
+          div.appendChild(img);
+        }
+        if ((data.mimeType || '').startsWith('audio/')) {
+          const audio = document.createElement("audio");
+          audio.controls = true;
+          audio.src = data.fileData;  // Base64 MP3 Play होगा
+          div.appendChild(audio);
+        }
+        if ((data.mimeType || '').startsWith('video/')) {
+          const video = document.createElement("video");
+          video.controls = true;
+          video.width = 200;
+          video.src = data.fileData;
+          div.appendChild(video);
+        }
+      }
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    // Users Online List
+    const usersRef = ref(db, "users");
+    onValue(usersRef, (snap) => {
+      usersEl.innerHTML = "<b>Users</b><br/>";
+      const users = snap.val() || {};
+      for (let uid in users) {
+        const u = users[uid];
+        const li = document.createElement("div");
+        li.textContent = u.name + (u.online ? " ✅" : " ❌");
+        usersEl.appendChild(li);
+      }
+    });
+  </script>
 </head>
 <body>
-  <header>
-    <h1>Live Image Viewer — LMC_20250901_183528_Prime Colour.jpg</h1>
-  </header>  <main>
-    <div class="panel">
-      <div class="controls">
-        <div class="row" style="flex: 1 1 auto;">
-          <input id="imagePath" type="text" value="LMC_20250901_183528_Prime Colour.jpg" aria-label="Image path" />
-        </div>
-        <label for="interval">रीफ़्रेश (sec)</label>
-        <select id="interval" aria-label="Refresh interval">
-          <option value="2">2</option>
-          <option value="5" selected>5</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="30">30</option>
-          <option value="60">60</option>
-        </select>
-        <button id="toggle">Start</button>
-        <button id="refresh">Refresh Now</button>
-      </div><div class="status" id="status">Paused</div>
-
-  <figure class="frame" aria-live="polite">
-    <img id="liveImg" alt="Live feed" />
-  </figure>
-
-  <div class="footer-note">नोट: इस फाइल को <code>index.html</code> के साथ उसी फ़ोल्डर में रखें। स्पेसेज़ अपने-आप %20 में एन्कोड हो जाएँगे। ब्राउज़र कैश से बचने के लिए हर लोड पर टाइमस्टैम्प जोड़ा जाता है।</div>
-</div>
-
-  </main>  <script>
-    (function(){
-      const img = document.getElementById('liveImg');
-      const statusEl = document.getElementById('status');
-      const toggleBtn = document.getElementById('toggle');
-      const refreshBtn = document.getElementById('refresh');
-      const intervalSel = document.getElementById('interval');
-      const pathInput = document.getElementById('imagePath');
-
-      let timer = null;
-
-      function buildUrl(){
-        const raw = pathInput.value.trim();
-        const encoded = encodeURI(raw); // safely handle spaces and unicode
-        const bust = Date.now();
-        return `${encoded}?t=${bust}`;
-      }
-
-      function setStatus(text, cls){
-        statusEl.className = 'status ' + (cls || '');
-        statusEl.textContent = text;
-      }
-
-      function loadOnce(){
-        const url = buildUrl();
-        const tmp = new Image();
-        const t0 = performance.now();
-        tmp.onload = () => {
-          img.src = url;
-          const dt = Math.round(performance.now() - t0);
-          setStatus(`Loaded ${new Date().toLocaleTimeString()} (${dt} ms)`, 'ok');
-        };
-        tmp.onerror = () => {
-          setStatus('Image load failed — path/permissions?', 'err');
-        };
-        tmp.src = url;
-      }
-
-      function start(){
-        if (timer) return;
-        loadOnce();
-        const ms = parseInt(intervalSel.value, 10) * 1000;
-        timer = setInterval(loadOnce, ms);
-        toggleBtn.textContent = 'Pause';
-        setStatus('Running…');
-      }
-
-      function stop(){
-        if (!timer) return;
-        clearInterval(timer); timer = null;
-        toggleBtn.textContent = 'Start';
-        setStatus('Paused');
-      }
-
-      toggleBtn.addEventListener('click', () => timer ? stop() : start());
-      refreshBtn.addEventListener('click', loadOnce);
-      intervalSel.addEventListener('change', () => {
-        if (timer) { stop(); start(); }
-      });
-
-      // Auto-start for convenience
-      start();
-    })();
-  </script></body>
+  <header>Chat</header>
+  <div id="container">
+    <div id="users"></div>
+    <div id="chat">
+      <div id="messages"></div>
+      <div id="controls">
+        <input id="msg" placeholder="टाइप करे" />
+        <input id="file" type="file" accept="audio/*,image/*,video/*" />
+        <button id="sendFile">⬆️</button>
+        <button id="send">📤</button>
+      </div>
+    </div>
+  </div>
+</body>
 </html>
