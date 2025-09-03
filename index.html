@@ -2,33 +2,38 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <title>MP3 to Base64 with Firebase</title>
+  <title>MP3 List from Firebase</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background:#f4f4f4; padding:20px; }
-    .card { background:white; padding:20px; border-radius:10px; max-width:700px; margin:auto; }
+    .card { background:white; padding:20px; border-radius:10px; max-width:800px; margin:auto; }
     textarea { width:100%; height:150px; margin-top:10px; }
     button { margin-top:10px; padding:6px 12px; background:#007bff; color:white; border:none; border-radius:5px; cursor:pointer; }
     button:hover { background:#0056b3; }
-    li { margin: 10px 0; padding:10px; border:1px solid #ddd; border-radius:6px; }
+    ul { list-style:none; padding:0; }
+    li { margin: 10px 0; padding:10px; border:1px solid #ddd; border-radius:6px; background:#fafafa; }
     audio { display:block; margin-top:5px; }
+    .id { font-size:12px; color:#555; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2>🎵 MP3 to Base64 + Firebase</h2>
+    <h2>🎵 Firebase MP3 Idea List</h2>
+
+    <!-- Upload + Save -->
     <input type="file" id="fileInput" accept="audio/mp3">
     <button onclick="convertToBase64()">Convert</button>
     <textarea id="output" placeholder="Base64 output..."></textarea>
     <button onclick="saveToFirebase()">💾 Save to Firebase</button>
 
-    <h3>📝 Idea List (from Firebase):</h3>
+    <!-- Show all data -->
+    <h3>📝 Saved MP3s (from Firebase):</h3>
     <ul id="ideaList"></ul>
   </div>
 
   <script>
-    // ✅ Firebase Config
+    // ✅ Firebase Config (आपका)
     const firebaseConfig = {
       apiKey: "AIzaSyAa-r7rwMxNMZGKucXtwdHimKq77iX7MpM",
       authDomain: "grsc-chet.firebaseapp.com",
@@ -39,10 +44,11 @@
       appId: "1:1029401721470:web:c75cb33423c7f567ec362f"
     };
 
-    // Firebase Init
+    // Init Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Convert file → Base64
     function convertToBase64() {
       const file = document.getElementById('fileInput').files[0];
       if (!file) {
@@ -57,6 +63,7 @@
       reader.readAsDataURL(file);
     }
 
+    // Save to Firebase
     function saveToFirebase() {
       const text = document.getElementById('output').value;
       if (!text) {
@@ -66,22 +73,32 @@
       const newIdeaRef = db.ref("ideas").push();
       newIdeaRef.set({
         preview: text.substring(0, 50) + "...",
-        fullData: text
+        fullData: text,
+        createdAt: new Date().toISOString()
       });
       alert("✅ Firebase में सेव हो गया!");
     }
 
+    // Load all data from Firebase
     function loadIdeas() {
       const list = document.getElementById('ideaList');
       db.ref("ideas").on("value", snapshot => {
         list.innerHTML = "";
         snapshot.forEach(child => {
           const data = child.val();
+          const key = child.key;
+
           const li = document.createElement("li");
+
+          // Show Firebase ID
+          const id = document.createElement("div");
+          id.className = "id";
+          id.textContent = "ID: " + key;
+          li.appendChild(id);
 
           // Preview text
           const p = document.createElement("p");
-          p.textContent = data.preview;
+          p.textContent = "Preview: " + data.preview;
           li.appendChild(p);
 
           // Audio player
