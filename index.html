@@ -1,31 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Firebase Chat App</title>
+  <meta charset="UTF-8">
+  <title>MP3 to Base64 with Firebase</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #f5f5f5; }
-    header { background: #4dd0e1; padding: 12px; text-align: center; font-size: 22px; font-weight: bold; }
-    #container { display: flex; height: 90vh; }
-    #users { width: 150px; border-right: 1px solid #ccc; background: #fff; padding: 10px; overflow-y: auto; }
-    #chat { flex: 1; display: flex; flex-direction: column; }
-    #messages { flex: 1; padding: 10px; overflow-y: auto; background: #fafafa; }
-    .msg { max-width: 70%; margin: 5px; padding: 8px 12px; border-radius: 15px; word-wrap: break-word; }
-    .me { background: #dcf8c6; align-self: flex-end; }
-    .other { background: #fff; align-self: flex-start; border: 1px solid #eee; }
-    .preview { max-width: 120px; margin-top: 5px; border-radius: 8px; }
-    #controls { display: flex; padding: 8px; background: #eee; }
-    #msg { flex: 1; border: none; padding: 10px; border-radius: 20px; margin-right: 5px; }
-    #file { display: none; }
-    button { border: none; background: #4dd0e1; color: #fff; padding: 10px 15px; border-radius: 50%; margin-left: 5px; cursor: pointer; }
-    progress { width: 100%; margin-top: 5px; }
+    body { font-family: Arial, sans-serif; background:#f4f4f4; padding:20px; }
+    .card { background:white; padding:20px; border-radius:10px; max-width:700px; margin:auto; }
+    textarea { width:100%; height:150px; margin-top:10px; }
+    button { margin-top:10px; padding:6px 12px; background:#007bff; color:white; border:none; border-radius:5px; cursor:pointer; }
+    button:hover { background:#0056b3; }
+    li { margin: 10px 0; padding:10px; border:1px solid #ddd; border-radius:6px; }
+    audio { display:block; margin-top:5px; }
   </style>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, push, set, onChildAdded, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+</head>
+<body>
+  <div class="card">
+    <h2>🎵 MP3 to Base64 + Firebase</h2>
+    <input type="file" id="fileInput" accept="audio/mp3">
+    <button onclick="convertToBase64()">Convert</button>
+    <textarea id="output" placeholder="Base64 output..."></textarea>
+    <button onclick="saveToFirebase()">💾 Save to Firebase</button>
 
-    // 🔹 Firebase Config
+    <h3>📝 Idea List (from Firebase):</h3>
+    <ul id="ideaList"></ul>
+  </div>
+
+  <script>
+    // ✅ Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyAa-r7rwMxNMZGKucXtwdHimKq77iX7MpM",
       authDomain: "grsc-chet.firebaseapp.com",
@@ -36,166 +39,63 @@
       appId: "1:1029401721470:web:c75cb33423c7f567ec362f"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const ROOM_KEY = "publicRoom";
+    // Firebase Init
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    // 🔹 Elements
-    const messagesEl = document.getElementById("messages");
-    const inputEl = document.getElementById("msg");
-    const fileEl = document.getElementById("file");
-    const usersEl = document.getElementById("users");
-
-    // 🔹 User Info
-    const userId = "user_" + Math.floor(Math.random()*100000);
-    const nick = localStorage.getItem("nick") || prompt("Enter your name") || "Guest";
-    localStorage.setItem("nick", nick);
-
-    // 🔹 Save User Status
-    const userRef = ref(db, `users/${userId}`);
-    set(userRef, { name: nick, online: true, lastSeen: Date.now() });
-    onDisconnect(userRef).update({ online: false, lastSeen: Date.now() });
-
-    // 🔹 Buttons
-    document.getElementById("send").onclick = sendText;
-    document.getElementById("sendFile").onclick = () => fileEl.click();
-    fileEl.onchange = sendFile;
-
-    // 🔹 Send Text
-    function sendText() {
-      if (!inputEl.value.trim()) return;
-      const msgRef = push(ref(db, `groups/${ROOM_KEY}/messages`));
-      set(msgRef, {
-        senderId: userId,
-        senderName: nick,
-        text: inputEl.value.trim(),
-        timestamp: Date.now(),
-        type: "text"
-      });
-      inputEl.value = "";
-    }
-
-    // 🔹 Send File (with size check)
-    function sendFile() {
-      const file = fileEl.files[0];
-      if (!file) return;
-
-      if (file.size > 9 * 1024 * 1024) {
-        alert("⚠️ यह फाइल बहुत बड़ी है (10MB limit in Firebase Realtime DB)। छोटी फाइल चुनें।");
+    function convertToBase64() {
+      const file = document.getElementById('fileInput').files[0];
+      if (!file) {
+        alert("कृपया MP3 फाइल चुनें");
         return;
       }
-
       const reader = new FileReader();
-      reader.onloadstart = () => {
-        const prog = document.createElement("progress");
-        prog.id = "uploadProgress";
-        prog.max = 100;
-        prog.value = 0;
-        messagesEl.appendChild(prog);
-      };
-      reader.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100);
-          const prog = document.getElementById("uploadProgress");
-          if (prog) prog.value = percent;
-        }
-      };
-      reader.onload = function(e) {
-        const base64 = e.target.result;
-        const msgRef = push(ref(db, `groups/${ROOM_KEY}/messages`));
-        set(msgRef, {
-          senderId: userId,
-          senderName: nick,
-          fileData: base64,
-          fileName: file.name,
-          mimeType: file.type,
-          timestamp: Date.now(),
-          type: "file"
-        }).then(() => {
-          console.log("✅ File uploaded:", file.name);
-          const prog = document.getElementById("uploadProgress");
-          if (prog) prog.remove();
-        });
+      reader.onload = function() {
+        const base64String = reader.result.split(',')[1];
+        document.getElementById('output').value = base64String;
       };
       reader.readAsDataURL(file);
     }
 
-    // 🔹 Load Messages
-    const messagesRef = ref(db, `groups/${ROOM_KEY}/messages`);
-    onChildAdded(messagesRef, (snap) => {
-      const data = snap.val();
-      appendMessageDom(data);
-    });
-
-    // 🔹 Show Message in DOM
-    function appendMessageDom(data) {
-      const div = document.createElement("div");
-      div.className = "msg " + (data.senderId === userId ? "me" : "other");
-
-      if (data.type === "text") {
-        div.textContent = `${data.senderName}: ${data.text}`;
-      } else if (data.type === "file") {
-        div.textContent = `${data.senderName}: ${data.fileName}`;
-        if ((data.mimeType || '').startsWith('image/')) {
-          const img = document.createElement("img");
-          img.src = data.fileData;
-          img.className = "preview";
-          div.appendChild(img);
-        }
-        if ((data.mimeType || '').startsWith('audio/')) {
-          const audio = document.createElement("audio");
-          audio.controls = true;
-          audio.src = data.fileData;
-          div.appendChild(audio);
-        }
-        if ((data.mimeType || '').startsWith('video/')) {
-          const video = document.createElement("video");
-          video.controls = true;
-          video.width = 200;
-          video.src = data.fileData;
-          div.appendChild(video);
-        }
-        const btn = document.createElement("button");
-        btn.textContent = "⬇️ Download";
-        btn.onclick = () => {
-          const a = document.createElement("a");
-          a.href = data.fileData;
-          a.download = data.fileName || "file";
-          a.click();
-        };
-        div.appendChild(btn);
+    function saveToFirebase() {
+      const text = document.getElementById('output').value;
+      if (!text) {
+        alert("पहले Base64 जनरेट करें");
+        return;
       }
-      messagesEl.appendChild(div);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
+      const newIdeaRef = db.ref("ideas").push();
+      newIdeaRef.set({
+        preview: text.substring(0, 50) + "...",
+        fullData: text
+      });
+      alert("✅ Firebase में सेव हो गया!");
     }
 
-    // 🔹 Show Online Users
-    const usersRef = ref(db, "users");
-    onValue(usersRef, (snap) => {
-      usersEl.innerHTML = "<b>Users</b><br/>";
-      const users = snap.val() || {};
-      for (let uid in users) {
-        const u = users[uid];
-        const li = document.createElement("div");
-        li.textContent = u.name + (u.online ? " ✅" : " ❌");
-        usersEl.appendChild(li);
-      }
-    });
+    function loadIdeas() {
+      const list = document.getElementById('ideaList');
+      db.ref("ideas").on("value", snapshot => {
+        list.innerHTML = "";
+        snapshot.forEach(child => {
+          const data = child.val();
+          const li = document.createElement("li");
+
+          // Preview text
+          const p = document.createElement("p");
+          p.textContent = data.preview;
+          li.appendChild(p);
+
+          // Audio player
+          const audio = document.createElement("audio");
+          audio.controls = true;
+          audio.src = "data:audio/mp3;base64," + data.fullData;
+          li.appendChild(audio);
+
+          list.appendChild(li);
+        });
+      });
+    }
+
+    loadIdeas();
   </script>
-</head>
-<body>
-  <header>Firebase Realtime Chat</header>
-  <div id="container">
-    <div id="users"></div>
-    <div id="chat">
-      <div id="messages"></div>
-      <div id="controls">
-        <input id="msg" placeholder="Type message" />
-        <input id="file" type="file" accept="audio/*,image/*,video/*" />
-        <button id="sendFile">⬆️</button>
-        <button id="send">📤</button>
-      </div>
-    </div>
-  </div>
 </body>
 </html>
