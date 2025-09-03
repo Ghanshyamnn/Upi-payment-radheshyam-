@@ -60,7 +60,7 @@
   <main>
     <div id="userLok" style="display:none;"></div>
 
-    <h3 style="margin-top:25px;">🎵 अपलोड MP3</h3>
+    <h3 style="margin-top:25px;">🎵 MP3 अपलोड करें</h3>
     <input type="file" id="mp3File" accept="audio/mp3" />
     <button class="btn btn-primary" onclick="uploadMp3()">⬆️ अपलोड</button>
 
@@ -107,10 +107,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Popup Controls
     function openPopup() { document.getElementById("popup").style.display = "flex"; showSearchForm(); }
     function showAddForm() { document.getElementById("searchSection").style.display = "none"; document.getElementById("addSection").style.display = "block"; }
     function showSearchForm() { document.getElementById("searchSection").style.display = "block"; document.getElementById("addSection").style.display = "none"; }
 
+    // Save Lok
     function saveLok() {
       const name = document.getElementById("name").value.trim();
       const mobile = document.getElementById("mobile").value.trim();
@@ -121,6 +123,7 @@
       showSearchForm();
     }
 
+    // Search Lok
     function searchLok() {
       const mobile = document.getElementById("searchMobile").value.trim();
       const passport = document.getElementById("searchPassport").value.trim();
@@ -150,6 +153,7 @@
       });
     }
 
+    // Upload MP3
     function uploadMp3() {
       const fileInput = document.getElementById("mp3File");
       const file = fileInput.files[0];
@@ -164,6 +168,7 @@
       reader.readAsDataURL(file);
     }
 
+    // Show MP3 Songs
     firebase.database().ref("mp3s").on("value", snap => {
       const container = document.getElementById("songs");
       container.innerHTML = "";
