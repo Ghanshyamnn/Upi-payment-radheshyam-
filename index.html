@@ -11,7 +11,7 @@
     #users { width: 150px; border-right: 1px solid #ccc; background: #fff; padding: 10px; overflow-y: auto; }
     #chat { flex: 1; display: flex; flex-direction: column; }
     #messages { flex: 1; padding: 10px; overflow-y: auto; background: #fafafa; }
-    .msg { max-width: 70%; margin: 5px; padding: 8px 12px; border-radius: 15px; }
+    .msg { max-width: 70%; margin: 5px; padding: 8px 12px; border-radius: 15px; word-wrap: break-word; }
     .me { background: #dcf8c6; align-self: flex-end; }
     .other { background: #fff; align-self: flex-start; border: 1px solid #eee; }
     .preview { max-width: 120px; margin-top: 5px; border-radius: 8px; }
@@ -19,11 +19,13 @@
     #msg { flex: 1; border: none; padding: 10px; border-radius: 20px; margin-right: 5px; }
     #file { display: none; }
     button { border: none; background: #4dd0e1; color: #fff; padding: 10px 15px; border-radius: 50%; margin-left: 5px; cursor: pointer; }
+    progress { width: 100%; margin-top: 5px; }
   </style>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, push, set, onChildAdded, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+    // 🔹 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyAa-r7rwMxNMZGKucXtwdHimKq77iX7MpM",
       authDomain: "grsc-chet.firebaseapp.com",
@@ -38,65 +40,94 @@
     const db = getDatabase(app);
     const ROOM_KEY = "publicRoom";
 
+    // 🔹 Elements
     const messagesEl = document.getElementById("messages");
     const inputEl = document.getElementById("msg");
     const fileEl = document.getElementById("file");
     const usersEl = document.getElementById("users");
 
+    // 🔹 User Info
     const userId = "user_" + Math.floor(Math.random()*100000);
     const nick = localStorage.getItem("nick") || prompt("Enter your name") || "Guest";
     localStorage.setItem("nick", nick);
 
-    // यूज़र डेटा सेव करें
+    // 🔹 Save User Status
     const userRef = ref(db, `users/${userId}`);
     set(userRef, { name: nick, online: true, lastSeen: Date.now() });
     onDisconnect(userRef).update({ online: false, lastSeen: Date.now() });
 
+    // 🔹 Buttons
     document.getElementById("send").onclick = sendText;
     document.getElementById("sendFile").onclick = () => fileEl.click();
     fileEl.onchange = sendFile;
 
+    // 🔹 Send Text
     function sendText() {
       if (!inputEl.value.trim()) return;
       const msgRef = push(ref(db, `groups/${ROOM_KEY}/messages`));
-      set(msgRef, { senderId: userId, senderName: nick, text: inputEl.value.trim(), timestamp: Date.now(), type: "text" })
-        .then(() => console.log("✅ Text saved"))
-        .catch(err => console.error("❌ Error:", err));
+      set(msgRef, {
+        senderId: userId,
+        senderName: nick,
+        text: inputEl.value.trim(),
+        timestamp: Date.now(),
+        type: "text"
+      });
       inputEl.value = "";
     }
 
+    // 🔹 Send File (with size check)
     function sendFile() {
       const file = fileEl.files[0];
       if (!file) return;
 
-      if (file.size > 9 * 1024 * 1024) { 
-        alert("⚠️ File बहुत बड़ी है (10MB limit in Realtime DB)।");
+      if (file.size > 9 * 1024 * 1024) {
+        alert("⚠️ यह फाइल बहुत बड़ी है (10MB limit in Firebase Realtime DB)। छोटी फाइल चुनें।");
         return;
       }
 
       const reader = new FileReader();
+      reader.onloadstart = () => {
+        const prog = document.createElement("progress");
+        prog.id = "uploadProgress";
+        prog.max = 100;
+        prog.value = 0;
+        messagesEl.appendChild(prog);
+      };
+      reader.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          const prog = document.getElementById("uploadProgress");
+          if (prog) prog.value = percent;
+        }
+      };
       reader.onload = function(e) {
         const base64 = e.target.result;
         const msgRef = push(ref(db, `groups/${ROOM_KEY}/messages`));
-        set(msgRef, { 
-          senderId: userId, 
-          senderName: nick, 
-          fileData: base64, 
-          fileName: file.name, 
-          mimeType: file.type, 
-          timestamp: Date.now(), 
-          type: "file" 
-        }).then(() => console.log("✅ File uploaded:", file.name));
+        set(msgRef, {
+          senderId: userId,
+          senderName: nick,
+          fileData: base64,
+          fileName: file.name,
+          mimeType: file.type,
+          timestamp: Date.now(),
+          type: "file"
+        }).then(() => {
+          console.log("✅ File uploaded:", file.name);
+          const prog = document.getElementById("uploadProgress");
+          if (prog) prog.remove();
+        });
       };
       reader.readAsDataURL(file);
     }
 
+    // 🔹 Load Messages
     const messagesRef = ref(db, `groups/${ROOM_KEY}/messages`);
     onChildAdded(messagesRef, (snap) => {
       const data = snap.val();
       appendMessageDom(data);
     });
 
+    // 🔹 Show Message in DOM
     function appendMessageDom(data) {
       const div = document.createElement("div");
       div.className = "msg " + (data.senderId === userId ? "me" : "other");
@@ -114,7 +145,7 @@
         if ((data.mimeType || '').startsWith('audio/')) {
           const audio = document.createElement("audio");
           audio.controls = true;
-          audio.src = data.fileData;  // Base64 MP3 Play होगा
+          audio.src = data.fileData;
           div.appendChild(audio);
         }
         if ((data.mimeType || '').startsWith('video/')) {
@@ -124,12 +155,21 @@
           video.src = data.fileData;
           div.appendChild(video);
         }
+        const btn = document.createElement("button");
+        btn.textContent = "⬇️ Download";
+        btn.onclick = () => {
+          const a = document.createElement("a");
+          a.href = data.fileData;
+          a.download = data.fileName || "file";
+          a.click();
+        };
+        div.appendChild(btn);
       }
       messagesEl.appendChild(div);
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    // Users Online List
+    // 🔹 Show Online Users
     const usersRef = ref(db, "users");
     onValue(usersRef, (snap) => {
       usersEl.innerHTML = "<b>Users</b><br/>";
@@ -144,13 +184,13 @@
   </script>
 </head>
 <body>
-  <header>Chat</header>
+  <header>Firebase Realtime Chat</header>
   <div id="container">
     <div id="users"></div>
     <div id="chat">
       <div id="messages"></div>
       <div id="controls">
-        <input id="msg" placeholder="टाइप करे" />
+        <input id="msg" placeholder="Type message" />
         <input id="file" type="file" accept="audio/*,image/*,video/*" />
         <button id="sendFile">⬆️</button>
         <button id="send">📤</button>
