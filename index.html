@@ -45,9 +45,49 @@
       margin-top:15px;
     }
     .card h3, .card h4 { margin:0 0 10px 0; }
-    audio { width:100%; margin-top:8px; }
+    audio { width:100%; margin-top:8px; border-radius:8px; }
 
     details summary { cursor:pointer; color:#007bff; margin-top:8px; font-size:14px; }
+
+    /* 🎶 Song List Styles */
+    .songs-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 15px;
+    }
+    .song-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+    .song-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .btn-download {
+      margin-top: 8px;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      background:#28a745; 
+      color:white; 
+      text-align:center;
+      text-decoration:none;
+      display:inline-block;
+    }
+    .btn-download:hover { background:#1f7a32; }
   </style>
 </head>
 <body onload="openPopup()">
@@ -65,7 +105,7 @@
     <button class="btn btn-primary" onclick="uploadMp3()">⬆️ अपलोड</button>
 
     <h3 style="margin-top:25px;">🎶 गानों की लिस्ट</h3>
-    <div id="songs"></div>
+    <div class="songs-container" id="songs"></div>
   </main>
 
   <!-- Popup -->
@@ -177,13 +217,14 @@
       Object.keys(data).forEach(id => {
         const song = data[id];
         const src = `data:audio/mpeg;base64,${song.base64}`;
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-          <h4>🎵 ${song.filename || "Untitled.mp3"}</h4>
+        const card = document.createElement("div");
+        card.className = "song-card";
+        card.innerHTML = `
+          <p class="song-title">🎵 ${song.filename || "Untitled.mp3"}</p>
           <audio controls preload="none" src="${src}"></audio>
+          <a class="btn-download" href="${src}" download="${song.filename}">⬇️ डाउनलोड</a>
         `;
-        container.appendChild(div);
+        container.appendChild(card);
       });
     });
   </script>
