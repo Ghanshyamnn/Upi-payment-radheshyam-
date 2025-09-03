@@ -7,21 +7,47 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: "Segoe UI", sans-serif; background:#f9fafb; margin:0; padding:0; }
-    header { background:#007bff; color:white; display:flex; justify-content:space-between; align-items:center; padding:12px 15px; font-size:18px; }
+    body { font-family: "Segoe UI", sans-serif; background:#f2f4f7; margin:0; padding:0; }
+    header {
+      background:#007bff; color:white; 
+      display:flex; justify-content:space-between; align-items:center;
+      padding:15px; font-size:18px; position:sticky; top:0;
+    }
     header span { font-weight:bold; }
-    header button { background:none; border:none; color:white; font-size:20px; cursor:pointer; }
+    header button { background:none; border:none; color:white; font-size:22px; cursor:pointer; }
+
     main { padding:15px; max-width:600px; margin:auto; }
-    .btn { padding:12px; border:none; border-radius:8px; cursor:pointer; font-size:16px; width:100%; margin-top:10px; }
+
+    .btn { padding:14px; border:none; border-radius:10px; cursor:pointer; font-size:16px; width:100%; margin-top:12px; transition:0.2s; }
     .btn-primary { background:#007bff; color:white; }
+    .btn-primary:hover { background:#0056d2; }
     .btn-secondary { background:#6c757d; color:white; }
-    input { width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px; font-size:15px; }
-    .popup { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000; }
-    .popup-content { background:white; padding:20px; border-radius:12px; width:90%; max-width:380px; box-shadow:0 4px 10px rgba(0,0,0,0.2); }
+    .btn-secondary:hover { background:#555; }
+
+    input[type=text], input[type=file] { 
+      width:100%; padding:14px; margin:10px 0; border:1px solid #ddd; border-radius:10px; font-size:15px; 
+    }
+
+    .popup {
+      display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,0.6); justify-content:center; align-items:flex-end;
+      z-index:1000;
+    }
+    .popup-content {
+      background:white; padding:20px; border-radius:15px 15px 0 0; width:100%; max-width:500px;
+      animation: slideUp 0.3s ease-in-out;
+    }
+    @keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
+
     .label { font-size:14px; font-weight:600; margin-top:8px; display:block; }
-    .card { background:white; padding:15px; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-top:15px; }
-    .card h3 { margin:0 0 10px 0; }
-    details summary { cursor:pointer; color:#007bff; margin-top:8px; }
+    .card {
+      background:white; padding:15px; border-radius:12px; box-shadow:0 3px 6px rgba(0,0,0,0.1);
+      margin-top:15px;
+    }
+    .card h3, .card h4 { margin:0 0 10px 0; }
+    audio { width:100%; margin-top:8px; }
+
+    details summary { cursor:pointer; color:#007bff; margin-top:8px; font-size:14px; }
   </style>
 </head>
 <body onload="openPopup()">
@@ -33,6 +59,7 @@
 
   <main>
     <div id="userLok" style="display:none;"></div>
+
     <h3 style="margin-top:25px;">🎵 अपलोड MP3</h3>
     <input type="file" id="mp3File" accept="audio/mp3" />
     <button class="btn btn-primary" onclick="uploadMp3()">⬆️ अपलोड</button>
@@ -80,33 +107,20 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Popup Controls
-    function openPopup() {
-      document.getElementById("popup").style.display = "flex";
-      showSearchForm();
-    }
-    function showAddForm() {
-      document.getElementById("searchSection").style.display = "none";
-      document.getElementById("addSection").style.display = "block";
-    }
-    function showSearchForm() {
-      document.getElementById("searchSection").style.display = "block";
-      document.getElementById("addSection").style.display = "none";
-    }
+    function openPopup() { document.getElementById("popup").style.display = "flex"; showSearchForm(); }
+    function showAddForm() { document.getElementById("searchSection").style.display = "none"; document.getElementById("addSection").style.display = "block"; }
+    function showSearchForm() { document.getElementById("searchSection").style.display = "block"; document.getElementById("addSection").style.display = "none"; }
 
-    // Save Lok
     function saveLok() {
       const name = document.getElementById("name").value.trim();
       const mobile = document.getElementById("mobile").value.trim();
       const passport = document.getElementById("passport").value.trim();
       if (!name || !mobile || !passport) { alert("⚠️ सभी फ़ील्ड भरें"); return; }
-
       db.ref("loks").push({ name, mobile, passport, createdAt: new Date().toISOString() });
       alert("✅ लोक सेव हो गया!");
       showSearchForm();
     }
 
-    // Search Lok
     function searchLok() {
       const mobile = document.getElementById("searchMobile").value.trim();
       const passport = document.getElementById("searchPassport").value.trim();
@@ -119,7 +133,6 @@
           if (data.passport === passport) {
             document.getElementById("popup").style.display = "none";
             document.getElementById("userLok").style.display = "block";
-
             document.getElementById("userLok").innerHTML = `
               <div class="card">
                 <h3>✅ लोक सफलतापूर्वक खोला गया</h3>
@@ -129,23 +142,18 @@
                   <p><b>मोबाइल:</b> ${data.mobile}</p>
                   <p><b>पासपोर्ट:</b> ${data.passport}</p>
                 </details>
-              </div>
-            `;
+              </div>`;
             found = true;
           }
         });
-        if (!found) {
-          alert("❌ कोई डेटा नहीं मिला");
-        }
+        if (!found) { alert("❌ कोई डेटा नहीं मिला"); }
       });
     }
 
-    // MP3 Upload
     function uploadMp3() {
       const fileInput = document.getElementById("mp3File");
       const file = fileInput.files[0];
       if (!file) { alert("⚠️ पहले MP3 चुनें"); return; }
-
       const reader = new FileReader();
       reader.onload = function(e) {
         const base64 = e.target.result.split(",")[1];
@@ -156,16 +164,10 @@
       reader.readAsDataURL(file);
     }
 
-    // Show MP3 Songs
     firebase.database().ref("mp3s").on("value", snap => {
       const container = document.getElementById("songs");
       container.innerHTML = "";
-
-      if (!snap.exists()) {
-        container.innerHTML = "<p>❌ कोई गाना नहीं मिला</p>";
-        return;
-      }
-
+      if (!snap.exists()) { container.innerHTML = "<p>❌ कोई गाना नहीं मिला</p>"; return; }
       const data = snap.val();
       Object.keys(data).forEach(id => {
         const song = data[id];
