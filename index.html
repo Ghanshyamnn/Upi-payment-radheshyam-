@@ -1,79 +1,73 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <title>MP3 Base64 अपलोड • Firebase RTDB</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Firebase (Compat SDKs) -->
+  <meta charset="UTF-8">
+  <title>लोक मैनेजमेंट + MP3</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    :root{--primary:#007bff;--bg:#f7f7fb;}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg)}
-    header{
-      position:sticky;top:0;z-index:10;background:var(--primary);color:#fff;
-      display:flex;align-items:center;justify-content:space-between;padding:12px 16px
-    }
-    header .title{font-weight:700;font-size:18px}
-    header .icon-btn{background:none;border:0;color:#fff;font-size:20px;cursor:pointer}
-    main{max-width:680px;margin:0 auto;padding:16px}
-    .card{
-      background:#fff;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.06);
-      padding:16px;margin:12px 0
-    }
-    .row{display:grid;gap:10px}
-    @media(min-width:520px){.row{grid-template-columns:2fr 1fr}}
-    input[type=file]{width:100%;padding:12px;border:1px solid #e6e6ef;border-radius:10px;background:#fff}
-    .btn{padding:12px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
-    .btn-primary{background:var(--primary);color:#fff;width:100%}
-    .btn-danger{background:#e03131;color:#fff}
-    .muted{color:#666;font-size:12px}
-    .progress{height:8px;background:#e9ecef;border-radius:99px;overflow:hidden;margin-top:10px}
-    .bar{height:100%;width:0%;background:var(--primary);transition:width .25s}
-    .list{display:grid;gap:12px}
-    .item{display:flex;gap:12px;align-items:center}
-    .item .meta{flex:1}
-    .item h4{margin:0 0 4px 0;font-size:15px}
-    .chips{display:flex;gap:8px;flex-wrap:wrap}
-    .chip{font-size:11px;background:#eef3ff;color:#2a52aa;padding:4px 8px;border-radius:20px}
-    audio{width:100%}
-    .actions{display:flex;gap:8px;margin-top:8px}
-    .hide-on-mobile{display:none}
-    @media(min-width:420px){.hide-on-mobile{display:inline-block}}
+    body { font-family: "Segoe UI", sans-serif; background:#f9fafb; margin:0; padding:0; }
+    header { background:#007bff; color:white; display:flex; justify-content:space-between; align-items:center; padding:12px 15px; font-size:18px; }
+    header span { font-weight:bold; }
+    header button { background:none; border:none; color:white; font-size:20px; cursor:pointer; }
+    main { padding:15px; max-width:600px; margin:auto; }
+    .btn { padding:12px; border:none; border-radius:8px; cursor:pointer; font-size:16px; width:100%; margin-top:10px; }
+    .btn-primary { background:#007bff; color:white; }
+    .btn-secondary { background:#6c757d; color:white; }
+    input { width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px; font-size:15px; }
+    .popup { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000; }
+    .popup-content { background:white; padding:20px; border-radius:12px; width:90%; max-width:380px; box-shadow:0 4px 10px rgba(0,0,0,0.2); }
+    .label { font-size:14px; font-weight:600; margin-top:8px; display:block; }
+    .card { background:white; padding:15px; border-radius:12px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-top:15px; }
+    .card h3 { margin:0 0 10px 0; }
+    details summary { cursor:pointer; color:#007bff; margin-top:8px; }
   </style>
 </head>
-<body>
+<body onload="openPopup()">
+  <!-- Header -->
   <header>
-    <div class="title">🎵 MP3 Base64 अपलोड</div>
-    <button class="icon-btn" title="रीफ़्रेश" onclick="reloadList()">⟳</button>
+    <span>📑 लोक मैनेजमेंट</span>
+    <button onclick="openPopup()">🔍</button>
   </header>
 
   <main>
-    <!-- अपलोड कार्ड -->
-    <div class="card">
-      <h3 style="margin:0 0 8px 0;">MP3 अपलोड करें</h3>
-      <p class="muted">फ़ाइल चुनते ही Base64 बनकर Firebase Realtime Database में सेव हो जाएगा। (सुझाव: 8MB से छोटी फ़ाइल)</p>
-      <div class="row">
-        <input id="mp3Input" type="file" accept=".mp3,audio/mp3,audio/mpeg" />
-        <button class="btn btn-primary" onclick="startUpload()">अपलोड</button>
-      </div>
-      <div class="progress" aria-hidden="true"><div id="bar" class="bar"></div></div>
-      <div id="status" class="muted" style="margin-top:8px;"></div>
-    </div>
+    <div id="userLok" style="display:none;"></div>
+    <h3 style="margin-top:25px;">🎵 अपलोड MP3</h3>
+    <input type="file" id="mp3File" accept="audio/mp3" />
+    <button class="btn btn-primary" onclick="uploadMp3()">⬆️ अपलोड</button>
 
-    <!-- लिस्ट कार्ड -->
-    <div class="card">
-      <h3 style="margin:0 0 8px 0;">MP3 लिस्ट</h3>
-      <div id="empty" class="muted">अभी कोई MP3 नहीं है। अपलोड करें और यहाँ दिखाई देगा।</div>
-      <div id="list" class="list"></div>
-    </div>
+    <h3 style="margin-top:25px;">🎶 गानों की लिस्ट</h3>
+    <div id="songs"></div>
   </main>
 
+  <!-- Popup -->
+  <div class="popup" id="popup">
+    <div class="popup-content" id="searchSection">
+      <h3 style="text-align:center;">📂 लोक खोलें / नया बनाएँ</h3>
+      <label class="label">मोबाइल नंबर</label>
+      <input type="text" id="searchMobile" placeholder="मोबाइल नंबर डालें">
+      <label class="label">पासपोर्ट नंबर</label>
+      <input type="text" id="searchPassport" placeholder="पासपोर्ट नंबर डालें">
+      <button class="btn btn-primary" onclick="searchLok()">🔍 खोजें</button>
+      <button class="btn btn-secondary" onclick="showAddForm()">➕ नया लोक बनाएँ</button>
+    </div>
+
+    <div class="popup-content" id="addSection" style="display:none;">
+      <h3 style="text-align:center;">➕ नया लोक बनाएँ</h3>
+      <label class="label">नाम</label>
+      <input type="text" id="name" placeholder="नाम डालें">
+      <label class="label">मोबाइल नंबर</label>
+      <input type="text" id="mobile" placeholder="मोबाइल नंबर डालें">
+      <label class="label">पासपोर्ट नंबर</label>
+      <input type="text" id="passport" placeholder="पासपोर्ट नंबर डालें">
+      <button class="btn btn-primary" onclick="saveLok()">💾 सेव करें</button>
+      <button class="btn btn-secondary" onclick="showSearchForm()">↩️ वापस</button>
+    </div>
+  </div>
+
   <script>
-    // ⚙️ Firebase Config (आपके mp3-8247a प्रोजेक्ट से)
+    // ✅ Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyD14Z3b7uCk62FBCK9SSZlczSxnMXndM1o",
       authDomain: "mp3-8247a.firebaseapp.com",
@@ -86,170 +80,105 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const input = document.getElementById('mp3Input');
-    const bar = document.getElementById('bar');
-    const statusEl = document.getElementById('status');
-    const listEl = document.getElementById('list');
-    const emptyEl = document.getElementById('empty');
-
-    // 🧠 Util: nice bytes
-    function formatBytes(bytes){
-      if(bytes===0) return "0 B";
-      const k=1024, sizes=["B","KB","MB","GB"], i=Math.floor(Math.log(bytes)/Math.log(k));
-      return parseFloat((bytes/Math.pow(k,i)).toFixed(2))+" "+sizes[i];
+    // Popup Controls
+    function openPopup() {
+      document.getElementById("popup").style.display = "flex";
+      showSearchForm();
+    }
+    function showAddForm() {
+      document.getElementById("searchSection").style.display = "none";
+      document.getElementById("addSection").style.display = "block";
+    }
+    function showSearchForm() {
+      document.getElementById("searchSection").style.display = "block";
+      document.getElementById("addSection").style.display = "none";
     }
 
-    // 🎯 Upload Flow
-    function startUpload(){
-      const file = input.files && input.files[0];
-      if(!file){ alert("कृपया MP3 फ़ाइल चुनें"); return; }
+    // Save Lok
+    function saveLok() {
+      const name = document.getElementById("name").value.trim();
+      const mobile = document.getElementById("mobile").value.trim();
+      const passport = document.getElementById("passport").value.trim();
+      if (!name || !mobile || !passport) { alert("⚠️ सभी फ़ील्ड भरें"); return; }
 
-      // वैलिडेशन
-      if(!/^audio\/(mp3|mpeg)$/.test(file.type) && !file.name.toLowerCase().endsWith('.mp3')){
-        alert("केवल MP3 स्वीकार्य है");
-        return;
-      }
-      const maxBytes = 8 * 1024 * 1024; // 8 MB सुझाव
-      if(file.size > maxBytes){
-        if(!confirm("यह फ़ाइल "+formatBytes(file.size)+" की है। बड़ी Base64 RTDB में स्लो हो सकती है। फिर भी अपलोड करें?")) return;
-      }
+      db.ref("loks").push({ name, mobile, passport, createdAt: new Date().toISOString() });
+      alert("✅ लोक सेव हो गया!");
+      showSearchForm();
+    }
 
-      // पढ़ना शुरू
-      statusEl.textContent = "फ़ाइल पढ़ी जा रही है…";
-      bar.style.width = "15%";
+    // Search Lok
+    function searchLok() {
+      const mobile = document.getElementById("searchMobile").value.trim();
+      const passport = document.getElementById("searchPassport").value.trim();
+      if (!mobile || !passport) { alert("⚠️ मोबाइल और पासपोर्ट डालें"); return; }
+
+      db.ref("loks").orderByChild("mobile").equalTo(mobile).once("value", snap => {
+        let found = false;
+        snap.forEach(child => {
+          const data = child.val();
+          if (data.passport === passport) {
+            document.getElementById("popup").style.display = "none";
+            document.getElementById("userLok").style.display = "block";
+
+            document.getElementById("userLok").innerHTML = `
+              <div class="card">
+                <h3>✅ लोक सफलतापूर्वक खोला गया</h3>
+                <p><b>नाम:</b> ${data.name}</p>
+                <details>
+                  <summary>ℹ️ और जानकारी</summary>
+                  <p><b>मोबाइल:</b> ${data.mobile}</p>
+                  <p><b>पासपोर्ट:</b> ${data.passport}</p>
+                </details>
+              </div>
+            `;
+            found = true;
+          }
+        });
+        if (!found) {
+          alert("❌ कोई डेटा नहीं मिला");
+        }
+      });
+    }
+
+    // MP3 Upload
+    function uploadMp3() {
+      const fileInput = document.getElementById("mp3File");
+      const file = fileInput.files[0];
+      if (!file) { alert("⚠️ पहले MP3 चुनें"); return; }
 
       const reader = new FileReader();
-
-      // Progress (कुछ ब्राउज़र एस्टिमेट देते हैं)
-      reader.onprogress = e => {
-        if(e.lengthComputable){
-          const p = Math.min(90, Math.floor((e.loaded / e.total) * 90));
-          bar.style.width = p + "%";
-        }
+      reader.onload = function(e) {
+        const base64 = e.target.result.split(",")[1];
+        db.ref("mp3s").push({ filename: file.name, base64 });
+        alert("✅ MP3 अपलोड हो गया!");
+        fileInput.value = "";
       };
-
-      reader.onerror = () => {
-        statusEl.textContent = "रीड करने में समस्या हुई।";
-        bar.style.width = "0%";
-      };
-
-      reader.onload = async () => {
-        try {
-          // dataURL: "data:audio/mpeg;base64,AAA..."
-          const dataURL = reader.result;
-          const base64 = String(dataURL).split(',')[1]; // हेडर हटाएँ
-          statusEl.textContent = "Base64 तैयार। डेटाबेस में सेव हो रहा है…";
-          bar.style.width = "95%";
-
-          // वैकल्पिक: duration निकालना (छोटा सा ट्रिक)
-          const duration = await getAudioDuration(dataURL).catch(()=>null);
-
-          // RTDB में सेव
-          const item = {
-            filename: file.name,
-            type: file.type || "audio/mpeg",
-            size: file.size,
-            sizeText: formatBytes(file.size),
-            createdAt: new Date().toISOString(),
-            base64: base64,
-            duration: duration
-          };
-          const ref = db.ref("mp3s").push();
-          await ref.set(item);
-
-          statusEl.textContent = "✅ अपलोड सफल!";
-          bar.style.width = "100%";
-          input.value = "";
-
-          // थोड़ी देर में प्रोग्रेस रीसेट
-          setTimeout(()=>{ bar.style.width = "0%"; statusEl.textContent=""; }, 1200);
-        } catch(err){
-          console.error(err);
-          statusEl.textContent = "❌ सेव करने में समस्या हुई";
-          bar.style.width = "0%";
-        }
-      };
-
       reader.readAsDataURL(file);
     }
 
-    // ⏱️ ऑडियो duration निकालने के लिए
-    function getAudioDuration(src){
-      return new Promise((resolve,reject)=>{
-        const audio = new Audio();
-        audio.preload = "metadata";
-        audio.src = src;
-        audio.onloadedmetadata = () => resolve(Number.isFinite(audio.duration)? Math.round(audio.duration) : null);
-        audio.onerror = reject;
-      });
-    }
+    // Show MP3 Songs
+    firebase.database().ref("mp3s").on("value", snap => {
+      const container = document.getElementById("songs");
+      container.innerHTML = "";
 
-    // 📜 लिस्ट लाइव लोड
-    function renderList(snap){
-      listEl.innerHTML = "";
-      const val = snap.val();
-      if(!val){ emptyEl.style.display="block"; return; }
-
-      emptyEl.style.display = "none";
-      // नवीनतम पहले दिखाएँ
-      const entries = Object.entries(val).sort((a,b)=>{
-        return (new Date(b[1].createdAt)) - (new Date(a[1].createdAt));
-      });
-
-      for(const [id, item] of entries){
-        const dataURL = `data:${item.type || "audio/mpeg"};base64,${item.base64}`;
-
-        const div = document.createElement('div');
-        div.className = "item card";
-
-        div.innerHTML = `
-          <div class="meta">
-            <h4>🎵 ${escapeHtml(item.filename || "Untitled.mp3")}</h4>
-            <div class="chips">
-              <span class="chip">${item.sizeText || formatBytes(item.size||0)}</span>
-              ${item.duration ? `<span class="chip">⏱️ ${item.duration}s</span>` : ""}
-              <span class="chip">Base64</span>
-            </div>
-            <div class="actions">
-              <button class="btn btn-danger hide-on-mobile" data-del="${id}">Delete</button>
-              <button class="btn" style="background:#f1f3f5" data-copy="${id}">Copy Base64</button>
-            </div>
-          </div>
-          <div style="width:100%;">
-            <audio controls preload="none" src="${dataURL}"></audio>
-          </div>
-        `;
-
-        // Delete
-        div.querySelector('[data-del]')?.addEventListener('click', async () => {
-          if(confirm("डिलीट करें?")) await db.ref("mp3s/"+id).remove();
-        });
-
-        // Copy Base64
-        div.querySelector('[data-copy]')?.addEventListener('click', async () => {
-          try {
-            await navigator.clipboard.writeText(item.base64 || "");
-            alert("Base64 कॉपी हो गया!");
-          } catch {
-            prompt("कॉपी न हो पाए तो यहाँ से मैन्युअली कॉपी करें:", item.base64 || "");
-          }
-        });
-
-        listEl.appendChild(div);
+      if (!snap.exists()) {
+        container.innerHTML = "<p>❌ कोई गाना नहीं मिला</p>";
+        return;
       }
-    }
 
-    function escapeHtml(s){
-      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-    }
-
-    // लिस्ट subscription
-    const listRef = db.ref("mp3s");
-    listRef.on("value", renderList);
-
-    // मैनुअल रीफ़्रेश
-    function reloadList(){ listRef.once("value").then(renderList); }
-    window.reloadList = reloadList;
+      const data = snap.val();
+      Object.keys(data).forEach(id => {
+        const song = data[id];
+        const src = `data:audio/mpeg;base64,${song.base64}`;
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <h4>🎵 ${song.filename || "Untitled.mp3"}</h4>
+          <audio controls preload="none" src="${src}"></audio>
+        `;
+        container.appendChild(div);
+      });
+    });
   </script>
 </body>
 </html>
