@@ -1,387 +1,174 @@
-<!doctype html>
-
-<html lang="hi">
+<!DOCTYPE html><html lang="hi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>🔥 Full App — Gmail Login + Auto ID + Admin (Firebase)</title>
-  <meta name="theme-color" content="#111827"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>📷 कैमरा ऐप (अपडेटेड फुल)</title>
   <style>
-    :root{--bg:#0f172a;--card:#111827;--muted:#9ca3af;--fg:#e5e7eb;--brand:#22c55e;--accent:#2563eb;--danger:#ef4444}
-    *{box-sizing:border-box} html,body{height:100%} body{margin:0;font-family:"Noto Sans Devanagari",system-ui,sans-serif;background:linear-gradient(180deg,#0b1220,#0f172a 30%,#0b1220);color:var(--fg)}
-    .container{max-width:980px;margin:0 auto;padding:16px}
-    .appbar{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 14px;background:#0b1220aa;border:1px solid #1f2937;border-radius:16px;backdrop-filter:blur(6px);position:sticky;top:8px;z-index:10}
-    .brand{display:flex;gap:10px;align-items:center;font-weight:700}
-    .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:#111827;border:1px solid #1f2937;color:var(--muted)}
-    .grid{display:grid;gap:16px}
-    @media(min-width:860px){.grid{grid-template-columns:1.2fr .8fr}}
-    .card{background:var(--card);border:1px solid #1f2937;border-radius:20px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-    h1{font-size:22px;margin:0 0 6px} h2{font-size:18px;margin:0 0 8px}
-    p{margin:6px 0 10px;color:var(--muted)}
-    .row{display:grid;gap:10px}
-    button{appearance:none;border:none;border-radius:12px;padding:12px 14px;font-weight:700}
-    .btn{background:#111827;border:1px solid #1f2937;color:var(--fg);cursor:pointer}
-    .btn:hover{filter:brightness(1.08)}
-    .btn-primary{background:var(--accent);color:white}
-    .btn-danger{background:var(--danger);color:white}
-    .btn-ghost{background:transparent;border:1px dashed #334155}
-    .flex{display:flex;align-items:center;gap:10px}
-    .center{text-align:center}
-    .avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #334155}
-    .codebox{font-family:ui-monospace,Menlo,monospace;font-size:22px;letter-spacing:2px;text-align:center;padding:10px;border-radius:12px;background:#0b1220;border:1px solid #1f2937}
-    .muted{color:var(--muted)}
-    .kbd{font-family:ui-monospace,Menlo,monospace;background:#0b1220;border:1px solid #1f2937;border-radius:8px;padding:2px 6px}
-    input[type="search"],input[type="text"],input[type="email"],input[type="password"]{width:100%;padding:12px;border-radius:12px;background:#0b1220;border:1px solid #1f2937;color:var(--fg)}
-    table{width:100%;border-collapse:separate;border-spacing:0 8px}
-    th,td{text-align:left;padding:10px;border-bottom:1px dashed #233048}
-    .badge{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid #334155;color:var(--muted)}
-    .hidden{display:none !important}
-    /* लोडिंग ओवरले */
-    .loading{position:fixed;inset:0;display:none;place-items:center;background:rgba(2,6,23,.6);backdrop-filter:blur(2px);z-index:50}
-    .spinner{width:40px;height:40px;border-radius:50%;border:4px solid #334155;border-top-color:#22c55e;animation:spin 1s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
+    :root{--bg:#0b1020;--fg:#eaf2ff;--muted:#90a0c0;--accent:#5ac8fa;--danger:#ff5e57;--ok:#34c759}
+    *{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Ubuntu,Cantarell,"Helvetica Neue",Arial}
+    .app{display:grid;grid-template-rows:auto 1fr auto;min-height:100%;}
+    header,footer{backdrop-filter: blur(12px);background:rgba(15,20,40,.6);padding:8px 12px;border-bottom:1px solid #1c223a}
+    footer{border-top:1px solid #1c223a;border-bottom:none;}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    button,select,input[type="range"]{appearance:none;border:none;padding:10px 12px;border-radius:12px;background:#18203a;color:var(--fg);font-weight:600;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .btn{display:inline-flex;align-items:center;gap:8px}
+    .primary{background:linear-gradient(180deg,#2c6dfd,#234fe0)}
+    .danger{background:linear-gradient(180deg,#ff6a6a,#e64545)}
+    .ok{background:linear-gradient(180deg,#36d27a,#29b365)}
+    .ghost{background:transparent;border:1px solid #2a3558}
+    .pill{border-radius:999px;padding:8px 14px}.stage{position:relative;background:#000;display:grid;place-items:center;overflow:hidden}
+video{max-width:100%;max-height:100vh;width:100%;height:100%;object-fit:contain;background:#000}
+canvas{display:none}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
+.flash.show{opacity:0.85;animation:flash .25s ease-out forwards}
+@keyframes flash{to{opacity:0}}
+
+.overlay{position:absolute;inset:0;pointer-events:none}
+.grid{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0,transparent calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% + .5px)),repeating-linear-gradient(90deg,transparent 0,transparent calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% + .5px));opacity:.75;display:none}
+.grid.on{display:block}
+
+.toolbar{position:absolute;inset-inline:0;bottom:16px;display:flex;justify-content:center;gap:12px;pointer-events:auto}
+.tb-btn{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-weight:900}
+
+.gallery{display:flex;gap:8px;overflow:auto;padding:8px}
+.thumb{width:72px;height:72px;border-radius:10px;overflow:hidden;border:1px solid #2a3558;flex:0 0 auto}
+.thumb img, .thumb video{width:100%;height:100%;object-fit:cover;display:block}
+
+.panel{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hint{color:var(--muted);font-size:13px}
+.error{color:#ffd5d2}
+.spacer{flex:1}
+
   </style>
 </head>
 <body>
-  <div class="loading" id="loading"><div class="spinner"></div></div>
-  <div class="container">
-    <header class="appbar">
-      <div class="brand">
-        <span>⚡</span>
-        <span>Full App</span>
-        <span class="pill" id="envPill">Cloud</span>
+  <div class="app">
+    <header>
+      <div class="row">
+        <strong>📷 कैमरा ऐप</strong>
+        <span class="hint">— अपडेटेड फीचर्स के साथ</span>
+        <span class="spacer"></span>
+        <button id="btnFullscreen" class="ghost pill" title="फुलस्क्रीन">⛶</button>
+        <button id="btnGrid" class="ghost pill" title="ग्रिड">#️⃣</button>
+        <label class="ghost pill" title="रिज़ॉल्यूशन">
+          <span>🔧</span>
+          <select id="selRes">
+            <option value="1280x720">1280×720</option>
+            <option value="1920x1080" selected>1920×1080</option>
+            <option value="2560x1440">2560×1440</option>
+            <option value="640x480">640×480</option>
+          </select>
+        </label>
+        <label class="ghost pill" title="फ्रेमरेट">
+          <span>🎞️</span>
+          <select id="selFps">
+            <option>30</option>
+            <option selected>60</option>
+            <option>24</option>
+            <option>15</option>
+          </select>
+        </label>
+        <button id="btnStart" class="primary pill">कैमरा शुरू करें</button>
+        <button id="btnStop" class="danger pill" disabled>बंद</button>
       </div>
-      <div class="flex">
-        <button id="btnAdmin" class="btn btn-ghost hidden">Admin</button>
-        <button id="btnLogout" class="btn btn-danger hidden">लॉगआउट</button>
+      <div class="row" style="margin-top:6px">
+        <button id="btnFlip" class="ghost pill" title="फ्रंट/बैक">🔄 कैमरा बदलें</button>
+        <button id="btnTorch" class="ghost pill" title="टॉर्च">🔦</button>
+        <label class="ghost pill" title="ज़ूम">
+          🔍 <input id="rngZoom" type="range" min="1" max="1" step="0.1" value="1" style="width:160px">
+        </label>
+        <label class="ghost pill" title="टाइमर">
+          ⏱️ <select id="selTimer">
+            <option value="0" selected>ऑफ</option>
+            <option value="3">3s</option>
+            <option value="5">5s</option>
+          </select>
+        </label>
+        <span id="capabilities" class="hint"></span>
       </div>
-    </header><main class="grid" style="margin-top:16px">
-  <!-- AUTH / PROFILE CARD -->
-  <section class="card" id="authCard">
-    <h1>🔐 Gmail से लॉगिन</h1>
-    <p>पहली लॉगिन पर 6-कैरेक्टर यूनिक कोड ऑटो-जनरेट होकर सेव होगा। अगली बार ऑटो-लॉगिन।</p>
-    <div id="authBox" class="row">
-      <button id="googleBtn" class="btn btn-primary flex center" style="justify-content:center">
-        <img alt="G" width="20" height="20" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"/>
-        Continue with Google
-      </button>
-      <div id="authErr" class="pill hidden"></div>
-    </div>
-
-    <div id="profileBox" class="row hidden">
-      <div class="flex">
-        <img id="avatar" class="avatar" alt="avatar" src=""/>
-        <div>
-          <h2 id="userName">यूज़र</h2>
-          <div id="userEmail" class="muted"></div>
-          <div id="userUid" class="badge"></div>
-        </div>
-      </div>
-      <div>
-        <div class="codebox" id="userCode">------</div>
-        <p class="muted center">यह आपकी ऑटो-जनरेटेड यूनिक ID है।</p>
-        <div class="flex" style="justify-content:center">
-          <button id="copyCode" class="btn">कोड कॉपी करें</button>
-          <button id="regenCode" class="btn btn-ghost">नया कोड</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ADMIN PANEL CARD -->
-  <section class="card hidden" id="adminCard">
-    <h1>🛡️ Admin Panel</h1>
-    <p>यूज़र कोड्स की लिस्ट, सर्च और एक्सपोर्ट।</p>
-    <div class="row">
-      <input id="search" type="search" placeholder="Search: code, email, uid"/>
-      <div class="flex">
-        <button id="exportCsv" class="btn">Export CSV</button>
-        <span class="badge" id="count">0 items</span>
-      </div>
-      <div style="overflow:auto">
-        <table id="tbl"><thead>
-          <tr><th>Code</th><th>Email</th><th>Name</th><th>UID</th></tr>
-        </thead><tbody></tbody></table>
-      </div>
-    </div>
-  </section>
+    </header><main class="stage" id="stage">
+  <video id="vid" playsinline autoplay muted></video>
+  <div class="overlay">
+    <div id="grid" class="grid"></div>
+    <div id="flash" class="flash"></div>
+  </div>
+  <div class="toolbar">
+    <button id="btnSnap" class="tb-btn ok" title="फोटो लें">●</button>
+    <button id="btnRec" class="tb-btn primary" title="वीडियो रिकॉर्ड">⏺</button>
+  </div>
+  <canvas id="canv"></canvas>
 </main>
 
-  </div>  <!-- Firebase SDK (Compat v9) -->  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>  <script>
-    // === CONFIG (आपके प्रोजेक्ट mp3-8247a का) ===
-    const firebaseConfig = {
-      apiKey: "AIzaSyD14Z3b7uCk62FBCK9SSZlczSxnMXndM1o",
-      authDomain: "mp3-8247a.firebaseapp.com",
-      databaseURL: "https://mp3-8247a-default-rtdb.firebaseio.com",
-      projectId: "mp3-8247a",
-      storageBucket: "mp3-8247a.firebasestorage.app",
-      messagingSenderId: "228735051694",
-      appId: "1:228735051694:android:99bdbbe737b66224ef4a3f"
-    };
+<footer>
+  <div class="panel">
+    <strong>📁 गैलरी</strong>
+    <span class="hint">— कैप्चर/रिकॉर्ड के बाद यहाँ सेव हो जाएगी। थम्ब पर टैप करके डाउनलोड करें।</span>
+    <span class="spacer"></span>
+    <button id="btnClear" class="ghost pill" title="गैलरी साफ़">🗑️</button>
+  </div>
+  <div id="gallery" class="gallery"></div>
+  <div id="msg" class="hint"></div>
+</footer>
 
-    // वैकल्पिक: एडमिन ईमेल allowlist (अपना ईमेल डालें)
-    const ADMIN_EMAILS = [
-      // "you@example.com"
-    ];
+  </div><script>
+// Same JS code from previous version (camera permission + features)
+// कोई भी अतिरिक्त बदलाव: अब अनुमति के लिए सीधा मैसेज दिखाया जाएगा।
+(function(){
+  const vid=document.getElementById('vid');
+  const canv=document.getElementById('canv');
+  const ctx=canv.getContext('2d');
+  const msg=document.getElementById('msg');
+  const flash=document.getElementById('flash');
+  const grid=document.getElementById('grid');
+  const gallery=document.getElementById('gallery');
 
-    /* === Realtime Database Rules (Console → Database → Rules) ===
-    {
-      "rules": {
-        ".read": false,
-        ".write": false,
-        "users": {
-          "$uid": {
-            ".read": "auth != null && auth.uid === $uid",
-            ".write": "auth != null && auth.uid === $uid",
-            "code": { ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{6}$/)" },
-            "profile": {
-              "email": { ".validate": "newData.isString()" },
-              "displayName": { ".validate": "newData.isString() || newData.val() == null" },
-              "photoURL": { ".validate": "newData.isString() || newData.val() == null" },
-              "lastLoginAt": { ".validate": "newData.isNumber()" }
-            }
-          }
-        },
-        "codes": {
-          "$code": {
-            ".read": false,
-            ".write": "auth != null && newData.val() === auth.uid && $code.matches(/^[A-Z0-9]{6}$/)"
-          }
-        },
-        "admins": {
-          "$uid": {
-            ".read": "auth != null && auth.uid === $uid",
-            ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
-          }
-        }
-      }
-    }
-    */
+  const btnStart=document.getElementById('btnStart');
+  const btnStop=document.getElementById('btnStop');
+  const btnFlip=document.getElementById('btnFlip');
+  const btnTorch=document.getElementById('btnTorch');
+  const btnSnap=document.getElementById('btnSnap');
+  const btnRec=document.getElementById('btnRec');
+  const btnGrid=document.getElementById('btnGrid');
+  const btnFullscreen=document.getElementById('btnFullscreen');
+  const btnClear=document.getElementById('btnClear');
 
-    // === INIT APP ===
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db   = firebase.database();
+  const selRes=document.getElementById('selRes');
+  const selFps=document.getElementById('selFps');
+  const selTimer=document.getElementById('selTimer');
+  const rngZoom=document.getElementById('rngZoom');
+  const capabilitiesEl=document.getElementById('capabilities');
 
-    // LOCAL persistence = auto-login on refresh
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+  let stream=null;let usingFront=false;let mediaRec=null;let chunks=[];let track=null;let imageCapture=null;
+  function log(t){msg.textContent=t;}
+  function error(e){console.error(e);msg.innerHTML=`<span class="error">⚠️ ${e.message||e}</span>`;}
 
-    // --- Smart ENV detect: localhost पर हों तो Emulator use करने की कोशिश (optional) ---
-    (function maybeUseEmulator(){
-      const host = location.hostname;
-      const onLocal = (host === 'localhost' || host === '127.0.0.1');
-      if(onLocal){
-        try {
-          db.useEmulator('localhost', 9000);
-          document.getElementById('envPill').textContent = 'Emulator';
-        } catch(e){ /* ignore */ }
-      }
-    })();
-
-    // === UI refs ===
-    const btnLogout = document.getElementById('btnLogout');
-    const btnAdmin  = document.getElementById('btnAdmin');
-
-    const authCard  = document.getElementById('authCard');
-    const adminCard = document.getElementById('adminCard');
-
-    const authBox   = document.getElementById('authBox');
-    const profileBox= document.getElementById('profileBox');
-    const authErr   = document.getElementById('authErr');
-
-    const userName  = document.getElementById('userName');
-    const userEmail = document.getElementById('userEmail');
-    const userUid   = document.getElementById('userUid');
-    const avatar    = document.getElementById('avatar');
-    const userCodeEl= document.getElementById('userCode');
-
-    const googleBtn = document.getElementById('googleBtn');
-    const copyCode  = document.getElementById('copyCode');
-    const regenCode = document.getElementById('regenCode');
-
-    const searchInp = document.getElementById('search');
-    const tblBody   = document.querySelector('#tbl tbody');
-    const countEl   = document.getElementById('count');
-    const exportCsv = document.getElementById('exportCsv');
-
-    function show(el){ el.classList.remove('hidden') }
-    function hide(el){ el.classList.add('hidden') }
-    function setErr(msg){
-      if(!msg){hide(authErr); return;}
-      authErr.textContent = humanizeError(msg);
-      show(authErr);
-    }
-    function humanizeError(msg){
-      if(!msg) return '';
-      const m = String(msg);
-      if(m.includes('auth/unauthorized-domain')) return 'यह डोमेन Authorized domains में जोड़ें (Firebase Console → Auth → Settings).';
-      if(m.includes('auth/popup-blocked')) return 'ब्राउज़र ने popup ब्लॉक किया। Allow करें या Redirect मोड उपयोग करें।';
-      if(m.includes('auth/cancelled-popup-request')) return 'एक और लॉगिन विंडो खुली थी — दुबारा ट्राय करें।';
-      if(m.includes('network-request-failed')) return 'नेटवर्क समस्या — इंटरनेट चेक करें और फिर ट्राय करें।';
-      return m;
-    }
-
-    // === 6-char code ===
-    function generate6Code(){
-      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      const bytes = new Uint8Array(6); crypto.getRandomValues(bytes);
-      let out=''; for(let i=0;i<6;i++) out += alphabet[bytes[i]%alphabet.length];
-      return out;
-    }
-
-    async function ensureUserCode(uid){
-      const snap = await db.ref(`users/${uid}/code`).get();
-      if(snap.exists()) return snap.val();
-      for(let i=0;i<10;i++){
-        const code = generate6Code();
-        const res = await db.ref(`codes/${code}`).transaction(cur=>{ if(cur===null) return uid; });
-        if(res.committed && res.snapshot.val()===uid){
-          await db.ref(`users/${uid}/code`).set(code);
-          return code;
-        }
-      }
-      throw new Error('कोड बनाने में दिक्कत — फिर प्रयास करें');
-    }
-
-    async function saveProfile(user){
-      const profile = {
-        displayName: user.displayName || null,
-        email: user.email || null,
-        photoURL: user.photoURL || null,
-        lastLoginAt: Date.now(),
-      };
-      await db.ref(`users/${user.uid}/profile`).update(profile);
-    }
-
-    async function maybeGrantAdmin(user){
-      if(ADMIN_EMAILS.includes(user.email)){
-        await db.ref(`admins/${user.uid}`).set(true);
-      }
-    }
-
-    async function isAdmin(uid){
-      const snap = await db.ref(`admins/${uid}`).get();
-      return !!(snap.exists() && snap.val());
-    }
-
-    function fillProfileUI(user, code){
-      userName.textContent = user.displayName || (user.email? user.email.split('@')[0] : 'यूज़र');
-      userEmail.textContent= user.email || '';
-      userUid.textContent  = user.uid;
-      avatar.src = user.photoURL || '';
-      avatar.style.display = user.photoURL? 'block':'none';
-      userCodeEl.textContent = code || '------';
-    }
-
-    async function handleSignedIn(user){
-      try{
-        await saveProfile(user);
-        await maybeGrantAdmin(user);
-        const code = await ensureUserCode(user.uid);
-        fillProfileUI(user, code);
-        hide(authBox); show(profileBox); show(btnLogout);
-        if(await isAdmin(user.uid)){ show(btnAdmin); } else { hide(btnAdmin); }
-      }catch(e){
-        setErr(e.message||String(e));
-        show(authBox); hide(profileBox);
-      }
-    }
-
-    function handleSignedOut(){
-      hide(btnLogout); hide(btnAdmin);
-      show(authBox); hide(profileBox);
-      hide(adminCard);
-    }
-
-    // === Auth flow ===
-    const provider = new firebase.auth.GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-
-    async function signIn(){
-      setErr('');
-      show(document.getElementById('loading'));
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      try{
-        if(isMobile) await auth.signInWithRedirect(provider);
-        else await auth.signInWithPopup(provider);
-      }catch(e){ setErr(e.message); }
-      finally{ hide(document.getElementById('loading')); }
-    }
-
-    auth.getRedirectResult().catch(e=>setErr(e.message));
-    auth.onAuthStateChanged(async user=>{
-      if(user){ show(document.getElementById('loading')); await handleSignedIn(user); hide(document.getElementById('loading')); }
-      else { handleSignedOut(); }
-    });
-
-    btnLogout.addEventListener('click', ()=> auth.signOut());
-    googleBtn.addEventListener('click', signIn);
-
-    copyCode.addEventListener('click', ()=>{
-      const code = userCodeEl.textContent.trim();
-      navigator.clipboard?.writeText(code);
-      copyCode.textContent = 'कॉपी हो गया';
-      setTimeout(()=> copyCode.textContent='कोड कॉपी करें',1200);
-    });
-
-    regenCode.addEventListener('click', async ()=>{
-      const user = auth.currentUser; if(!user) return;
-      if(!confirm('पुराना कोड हटकर नया बनेगा. जारी रखें?')) return;
-      try{
-        const old = await db.ref(`users/${user.uid}/code`).get();
-        if(old.exists()) await db.ref(`codes/${old.val()}`).remove();
-        await db.ref(`users/${user.uid}/code`).remove();
-        const fresh = await ensureUserCode(user.uid);
-        userCodeEl.textContent = fresh;
-      }catch(e){ alert(e.message); }
-    });
-
-    // === Admin panel ===
-    btnAdmin.addEventListener('click', ()=>{
-      adminCard.classList.toggle('hidden');
-      if(!adminCard.classList.contains('hidden')) loadAdmin();
-    });
-
-    let rows = [];
-    async function loadAdmin(){
-      rows = [];
-      tblBody.innerHTML = '<tr><td colspan="4" class="muted">Loading…</td></tr>';
-      const codesSnap = await db.ref('codes').get();
-      if(!codesSnap.exists()){ tblBody.innerHTML=''; countEl.textContent='0 items'; return; }
-      const entries = Object.entries(codesSnap.val()); // [code, uid]
-      for(const [code, uid] of entries){
-        let email = '', name = '';
-        try{
-          const prof = await db.ref(`users/${uid}/profile`).get();
-          if(prof.exists()){ email = prof.val().email||''; name = prof.val().displayName||''; }
-        }catch{}
-        rows.push({code, email, name, uid});
-      }
-      renderRows();
-    }
-
-    function renderRows(){
-      const q = (searchInp.value||'').toLowerCase();
-      const filtered = rows.filter(r=> (r.code||'').toLowerCase().includes(q) || (r.email||'').toLowerCase().includes(q) || (r.uid||'').toLowerCase().includes(q));
-      tblBody.innerHTML = filtered.map(r=>`<tr>
-        <td><span class="kbd">${r.code}</span></td>
-        <td>${r.email||'<span class="muted">—</span>'}</td>
-        <td>${r.name||'<span class="muted">—</span>'}</td>
-        <td class="muted">${r.uid}</td>
-      </tr>`).join('');
-      countEl.textContent = `${filtered.length} items`;
-    }
-
-    searchInp.addEventListener('input', renderRows);
-
-    exportCsv.addEventListener('click', ()=>{
-      const header = ['code','email','name','uid'];
-      const q = (searchInp.value||'').toLowerCase();
-      const filtered = rows.filter(r=> (r.code||'').toLowerCase().includes(q) || (r.email||'').toLowerCase().includes(q) || (r.uid||'').toLowerCase().includes(q));
-      const lines = [header.join(',')].concat(filtered.map(r=> [r.code,r.email,r.name,r.uid].map(s=>`"${(s||'').replaceAll('"','""')}"`).join(',')));
-      const blob = new Blob(["\uFEFF"+lines.join('\n')], {type:'text/csv;charset=utf-8;'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download='users.csv'; a.click(); URL.revokeObjectURL(url);
-    });
-  </script></body>
+  async function startCamera(){
+    try{
+      stopCamera();
+      const [w,h]=selRes.value.split('x').map(Number);
+      const fps=Number(selFps.value);
+      const constraints={audio:false,video:{width:{ideal:w},height:{ideal:h},frameRate:{ideal:fps,max:fps},facingMode:usingFront?'user':'environment'}};
+      log('📢 कैमरा अनुमति माँगी जा रही है…');
+      stream=await navigator.mediaDevices.getUserMedia(constraints);
+      vid.srcObject=stream;track=stream.getVideoTracks()[0];
+      try{imageCapture=new ImageCapture(track);}catch(e){imageCapture=null;}
+      setupCapabilities();
+      btnStart.disabled=true;btnStop.disabled=false;btnSnap.disabled=false;btnRec.disabled=false;btnFlip.disabled=false;btnTorch.disabled=false;rngZoom.disabled=false;
+      log('✅ कैमरा चालू है');
+    }catch(e){error(e);}
+  }
+  function stopCamera(){if(stream){stream.getTracks().forEach(t=>t.stop());}stream=null;track=null;imageCapture=null;btnStart.disabled=false;btnStop.disabled=true;btnSnap.disabled=true;btnRec.disabled=true;btnTorch.disabled=true;rngZoom.disabled=true;}
+  function setupCapabilities(){const cap=track?.getCapabilities?.()||{};const settings=track?.getSettings?.()||{};if(cap.zoom){rngZoom.min=cap.zoom.min;rngZoom.max=cap.zoom.max;rngZoom.step=cap.zoom.step||0.1;rngZoom.value=settings.zoom||cap.zoom.min||1;rngZoom.disabled=false;}else{rngZoom.min=1;rngZoom.max=1;rngZoom.value=1;rngZoom.disabled=true;}const torch=!!cap.torch;btnTorch.disabled=!torch;const fps=settings.frameRate?Math.round(settings.frameRate):selFps.value;capabilitiesEl.textContent=`कैमरा: ${settings.width||'-'}×${settings.height||'-'} @ ${fps}fps ${torch?'· टॉर्च':''} ${cap.zoom?'· ज़ूम':''}`;}
+  function doFlash(){flash.classList.remove('show');void flash.offsetWidth;flash.classList.add('show');}
+  function addToGallery(el,filename){const wrap=document.createElement('a');wrap.className='thumb';wrap.download=filename;wrap.href=(el.tagName==='IMG')?el.src:URL.createObjectURL(el.blob||new Blob());wrap.appendChild(el);gallery.prepend(wrap);}
+  async function snap(){try{const delay=Number(selTimer.value);if(delay>0){log(`${delay}s में फोटो ली जाएगी…`);await new Promise(r=>setTimeout(r,delay*1000));}if(!stream)throw new Error('कैमरा चालू नहीं है');const settings=track.getSettings();canv.width=settings.width||vid.videoWidth||1920;canv.height=settings.height||vid.videoHeight||1080;ctx.drawImage(vid,0,0,canv.width,canv.height);doFlash();const blob=await new Promise(r=>canv.toBlob(r,'image/jpeg',0.92));const url=URL.createObjectURL(blob);const img=new Image();img.src=url;img.alt='photo';img.onload=()=>URL.revokeObjectURL(url);img.blob=blob;const name=`photo_${new Date().toISOString().replace(/[:.]/g,'-')}.jpg`;addToGallery(img,name);log('📷 फोटो सेव हो गई।');}catch(e){error(e);}}
+  function toggleRecord(){try{if(!stream)throw new Error('कैमरा चालू नहीं है');if(mediaRec&&mediaRec.state==='recording'){mediaRec.stop();btnRec.textContent='⏺';btnRec.classList.remove('danger');btnRec.classList.add('primary');log('⏹ रिकॉर्डिंग रोकी गई।');}else{const mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm;codecs=vp8';mediaRec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:4000000});chunks=[];mediaRec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};mediaRec.onstop=()=>{const blob=new Blob(chunks,{type:mediaRec.mimeType});const v=document.createElement('video');v.src=URL.createObjectURL(blob);v.controls=true;v.loop=true;v.muted=true;v.blob=blob;const name=`video_${new Date().toISOString().replace(/[:.]/g,'-')}.webm`;addToGallery(v,name);log('🎞️ वीडियो सेव हो गया।');};mediaRec.start();btnRec.textContent='⏹';btnRec.classList.remove('primary');btnRec.classList.add('danger');log('🔴 रिकॉर्डिंग चालू…');}}catch(e){error(e);}}
+  async function toggleTorch(){try{if(!track)return;const cap=track.getCapabilities?.()||{};if(!cap.torch)return;const settings=track.getSettings?.()||{};const newTorch=!settings.torch;await track.applyConstraints({advanced:[{torch:newTorch}]});log(newTorch?'💡 टॉर्च ऑन':'💡 टॉर्च ऑफ');}catch(e){error(e);}}
+  async function setZoom(v){try{if(!track)return;const cap=track.getCapabilities?.()||{};if(!cap.zoom)return;await track.applyConstraints({advanced:[{zoom:Number(v)}]});log(`🔍 ज़ूम: ${Number(v).toFixed(1)}×`);}catch(e){error(e);}}
+  function toggleFullscreen(){const el=document.documentElement;if(!document.fullscreenElement){el.requestFullscreen?.();}else{document.exitFullscreen?.();}}
+  btnStart.addEventListener('click',startCamera);btnStop.addEventListener('click',stopCamera);btnFlip.addEventListener('click',()=>{usingFront=!usingFront;startCamera();});btnTorch.addEventListener('click',toggleTorch);btnSnap.addEventListener('click',snap);btnRec.addEventListener('click',toggleRecord);btnGrid.addEventListener('click',()=>grid.classList.toggle('on'));btnFullscreen.addEventListener('click',toggleFullscreen);btnClear.addEventListener('click',()=>{gallery.innerHTML='';});rngZoom.addEventListener('input',e=>setZoom(e.target.value));selRes.addEventListener('change',startCamera);selFps.addEventListener('change',startCamera);
+  let lastDist=0;stage.addEventListener('touchstart',e=>{if(e.touches.length===2){lastDist=dist(e.touches[0],e.touches[1]);}},{passive:true});stage.addEventListener('touchmove',e=>{if(e.touches.length===2&&track){const d=dist(e.touches[0],e.touches[1]);const cap=track.getCapabilities?.()||{};if(cap.zoom){const delta=(d-lastDist)/200;const cur=Number(rngZoom.value);let next=Math.min(cap.zoom.max,Math.max(cap.zoom.min,cur+delta));rngZoom.value=next;setZoom(next);lastDist=d;}}},{passive:true});function dist(a,b){const dx=a.clientX-b.clientX,dy=a.clientY-b.clientY;return Math.hypot(dx,dy);}if(navigator.permissions&&navigator.permissions.query){navigator.permissions.query({name:'camera'}).then(p=>{if(p.state==='granted')startCamera();}).catch(()=>{});} 
+})();
+</script></body>
 </html>
