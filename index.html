@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html lang="hi">
 <head>
   <meta charset="utf-8" />
@@ -35,6 +36,7 @@
     th,td{text-align:left;padding:10px;border-bottom:1px dashed #233048}
     .badge{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid #334155;color:var(--muted)}
     .hidden{display:none !important}
+    /* लोडिंग ओवरले */
     .loading{position:fixed;inset:0;display:none;place-items:center;background:rgba(2,6,23,.6);backdrop-filter:blur(2px);z-index:50}
     .spinner{width:40px;height:40px;border-radius:50%;border:4px solid #334155;border-top-color:#22c55e;animation:spin 1s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
@@ -53,131 +55,186 @@
         <button id="btnAdmin" class="btn btn-ghost hidden">Admin</button>
         <button id="btnLogout" class="btn btn-danger hidden">लॉगआउट</button>
       </div>
-    </header>
+    </header><main class="grid" style="margin-top:16px">
+  <!-- AUTH / PROFILE CARD -->
+  <section class="card" id="authCard">
+    <h1>🔐 Gmail से लॉगिन</h1>
+    <p>पहली लॉगिन पर 6-कैरेक्टर यूनिक कोड ऑटो-जनरेट होकर सेव होगा। अगली बार ऑटो-लॉगिन।</p>
+    <div id="authBox" class="row">
+      <button id="googleBtn" class="btn btn-primary flex center" style="justify-content:center">
+        <img alt="G" width="20" height="20" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"/>
+        Continue with Google
+      </button>
+      <div id="authErr" class="pill hidden"></div>
+    </div>
 
-    <main class="grid" style="margin-top:16px">
-      <section class="card" id="authCard">
-        <h1>🔐 Gmail से लॉगिन</h1>
-        <p>पहली लॉगिन पर 6-कैरेक्टर यूनिक कोड ऑटो-जनरेट होकर सेव होगा। अगली बार ऑटो-लॉगिन।</p>
-        <div id="authBox" class="row">
-          <button id="googleBtn" class="btn btn-primary flex center" style="justify-content:center">
-            <img alt="G" width="20" height="20" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"/>
-            Continue with Google
-          </button>
-          <div id="authErr" class="pill hidden"></div>
+    <div id="profileBox" class="row hidden">
+      <div class="flex">
+        <img id="avatar" class="avatar" alt="avatar" src=""/>
+        <div>
+          <h2 id="userName">यूज़र</h2>
+          <div id="userEmail" class="muted"></div>
+          <div id="userUid" class="badge"></div>
         </div>
-
-        <div id="profileBox" class="row hidden">
-          <div class="flex">
-            <img id="avatar" class="avatar" alt="avatar" src=""/>
-            <div>
-              <h2 id="userName">यूज़र</h2>
-              <div id="userEmail" class="muted"></div>
-              <div id="userUid" class="badge"></div>
-            </div>
-          </div>
-          <div>
-            <div class="codebox" id="userCode">------</div>
-            <p class="muted center">यह आपकी ऑटो-जनरेटेड यूनिक ID है।</p>
-            <div class="flex" style="justify-content:center">
-              <button id="copyCode" class="btn">कोड कॉपी करें</button>
-              <button id="regenCode" class="btn btn-ghost">नया कोड</button>
-            </div>
-          </div>
+      </div>
+      <div>
+        <div class="codebox" id="userCode">------</div>
+        <p class="muted center">यह आपकी ऑटो-जनरेटेड यूनिक ID है।</p>
+        <div class="flex" style="justify-content:center">
+          <button id="copyCode" class="btn">कोड कॉपी करें</button>
+          <button id="regenCode" class="btn btn-ghost">नया कोड</button>
         </div>
-      </section>
+      </div>
+    </div>
+  </section>
 
-      <section class="card hidden" id="adminCard">
-        <h1>🛡️ Admin Panel</h1>
-        <p>यूज़र कोड्स की लिस्ट, सर्च और एक्सपोर्ट।</p>
-        <div class="row">
-          <input id="search" type="search" placeholder="Search: code, email, uid"/>
-          <div class="flex">
-            <button id="exportCsv" class="btn">Export CSV</button>
-            <span class="badge" id="count">0 items</span>
-          </div>
-          <div style="overflow:auto">
-            <table id="tbl"><thead>
-              <tr><th>Code</th><th>Email</th><th>Name</th><th>UID</th></tr>
-            </thead><tbody></tbody></table>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
+  <!-- ADMIN PANEL CARD -->
+  <section class="card hidden" id="adminCard">
+    <h1>🛡️ Admin Panel</h1>
+    <p>यूज़र कोड्स की लिस्ट, सर्च और एक्सपोर्ट।</p>
+    <div class="row">
+      <input id="search" type="search" placeholder="Search: code, email, uid"/>
+      <div class="flex">
+        <button id="exportCsv" class="btn">Export CSV</button>
+        <span class="badge" id="count">0 items</span>
+      </div>
+      <div style="overflow:auto">
+        <table id="tbl"><thead>
+          <tr><th>Code</th><th>Email</th><th>Name</th><th>UID</th></tr>
+        </thead><tbody></tbody></table>
+      </div>
+    </div>
+  </section>
+</main>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
-  <script>
+  </div>  <!-- Firebase SDK (Compat v9) -->  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>  <script>
+    // === CONFIG (आपके प्रोजेक्ट mp3-8247a का) ===
     const firebaseConfig = {
-      apiKey: "AIzaSyAa-r7rwMxNMZGKucXtwdHimKq77iX7MpM",
-      authDomain: "grsc-chet.firebaseapp.com",
-      databaseURL: "https://grsc-chet-default-rtdb.firebaseio.com",
-      projectId: "grsc-chet",
-      storageBucket: "grsc-chet.appspot.com",
-      messagingSenderId: "1029401721470",
-      appId: "1:1029401721470:web:c75cb33423c7f567ec362f"
+      apiKey: "AIzaSyD14Z3b7uCk62FBCK9SSZlczSxnMXndM1o",
+      authDomain: "mp3-8247a.firebaseapp.com",
+      databaseURL: "https://mp3-8247a-default-rtdb.firebaseio.com",
+      projectId: "mp3-8247a",
+      storageBucket: "mp3-8247a.firebasestorage.app",
+      messagingSenderId: "228735051694",
+      appId: "1:228735051694:android:99bdbbe737b66224ef4a3f"
     };
 
-    const ADMIN_EMAILS = [];
+    // वैकल्पिक: एडमिन ईमेल allowlist (अपना ईमेल डालें)
+    const ADMIN_EMAILS = [
+      // "you@example.com"
+    ];
 
+    /* === Realtime Database Rules (Console → Database → Rules) ===
+    {
+      "rules": {
+        ".read": false,
+        ".write": false,
+        "users": {
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && auth.uid === $uid",
+            "code": { ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{6}$/)" },
+            "profile": {
+              "email": { ".validate": "newData.isString()" },
+              "displayName": { ".validate": "newData.isString() || newData.val() == null" },
+              "photoURL": { ".validate": "newData.isString() || newData.val() == null" },
+              "lastLoginAt": { ".validate": "newData.isNumber()" }
+            }
+          }
+        },
+        "codes": {
+          "$code": {
+            ".read": false,
+            ".write": "auth != null && newData.val() === auth.uid && $code.matches(/^[A-Z0-9]{6}$/)"
+          }
+        },
+        "admins": {
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+          }
+        }
+      }
+    }
+    */
+
+    // === INIT APP ===
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db   = firebase.database();
+
+    // LOCAL persistence = auto-login on refresh
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
 
+    // --- Smart ENV detect: localhost पर हों तो Emulator use करने की कोशिश (optional) ---
     (function maybeUseEmulator(){
       const host = location.hostname;
-      if(host === 'localhost' || host === '127.0.0.1'){
-        try { db.useEmulator('localhost', 9000); document.getElementById('envPill').textContent = 'Emulator'; }catch(e){}
+      const onLocal = (host === 'localhost' || host === '127.0.0.1');
+      if(onLocal){
+        try {
+          db.useEmulator('localhost', 9000);
+          document.getElementById('envPill').textContent = 'Emulator';
+        } catch(e){ /* ignore */ }
       }
     })();
 
-    const btnLogout=document.getElementById('btnLogout');
-    const btnAdmin=document.getElementById('btnAdmin');
-    const authBox=document.getElementById('authBox');
-    const profileBox=document.getElementById('profileBox');
-    const authErr=document.getElementById('authErr');
-    const userName=document.getElementById('userName');
-    const userEmail=document.getElementById('userEmail');
-    const userUid=document.getElementById('userUid');
-    const avatar=document.getElementById('avatar');
-    const userCodeEl=document.getElementById('userCode');
-    const googleBtn=document.getElementById('googleBtn');
-    const copyCode=document.getElementById('copyCode');
-    const regenCode=document.getElementById('regenCode');
-    const searchInp=document.getElementById('search');
-    const tblBody=document.querySelector('#tbl tbody');
-    const countEl=document.getElementById('count');
-    const exportCsv=document.getElementById('exportCsv');
+    // === UI refs ===
+    const btnLogout = document.getElementById('btnLogout');
+    const btnAdmin  = document.getElementById('btnAdmin');
 
-    function show(el){el.classList.remove('hidden')} function hide(el){el.classList.add('hidden')}
-    function setErr(msg){ if(!msg){hide(authErr)} else { authErr.textContent=humanizeError(msg); show(authErr);} }
+    const authCard  = document.getElementById('authCard');
+    const adminCard = document.getElementById('adminCard');
+
+    const authBox   = document.getElementById('authBox');
+    const profileBox= document.getElementById('profileBox');
+    const authErr   = document.getElementById('authErr');
+
+    const userName  = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
+    const userUid   = document.getElementById('userUid');
+    const avatar    = document.getElementById('avatar');
+    const userCodeEl= document.getElementById('userCode');
+
+    const googleBtn = document.getElementById('googleBtn');
+    const copyCode  = document.getElementById('copyCode');
+    const regenCode = document.getElementById('regenCode');
+
+    const searchInp = document.getElementById('search');
+    const tblBody   = document.querySelector('#tbl tbody');
+    const countEl   = document.getElementById('count');
+    const exportCsv = document.getElementById('exportCsv');
+
+    function show(el){ el.classList.remove('hidden') }
+    function hide(el){ el.classList.add('hidden') }
+    function setErr(msg){
+      if(!msg){hide(authErr); return;}
+      authErr.textContent = humanizeError(msg);
+      show(authErr);
+    }
     function humanizeError(msg){
       if(!msg) return '';
-      const m=String(msg);
+      const m = String(msg);
       if(m.includes('auth/unauthorized-domain')) return 'यह डोमेन Authorized domains में जोड़ें (Firebase Console → Auth → Settings).';
-      if(m.includes('auth/popup-blocked')) return 'ब्राउज़र ने popup ब्लॉक किया।';
+      if(m.includes('auth/popup-blocked')) return 'ब्राउज़र ने popup ब्लॉक किया। Allow करें या Redirect मोड उपयोग करें।';
       if(m.includes('auth/cancelled-popup-request')) return 'एक और लॉगिन विंडो खुली थी — दुबारा ट्राय करें।';
-      if(m.includes('network-request-failed')) return 'नेटवर्क समस्या — इंटरनेट चेक करें।';
+      if(m.includes('network-request-failed')) return 'नेटवर्क समस्या — इंटरनेट चेक करें और फिर ट्राय करें।';
       return m;
     }
 
+    // === 6-char code ===
     function generate6Code(){
-      const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      const bytes=new Uint8Array(6); crypto.getRandomValues(bytes);
-      let out=''; for(let i=0;i<6;i++) out+=alphabet[bytes[i]%alphabet.length];
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      const bytes = new Uint8Array(6); crypto.getRandomValues(bytes);
+      let out=''; for(let i=0;i<6;i++) out += alphabet[bytes[i]%alphabet.length];
       return out;
     }
 
     async function ensureUserCode(uid){
-      const snap=await db.ref(`users/${uid}/code`).get();
+      const snap = await db.ref(`users/${uid}/code`).get();
       if(snap.exists()) return snap.val();
       for(let i=0;i<10;i++){
-        const code=generate6Code();
-        const res=await db.ref(`codes/${code}`).transaction(cur=>{ if(cur===null) return uid; });
+        const code = generate6Code();
+        const res = await db.ref(`codes/${code}`).transaction(cur=>{ if(cur===null) return uid; });
         if(res.committed && res.snapshot.val()===uid){
           await db.ref(`users/${uid}/code`).set(code);
           return code;
@@ -187,60 +244,144 @@
     }
 
     async function saveProfile(user){
-      const profile={ displayName:user.displayName||null, email:user.email||null, photoURL:user.photoURL||null, lastLoginAt:Date.now() };
+      const profile = {
+        displayName: user.displayName || null,
+        email: user.email || null,
+        photoURL: user.photoURL || null,
+        lastLoginAt: Date.now(),
+      };
       await db.ref(`users/${user.uid}/profile`).update(profile);
     }
 
-    async function maybeGrantAdmin(user){ if(ADMIN_EMAILS.includes(user.email)){ await db.ref(`admins/${user.uid}`).set(true); } }
-    async function isAdmin(uid){ const snap=await db.ref(`admins/${uid}`).get(); return !!(snap.exists() && snap.val()); }
+    async function maybeGrantAdmin(user){
+      if(ADMIN_EMAILS.includes(user.email)){
+        await db.ref(`admins/${user.uid}`).set(true);
+      }
+    }
 
-    function fillProfileUI(user,code){
-      userName.textContent=user.displayName||(user.email?user.email.split('@')[0]:'यूज़र');
-      userEmail.textContent=user.email||'';
-      userUid.textContent=user.uid;
-      avatar.src=user.photoURL||''; avatar.style.display=user.photoURL?'block':'none';
-      userCodeEl.textContent=code||'------';
+    async function isAdmin(uid){
+      const snap = await db.ref(`admins/${uid}`).get();
+      return !!(snap.exists() && snap.val());
+    }
+
+    function fillProfileUI(user, code){
+      userName.textContent = user.displayName || (user.email? user.email.split('@')[0] : 'यूज़र');
+      userEmail.textContent= user.email || '';
+      userUid.textContent  = user.uid;
+      avatar.src = user.photoURL || '';
+      avatar.style.display = user.photoURL? 'block':'none';
+      userCodeEl.textContent = code || '------';
     }
 
     async function handleSignedIn(user){
       try{
         await saveProfile(user);
         await maybeGrantAdmin(user);
-        const code=await ensureUserCode(user.uid);
-        fillProfileUI(user,code);
+        const code = await ensureUserCode(user.uid);
+        fillProfileUI(user, code);
         hide(authBox); show(profileBox); show(btnLogout);
-        if(await isAdmin(user.uid)){show(btnAdmin);} else {hide(btnAdmin);}
-      }catch(e){ setErr(e.message||String(e)); show(authBox); hide(profileBox);} }
+        if(await isAdmin(user.uid)){ show(btnAdmin); } else { hide(btnAdmin); }
+      }catch(e){
+        setErr(e.message||String(e));
+        show(authBox); hide(profileBox);
+      }
+    }
 
-    function handleSignedOut(){ hide(btnLogout); hide(btnAdmin); show(authBox); hide(profileBox); hide(document.getElementById('adminCard')); }
+    function handleSignedOut(){
+      hide(btnLogout); hide(btnAdmin);
+      show(authBox); hide(profileBox);
+      hide(adminCard);
+    }
 
-    const provider=new firebase.auth.GoogleAuthProvider(); provider.setCustomParameters({prompt:'select_account'});
+    // === Auth flow ===
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
 
-    async function signIn(){ setErr(''); show(document.getElementById('loading'));
-      const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      try{ if(isMobile) await auth.signInWithRedirect(provider); else await auth.signInWithPopup(provider); }
-      catch(e){ setErr(e.message);} finally{ hide(document.getElementById('loading')); }
+    async function signIn(){
+      setErr('');
+      show(document.getElementById('loading'));
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      try{
+        if(isMobile) await auth.signInWithRedirect(provider);
+        else await auth.signInWithPopup(provider);
+      }catch(e){ setErr(e.message); }
+      finally{ hide(document.getElementById('loading')); }
     }
 
     auth.getRedirectResult().catch(e=>setErr(e.message));
-    auth.onAuthStateChanged(async user=>{ if(user){ show(document.getElementById('loading')); await handleSignedIn(user); hide(document.getElementById('loading')); } else { handleSignedOut(); } });
+    auth.onAuthStateChanged(async user=>{
+      if(user){ show(document.getElementById('loading')); await handleSignedIn(user); hide(document.getElementById('loading')); }
+      else { handleSignedOut(); }
+    });
 
-    btnLogout.addEventListener('click',()=>auth.signOut());
-    googleBtn.addEventListener('click',signIn);
+    btnLogout.addEventListener('click', ()=> auth.signOut());
+    googleBtn.addEventListener('click', signIn);
 
-    copyCode.addEventListener('click',()=>{ const code=userCodeEl.textContent.trim(); navigator.clipboard?.writeText(code); copyCode.textContent='कॉपी हो गया'; setTimeout(()=>copyCode.textContent='कोड कॉपी करें',1200); });
+    copyCode.addEventListener('click', ()=>{
+      const code = userCodeEl.textContent.trim();
+      navigator.clipboard?.writeText(code);
+      copyCode.textContent = 'कॉपी हो गया';
+      setTimeout(()=> copyCode.textContent='कोड कॉपी करें',1200);
+    });
 
-    regenCode.addEventListener('click',async()=>{ const user=auth.currentUser;if(!user) return; if(!confirm('पुराना कोड हटकर नया बनेगा. जारी रखें?')) return;
-      try{ const old=await db.ref(`users/${user.uid}/code`).get(); if(old.exists()) await db.ref(`codes/${old.val()}`).remove(); await db.ref(`users/${user.uid}/code`).remove(); const fresh=await ensureUserCode(user.uid); userCodeEl.textContent=fresh; }catch(e){ alert(e.message); } });
+    regenCode.addEventListener('click', async ()=>{
+      const user = auth.currentUser; if(!user) return;
+      if(!confirm('पुराना कोड हटकर नया बनेगा. जारी रखें?')) return;
+      try{
+        const old = await db.ref(`users/${user.uid}/code`).get();
+        if(old.exists()) await db.ref(`codes/${old.val()}`).remove();
+        await db.ref(`users/${user.uid}/code`).remove();
+        const fresh = await ensureUserCode(user.uid);
+        userCodeEl.textContent = fresh;
+      }catch(e){ alert(e.message); }
+    });
 
-    btnAdmin.addEventListener('click',()=>{ const adminCard=document.getElementById('adminCard'); adminCard.classList.toggle('hidden'); if(!adminCard.classList.contains('hidden')) loadAdmin(); });
+    // === Admin panel ===
+    btnAdmin.addEventListener('click', ()=>{
+      adminCard.classList.toggle('hidden');
+      if(!adminCard.classList.contains('hidden')) loadAdmin();
+    });
 
-    let rows=[];
-    async function loadAdmin(){ rows=[]; tblBody.innerHTML='<tr><td colspan="4" class="muted">Loading…</td></tr>';
-      const codesSnap=await db.ref('codes').get(); if(!codesSnap.exists()){ tblBody.innerHTML=''; countEl.textContent='0 items'; return; }
-      const entries=Object.entries(codesSnap.val());
-      for(const [code,uid] of entries){ let email='',name=''; try{ const prof=await db.ref(`users/${uid}/profile`).get(); if(prof.exists()){ email=prof.val().email||''; name=prof.val().displayName||''; } }catch{} rows.push({code,email,name,uid}); }
-      renderRows(); }
+    let rows = [];
+    async function loadAdmin(){
+      rows = [];
+      tblBody.innerHTML = '<tr><td colspan="4" class="muted">Loading…</td></tr>';
+      const codesSnap = await db.ref('codes').get();
+      if(!codesSnap.exists()){ tblBody.innerHTML=''; countEl.textContent='0 items'; return; }
+      const entries = Object.entries(codesSnap.val()); // [code, uid]
+      for(const [code, uid] of entries){
+        let email = '', name = '';
+        try{
+          const prof = await db.ref(`users/${uid}/profile`).get();
+          if(prof.exists()){ email = prof.val().email||''; name = prof.val().displayName||''; }
+        }catch{}
+        rows.push({code, email, name, uid});
+      }
+      renderRows();
+    }
 
-    function renderRows(){ const q=(searchInp.value||'').toLowerCase(); const filtered=rows.filter(r=>(r.code||'').toLowerCase().includes(q)||(r.email||'').toLowerCase().includes(q)||(r.uid||'').toLowerCase().includes(q));
-      tblBody.innerHTML=filtered.map(r=>`<tr><td><span class="kbd">${r.code}</span></td><td>${r.email||'<span class="muted">—</span>'}</td><td>${r.name||'<span class="mut
+    function renderRows(){
+      const q = (searchInp.value||'').toLowerCase();
+      const filtered = rows.filter(r=> (r.code||'').toLowerCase().includes(q) || (r.email||'').toLowerCase().includes(q) || (r.uid||'').toLowerCase().includes(q));
+      tblBody.innerHTML = filtered.map(r=>`<tr>
+        <td><span class="kbd">${r.code}</span></td>
+        <td>${r.email||'<span class="muted">—</span>'}</td>
+        <td>${r.name||'<span class="muted">—</span>'}</td>
+        <td class="muted">${r.uid}</td>
+      </tr>`).join('');
+      countEl.textContent = `${filtered.length} items`;
+    }
+
+    searchInp.addEventListener('input', renderRows);
+
+    exportCsv.addEventListener('click', ()=>{
+      const header = ['code','email','name','uid'];
+      const q = (searchInp.value||'').toLowerCase();
+      const filtered = rows.filter(r=> (r.code||'').toLowerCase().includes(q) || (r.email||'').toLowerCase().includes(q) || (r.uid||'').toLowerCase().includes(q));
+      const lines = [header.join(',')].concat(filtered.map(r=> [r.code,r.email,r.name,r.uid].map(s=>`"${(s||'').replaceAll('"','""')}"`).join(',')));
+      const blob = new Blob(["\uFEFF"+lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='users.csv'; a.click(); URL.revokeObjectURL(url);
+    });
+  </script></body>
+</html>
