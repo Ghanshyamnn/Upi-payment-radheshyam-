@@ -36,9 +36,14 @@
     th,td{text-align:left;padding:10px;border-bottom:1px dashed #233048}
     .badge{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid #334155;color:var(--muted)}
     .hidden{display:none !important}
+    /* लोडिंग ओवरले */
+    .loading{position:fixed;inset:0;display:none;place-items:center;background:rgba(2,6,23,.6);backdrop-filter:blur(2px);z-index:50}
+    .spinner{width:40px;height:40px;border-radius:50%;border:4px solid #334155;border-top-color:#22c55e;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
+  <div class="loading" id="loading"><div class="spinner"></div></div>
   <div class="container">
     <header class="appbar">
       <div class="brand">
@@ -119,6 +124,41 @@
       // "you@example.com"
     ];
 
+    // === Recommended Realtime Database Security Rules (कॉपी करें और Console → Database → Rules में पेस्ट करें)
+    // {
+    //   "rules": {
+    //     ".read": false,
+    //     ".write": false,
+    //     "users": {
+    //       "$uid": {
+    //         ".read": "auth != null && auth.uid === $uid",
+    //         ".write": "auth != null && auth.uid === $uid",
+    //         "code": {
+    //           ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{6}$/)"
+    //         },
+    //         "profile": {
+    //           "email": { ".validate": "newData.isString()" },
+    //           "displayName": { ".validate": "newData.isString() || newData.val() == null" },
+    //           "photoURL": { ".validate": "newData.isString() || newData.val() == null" },
+    //           "lastLoginAt": { ".validate": "newData.isNumber()" }
+    //         }
+    //       }
+    //     },
+    //     "codes": {
+    //       "$code": {
+    //         ".read": false,
+    //         ".write": "auth != null && newData.val() === auth.uid && $code.matches(/^[A-Z0-9]{6}$/)"
+    //       }
+    //     },
+    //     "admins": {
+    //       "$uid": {
+    //         ".read": "auth != null && auth.uid === $uid",
+    //         ".write": "auth != null && root.child('admins').child(auth.uid).val() === true" // केवल मौजूदा ऐडमिन
+    //       }
+    //     }
+    //   }
+    // }
+
     // === INIT APP ===
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -167,7 +207,21 @@
 
     function show(el){ el.classList.remove('hidden') }
     function hide(el){ el.classList.add('hidden') }
-    function setErr(msg){ if(!msg){hide(authErr)} else { authErr.textContent=msg; show(authErr);} }
+    function setErr(msg){
+      if(!msg){hide(authErr)} else {
+        authErr.textContent = humanizeError(msg);
+        show(authErr);
+      }
+    }
+    function humanizeError(msg){
+      if(!msg) return '';
+      const m = String(msg);
+      if(m.includes('auth/unauthorized-domain')) return 'यह डोमेन Authorized domains में जोड़ें (Firebase Console → Auth → Settings).';
+      if(m.includes('auth/popup-blocked')) return 'ब्राउज़र ने popup ब्लॉक किया। Allow करें या Redirect मोड उपयोग करें।';
+      if(m.includes('auth/cancelled-popup-request')) return 'एक और लॉगिन विंडो खुली थी — दुबारा ट्राय करें।';
+      if(m.includes('network-request-failed')) return 'नेटवर्क समस्या — इंटरनेट चेक करें और फिर ट्राय करें।';
+      return m;
+    } else { authErr.textContent=msg; show(authErr);} }
 
     // === 6-char code ===
     function generate6Code(){
@@ -248,13 +302,22 @@
 
     async function signIn(){
       setErr('');
+      show(document.getElementById('loading'));
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      try{ isMobile ? await auth.signInWithRedirect(provider) : await auth.signInWithPopup(provider); }
+      try{
+        if(isMobile) await auth.signInWithRedirect(provider);
+        else await auth.signInWithPopup(provider);
+      }catch(e){ setErr(e.message); }
+      finally{ hide(document.getElementById('loading')); }
+    }
       catch(e){ setErr(e.message); }
     }
 
     auth.getRedirectResult().catch(e=>setErr(e.message));
-    auth.onAuthStateChanged(user=>{ user? handleSignedIn(user) : handleSignedOut(); });
+    auth.onAuthStateChanged(async user=>{
+      if(user){ show(document.getElementById('loading')); await handleSignedIn(user); hide(document.getElementById('loading')); }
+      else { handleSignedOut(); }
+    });
 
     btnLogout.addEventListener('click', ()=> auth.signOut());
     googleBtn.addEventListener('click', signIn);
