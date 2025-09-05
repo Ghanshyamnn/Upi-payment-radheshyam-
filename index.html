@@ -23,6 +23,7 @@
                border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
     .progress{margin-top:10px;color:#333;}
     .preview img{max-width:200px;margin-top:10px;border-radius:8px;}
+    .loading{text-align:center;margin:20px;color:#666;font-size:16px;}
   </style>
 </head>
 <body>
@@ -38,6 +39,7 @@
   </div>
 
   <!-- 🔹 User Photo Gallery -->
+  <div id="loading" class="loading">⏳ सभी फोटो लोड हो रहे हैं...</div>
   <div id="gallery"></div>
   <div id="online" class="online"></div>
 
@@ -60,6 +62,7 @@
     const fileInput=document.getElementById("fileInput");
     const progress=document.getElementById("progress");
     const previewImg=document.getElementById("previewImg");
+    const loading=document.getElementById("loading");
 
     // 🔹 Unique userId
     let userId=localStorage.getItem("userId");
@@ -79,12 +82,17 @@
     db.ref("photos").on("value",async snap=>{
       const data=snap.val()||{};
       gallery.innerHTML="";
-      for(let key in data){
+      loading.style.display="block";
+
+      const keys=Object.keys(data);
+      for(let i=0;i<keys.length;i++){
+        const key=keys[i];
         const val=data[key];
         const chunks=val.chunks||{};
         const ordered=Object.keys(chunks).sort((a,b)=>+a-+b).map(k=>chunks[k]);
         const base64=ordered.join("");
         const url=`data:${val.mime||"image/jpeg"};base64,${base64}`;
+
         const card=document.createElement("div");
         card.className="card";
         card.innerHTML=`
@@ -94,7 +102,11 @@
           <button class="delete" onclick="deletePhoto('${key}')">🗑 Delete</button>
         `;
         gallery.appendChild(card);
+
+        // थोड़ा delay ताकि बड़े data पर UI smooth रहे
+        await new Promise(r=>setTimeout(r,50));
       }
+      loading.style.display="none";
     });
 
     // 🔹 Download function
