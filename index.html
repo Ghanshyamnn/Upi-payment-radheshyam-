@@ -3,10 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>📷 कैमरा प्रो</title>
-  <!-- PWA Manifest Link -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b1020">
+  <title>📷 कैमरा प्रो (XML सक्षम)</title>
   <style>
     :root{--bg:#0b1020;--fg:#eaf2ff;--muted:#90a0c0;--accent:#5ac8fa;--danger:#ff5e57;--ok:#34c759}
     *{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Ubuntu,Cantarell,"Helvetica Neue",Arial; overscroll-behavior: none;}
@@ -39,6 +36,8 @@
     <header>
       <div class="row">
         <strong>📷 कैमरा प्रो</strong><span class="spacer"></span>
+        <input type="file" id="xmlUpload" accept=".xml,application/xml" style="display:none;">
+        <button id="btnUploadXml" class="ghost pill" title="XML सेटिंग्स लोड करें">⚙️ XML</button>
         <button id="btnQR" class="ghost pill" title="QR स्कैनर">🔲</button>
         <button id="btnGrid" class="ghost pill" title="ग्रिड">#️⃣</button>
         <label class="ghost pill" title="रिज़ॉल्यूशन">🔧<select id="selRes"><option value="1920x1080" selected>1080p</option><option value="1280x720">720p</option><option value="3840x2160">4K</option><option value="640x480">480p</option></select></label>
@@ -76,6 +75,7 @@
   const vid = $('vid'), canv = $('canv'), msg = $('msg'), flash = $('flash'), grid = $('grid'), gallery = $('gallery'), stage = $('stage');
   const btnStart = $('btnStart'), btnStop = $('btnStop'), btnFlip = $('btnFlip'), btnTorch = $('btnTorch'), btnSnap = $('btnSnap'), btnRec = $('btnRec'), btnGrid = $('btnGrid'), btnClear = $('btnClear'), btnQR = $('btnQR');
   const selRes = $('selRes'), selTimer = $('selTimer'), rngZoom = $('rngZoom');
+  const btnUploadXml = $('btnUploadXml'), xmlUpload = $('xmlUpload');
   const capabilitiesEl = $('capabilities'), recTimerEl = $('recTimer');
   const ctx = canv.getContext('2d');
 
@@ -84,7 +84,7 @@
 
   // Logging
   const log = t => msg.textContent = t;
-  const error = e => { console.error(e); msg.innerHTML = `<span class="error">⚠️ ${e.name}: ${e.message}</span>`; }
+  const error = e => { console.error(e); msg.innerHTML = `<span class="error">⚠️ ${e.name || 'Error'}: ${e.message}</span>`; }
   
   // Camera Control
   const startCamera = async () => {
@@ -110,9 +110,10 @@
   };
   
   const setControlsState = (enabled) => {
-    [btnStop, btnSnap, btnRec, btnFlip, btnTorch, rngZoom, btnQR].forEach(el => el.disabled = !enabled);
+    [btnStop, btnSnap, btnRec, btnFlip, btnTorch, rngZoom, btnQR, btnUploadXml].forEach(el => el.disabled = !enabled);
     btnStart.disabled = enabled;
-  }
+    if (!enabled) { btnUploadXml.disabled = false; } // XML upload button should always be available initially
+  };
   
   // Features
   const setupCapabilities = () => {
@@ -136,7 +137,7 @@
       flash.classList.remove('show'); void flash.offsetWidth; flash.classList.add('show');
       const blob = await new Promise(r => canv.toBlob(r, 'image/jpeg', 0.9));
       const name = `photo_${new Date().toISOString().replace(/[:.]/g,'-')}.jpg`;
-      const img = new Image(); img.src = URL.createObjectURL(blob); img.blob = blob;
+      const img = new Image(); img.src = URL.createObjectURL(blob);
       addToGallery(img, name, blob);
       log('📷 फोटो सेव हो गई।');
     } catch(e) { error(e); }
@@ -176,7 +177,8 @@
   };
 
   const toggleTorch = async () => { try { await track.applyConstraints({ advanced: [{ torch: !track.getSettings().torch }] }); } catch(e) { error(e); } };
-  const setZoom = async (v) => { try { await track.applyConstraints({ advanced: [{ zoom: v }] }); } catch(e) { error(e); } };
+  const setZoom = async (v) => { try { await track.applyConstraints({ advanced: [{ zoom: v }] }); log(`🔍 ज़ूम: ${Number(v).toFixed(1)}×`);} catch(e) { error(e); } };
+  
   const toggleQRScan = async () => {
     if(!('BarcodeDetector' in window)) return error(new Error('QR स्कैनर इस ब्राउज़र पर सपोर्टेड नहीं है।'));
     isScanningQR = !isScanningQR;
@@ -210,15 +212,71 @@
     requestAnimationFrame(scanQRCodes);
   };
   
+  // XML Upload Handling
+  const handleXmlUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const xmlText = e.target.result;
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
+        if (xmlDoc.querySelector('parsererror')) throw new Error('अमान्य XML फ़ाइल।');
+        applySettingsFromXml(xmlDoc);
+      } catch (err) { error(err); }
+    };
+    reader.readAsText(file);
+    xmlUpload.value = ''; // Reset file input
+  };
+
+  const applySettingsFromXml = (xmlDoc) => {
+    const resolution = xmlDoc.querySelector('resolution')?.textContent;
+    const zoom = xmlDoc.querySelector('zoom')?.textContent;
+    const gridOn = xmlDoc.querySelector('grid')?.textContent === 'on';
+
+    let restartRequired = false;
+    log('⚙️ XML सेटिंग्स लागू की जा रही हैं...');
+
+    if (resolution && selRes.querySelector(`option[value="${resolution}"]`)) {
+      if(selRes.value !== resolution) {
+          selRes.value = resolution;
+          restartRequired = true;
+          log(`XML से रिज़ॉल्यूशन सेट: ${resolution}`);
+      }
+    }
+    
+    if (grid.classList.contains('on') !== gridOn) {
+        grid.classList.toggle('on', gridOn);
+        log(`XML से ग्रिड सेट: ${gridOn ? 'On' : 'Off'}`);
+    }
+
+    if (restartRequired) {
+        startCamera().then(() => applyDelayedSettings(zoom));
+    } else {
+        applyDelayedSettings(zoom);
+    }
+  };
+  
+  const applyDelayedSettings = (zoom) => {
+      // Zoom needs to be applied after the camera stream is fully active
+      setTimeout(() => {
+          if (zoom && track && track.getCapabilities().zoom) {
+              const zoomValue = parseFloat(zoom);
+              if (zoomValue >= rngZoom.min && zoomValue <= rngZoom.max) {
+                  rngZoom.value = zoomValue;
+                  setZoom(zoomValue);
+              }
+          }
+      }, 500); // 500ms delay to ensure track is ready
+  }
+
   // Gallery
   const addToGallery = (el, filename, blob) => {
     const thumb = document.createElement('div');
     thumb.className = 'thumb';
-    thumb.appendChild(el);
-
     const actions = document.createElement('div');
     actions.className = 'actions';
-    
     const dl = document.createElement('a');
     dl.href = el.src; dl.download = filename; dl.textContent = '📥'; dl.title = 'डाउनलोड';
     actions.appendChild(dl);
@@ -230,6 +288,7 @@
         actions.appendChild(shareBtn);
     }
     
+    thumb.appendChild(el);
     thumb.appendChild(actions);
     gallery.prepend(thumb);
   };
@@ -237,19 +296,9 @@
   const shareMedia = async (filename, blob) => {
       try {
           const file = new File([blob], filename, { type: blob.type });
-          if(navigator.canShare && navigator.canShare({ files: [file] })) {
-              await navigator.share({
-                  files: [file],
-                  title: 'कैमरा से कैप्चर',
-                  text: filename
-              });
-              log('✅ सफलतापूर्वक शेयर किया गया।');
-          } else {
-              throw new Error('यह फ़ाइल शेयर नहीं की जा सकती।');
-          }
-      } catch(e) {
-        if(e.name !== 'AbortError') error(e);
-      }
+          await navigator.share({ files: [file], title: filename });
+          log('✅ सफलतापूर्वक शेयर किया गया।');
+      } catch(e) { if(e.name !== 'AbortError') error(e); }
   };
   
   // Event Listeners
@@ -264,29 +313,24 @@
   btnQR.onclick = toggleQRScan;
   rngZoom.oninput = e => setZoom(e.target.value);
   selRes.onchange = startCamera;
-  
+  btnUploadXml.onclick = () => xmlUpload.click();
+  xmlUpload.onchange = handleXmlUpload;
+
   // Pinch to Zoom
   let lastDist = 0;
   const dist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
   stage.addEventListener('touchstart', e => { if (e.touches.length === 2) lastDist = dist(e.touches[0], e.touches[1]); }, { passive: true });
   stage.addEventListener('touchmove', e => {
-    if (e.touches.length === 2 && track) {
-        const cap = track.getCapabilities?.() || {};
-        if (cap.zoom) {
-            const d = dist(e.touches[0], e.touches[1]);
-            const delta = (d - lastDist) / 200;
-            const cur = Number(rngZoom.value);
-            rngZoom.value = Math.min(cap.zoom.max, Math.max(cap.zoom.min, cur + delta));
-            setZoom(rngZoom.value);
-            lastDist = d;
-        }
+    if (e.touches.length === 2 && track && track.getCapabilities().zoom) {
+        const d = dist(e.touches[0], e.touches[1]);
+        const delta = (d - lastDist) / 200;
+        const cur = Number(rngZoom.value);
+        rngZoom.value = Math.min(rngZoom.max, Math.max(rngZoom.min, cur + delta));
+        setZoom(rngZoom.value);
+        lastDist = d;
     }
   }, { passive: true });
   
-  // PWA Service Worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(err => console.error('Service worker registration failed:', err));
-  }
 })();
 </script>
 </body>
