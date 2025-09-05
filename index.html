@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <title>Gmail Login Demo</title>
+  <title>📧 Gmail Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Firebase SDK -->
@@ -11,23 +11,26 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f5f5; text-align:center; padding:20px; }
-    .card { background:#fff; padding:20px; border-radius:12px; max-width:400px; margin:40px auto; box-shadow:0 4px 10px rgba(0,0,0,0.1);}
-    button { padding:10px 20px; border:none; border-radius:8px; background:#4285F4; color:#fff; font-size:16px; cursor:pointer;}
+    body { font-family: sans-serif; background:#f5f5f5; text-align:center; padding:20px; }
+    .card { background:#fff; padding:20px; border-radius:16px; max-width:420px; margin:40px auto; box-shadow:0 4px 12px rgba(0,0,0,0.15);}
+    h2 { margin-bottom: 20px; }
+    button { padding:12px 22px; border:none; border-radius:8px; background:#4285F4; color:#fff; font-size:16px; cursor:pointer; }
     button:hover { background:#3367d6; }
-    img { border-radius:50%; margin:10px 0; }
-    .code { font-size:20px; font-weight:bold; color:#333; margin-top:10px; }
+    img { border-radius:50%; margin:15px 0; }
+    .code { font-size:20px; font-weight:bold; color:#222; margin-top:10px; }
+    small { color:#666; }
   </style>
 </head>
 <body>
 
   <div class="card">
     <h2>📧 Gmail Login</h2>
+
     <div id="user-info" style="display:none;">
-      <img id="user-pic" src="" width="80" height="80"><br>
+      <img id="user-pic" src="" width="90" height="90"><br>
       <strong id="user-name"></strong><br>
       <small id="user-email"></small>
-      <div class="code">आपका Code: <span id="user-code"></span></div>
+      <div class="code">🔑 Code: <span id="user-code"></span></div>
       <br>
       <button onclick="logout()">Logout</button>
     </div>
@@ -38,7 +41,7 @@
   </div>
 
   <script>
-    // Firebase Config (आपके प्रोजेक्ट का)
+    // 🔧 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyD14Z3b7uCk62FBCK9SSZlczSxnMXndM1o",
       authDomain: "mp3-8247a.firebaseapp.com",
@@ -53,7 +56,7 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // 6 character random code generator
+    // Random 6 character code generator
     function generateCode() {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
       let code = "";
@@ -63,6 +66,7 @@
       return code;
     }
 
+    // Login with Google
     function login() {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
@@ -70,14 +74,16 @@
           saveUser(result.user);
         })
         .catch(err => {
-          alert("Login Error: " + err.message);
+          alert("Login Error ❌: " + err.message);
         });
     }
 
+    // Logout
     function logout() {
       auth.signOut();
     }
 
+    // Save user in DB
     function saveUser(user) {
       const uid = user.uid;
       const ref = db.ref("users/" + uid);
@@ -96,6 +102,7 @@
       });
     }
 
+    // Auto login check
     auth.onAuthStateChanged(user => {
       if (user) {
         document.getElementById("login-div").style.display = "none";
