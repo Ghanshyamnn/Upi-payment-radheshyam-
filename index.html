@@ -12,12 +12,11 @@
   <style>
     body { font-family: sans-serif; margin: 0; padding: 0; background: #f9f9f9; }
     header { background: #2196f3; color: #fff; padding: 12px; text-align: center; }
-    .upload-box { text-align: center; padding: 15px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .upload-box { text-align: center; padding: 15px; background: #fff; }
     input, button { margin: 5px; padding: 8px 12px; border-radius: 6px; border: 1px solid #2196f3; }
     button { background: #2196f3; color: #fff; cursor: pointer; }
     .gallery { display: grid; grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap: 10px; padding: 15px; }
-    .gallery img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); cursor: pointer; transition: transform 0.3s; }
-    .gallery img:hover { transform: scale(1.05); }
+    .gallery img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
   </style>
 </head>
 <body>
@@ -31,13 +30,12 @@
   <div id="gallery" class="gallery"></div>
 
   <script>
-    // 🔹 Firebase Config (अपना वाला भरना होगा)
+    // 🔹 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyD14Z3b7uCk62FBCK9SSZlczSxnMXndM1o",
       authDomain: "mp3-8247a.firebaseapp.com",
       databaseURL: "https://mp3-8247a-default-rtdb.firebaseio.com",
       projectId: "mp3-8247a",
-      storageBucket: "mp3-8247a.firebasestorage.app",
       messagingSenderId: "228735051694",
       appId: "1:228735051694:web:99bdbbe737b66224ef4a3f"
     };
@@ -52,24 +50,24 @@
       const reader=new FileReader();
       reader.onload=function(e){
         const dataUrl=e.target.result;
-        const base64=dataUrl.split(",")[1]; // Base64 string only
+        const base64=dataUrl.split(",")[1]; // सिर्फ base64 हिस्सा
 
-        // Chunk में तोड़ना (50KB)
+        // 🔸 Chunk में तोड़ना (50KB)
         const chunkSize=50000;
         const chunks={};
         for(let i=0;i<base64.length;i+=chunkSize){
           chunks[i/chunkSize]=base64.substring(i,i+chunkSize);
         }
 
-        // Firebase Save
+        // 🔸 Firebase Save
         const key="img_"+Date.now();
         db.ref("images/"+key).set({
           name:file.name,
           mime:file.type,
           chunks:chunks
-        });
-
-        alert("✅ फोटो अपलोड हो गई!");
+        })
+        .then(()=>{ alert("✅ फोटो अपलोड हो गई!"); })
+        .catch(err=>{ alert("❌ Error: "+err.message); });
       };
       reader.readAsDataURL(file);
     }
