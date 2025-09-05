@@ -1,156 +1,331 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <title>📷 Photo Gallery (Admin + User)</title>
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <title>🔥 Full App — Gmail Login + Auto ID + Admin (Firebase)</title>
+  <meta name="theme-color" content="#111827"/>
   <style>
-    body{font-family:sans-serif;margin:0;padding:0;background:#f9f9f9;}
-    header{background:#2196f3;color:#fff;padding:12px;text-align:center;font-size:20px;}
-    #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-             gap:12px;padding:15px;}
-    .card{background:#fff;padding:10px;border-radius:8px;
-          box-shadow:0 2px 6px rgba(0,0,0,0.15);text-align:center;}
-    img{max-width:100%;border-radius:6px;}
-    button{margin-top:6px;padding:6px 10px;background:#2196f3;
-           color:#fff;border:none;border-radius:6px;cursor:pointer;}
-    button.delete{background:#f44336;}
-    button:disabled{background:#aaa;}
-    .online{margin:10px;text-align:center;color:#444;}
-    .admin-box{padding:15px;background:#fff;margin:12px;
-               border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
-    .progress{margin-top:10px;color:#333;}
-    .preview img{max-width:200px;margin-top:10px;border-radius:8px;}
-    .loading{text-align:center;margin:20px;color:#666;font-size:16px;}
+    :root{--bg:#0f172a;--card:#111827;--muted:#9ca3af;--fg:#e5e7eb;--brand:#22c55e;--accent:#2563eb;--danger:#ef4444}
+    *{box-sizing:border-box} html,body{height:100%} body{margin:0;font-family:"Noto Sans Devanagari",system-ui,sans-serif;background:linear-gradient(180deg,#0b1220,#0f172a 30%,#0b1220);color:var(--fg)}
+    .container{max-width:980px;margin:0 auto;padding:16px}
+    .appbar{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 14px;background:#0b1220aa;border:1px solid #1f2937;border-radius:16px;backdrop-filter:blur(6px);position:sticky;top:8px;z-index:10}
+    .brand{display:flex;gap:10px;align-items:center;font-weight:700}
+    .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:#111827;border:1px solid #1f2937;color:var(--muted)}
+    .grid{display:grid;gap:16px}
+    @media(min-width:860px){.grid{grid-template-columns:1.2fr .8fr}}
+    .card{background:var(--card);border:1px solid #1f2937;border-radius:20px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+    h1{font-size:22px;margin:0 0 6px} h2{font-size:18px;margin:0 0 8px}
+    p{margin:6px 0 10px;color:var(--muted)}
+    .row{display:grid;gap:10px}
+    button{appearance:none;border:none;border-radius:12px;padding:12px 14px;font-weight:700}
+    .btn{background:#111827;border:1px solid #1f2937;color:var(--fg);cursor:pointer}
+    .btn:hover{filter:brightness(1.08)}
+    .btn-primary{background:var(--accent);color:white}
+    .btn-danger{background:var(--danger);color:white}
+    .btn-ghost{background:transparent;border:1px dashed #334155}
+    .flex{display:flex;align-items:center;gap:10px}
+    .center{text-align:center}
+    .avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #334155}
+    .codebox{font-family:ui-monospace,Menlo,monospace;font-size:22px;letter-spacing:2px;text-align:center;padding:10px;border-radius:12px;background:#0b1220;border:1px solid #1f2937}
+    .muted{color:var(--muted)}
+    .kbd{font-family:ui-monospace,Menlo,monospace;background:#0b1220;border:1px solid #1f2937;border-radius:8px;padding:2px 6px}
+    input[type="search"],input[type="text"],input[type="email"],input[type="password"]{width:100%;padding:12px;border-radius:12px;background:#0b1220;border:1px solid #1f2937;color:var(--fg)}
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    th,td{text-align:left;padding:10px;border-bottom:1px dashed #233048}
+    .badge{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid #334155;color:var(--muted)}
+    .hidden{display:none !important}
   </style>
 </head>
 <body>
-  <header>📷 Photo Gallery + Admin Panel</header>
+  <div class="container">
+    <header class="appbar">
+      <div class="brand">
+        <span>⚡</span>
+        <span>Full App</span>
+        <span class="pill" id="envPill">Cloud</span>
+      </div>
+      <div class="flex">
+        <button id="btnAdmin" class="btn btn-ghost hidden">Admin</button>
+        <button id="btnLogout" class="btn btn-danger hidden">लॉगआउट</button>
+      </div>
+    </header><main class="grid" style="margin-top:16px">
+  <!-- AUTH / PROFILE CARD -->
+  <section class="card" id="authCard">
+    <h1>🔐 Gmail से लॉगिन</h1>
+    <p>पहली लॉगिन पर 6-कैरेक्टर यूनिक कोड ऑटो-जनरेट होकर सेव होगा। अगली बार ऑटो-लॉगिन।</p>
+    <div id="authBox" class="row">
+      <button id="googleBtn" class="btn btn-primary flex center" style="justify-content:center">
+        <img alt="G" width="20" height="20" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"/>
+        Continue with Google
+      </button>
+      <div id="authErr" class="pill hidden"></div>
+    </div>
 
-  <!-- 🔹 Admin Options -->
-  <div class="admin-box">
-    <h3>🛠️ Admin Options</h3>
-    <input type="file" id="fileInput" accept="image/*"/>
-    <div><button onclick="uploadPhoto()">Upload Photo</button></div>
-    <div id="progress" class="progress"></div>
-    <div class="preview"><img id="previewImg"/></div>
-  </div>
+    <div id="profileBox" class="row hidden">
+      <div class="flex">
+        <img id="avatar" class="avatar" alt="avatar" src=""/>
+        <div>
+          <h2 id="userName">यूज़र</h2>
+          <div id="userEmail" class="muted"></div>
+          <div id="userUid" class="badge"></div>
+        </div>
+      </div>
+      <div>
+        <div class="codebox" id="userCode">------</div>
+        <p class="muted center">यह आपकी ऑटो-जनरेटेड यूनिक ID है।</p>
+        <div class="flex" style="justify-content:center">
+          <button id="copyCode" class="btn">कोड कॉपी करें</button>
+          <button id="regenCode" class="btn btn-ghost">नया कोड</button>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <!-- 🔹 User Photo Gallery -->
-  <div id="loading" class="loading">⏳ सभी फोटो लोड हो रहे हैं...</div>
-  <div id="gallery"></div>
-  <div id="online" class="online"></div>
+  <!-- ADMIN PANEL CARD -->
+  <section class="card hidden" id="adminCard">
+    <h1>🛡️ Admin Panel</h1>
+    <p>यूज़र कोड्स की लिस्ट, सर्च और एक्सपोर्ट।</p>
+    <div class="row">
+      <input id="search" type="search" placeholder="Search: code, email, uid"/>
+      <div class="flex">
+        <button id="exportCsv" class="btn">Export CSV</button>
+        <span class="badge" id="count">0 items</span>
+      </div>
+      <div style="overflow:auto">
+        <table id="tbl"><thead>
+          <tr><th>Code</th><th>Email</th><th>Name</th><th>UID</th></tr>
+        </thead><tbody></tbody></table>
+      </div>
+    </div>
+  </section>
+</main>
 
-  <script>
-    // 🔹 Firebase Config
+  </div>  <!-- Firebase SDK (Compat v9) -->  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>  <script>
+    // === CONFIG (आपके प्रोजेक्ट का) ===
     const firebaseConfig = {
-      apiKey: "AIzaSyD14Z3b7uCk62FBCK9SSZlczSxnMXndM1o",
-      authDomain: "mp3-8247a.firebaseapp.com",
-      databaseURL: "https://mp3-8247a-default-rtdb.firebaseio.com",
-      projectId: "mp3-8247a",
-      storageBucket: "mp3-8247a.firebasestorage.app",
-      messagingSenderId: "228735051694",
-      appId: "1:228735051694:web:99bdbbe737b66224ef4a3f"
+      apiKey: "AIzaSyAa-r7rwMxNMZGKucXtwdHimKq77iX7MpM",
+      authDomain: "grsc-chet.firebaseapp.com",
+      databaseURL: "https://grsc-chet-default-rtdb.firebaseio.com",
+      projectId: "grsc-chet",
+      storageBucket: "grsc-chet.appspot.com",
+      messagingSenderId: "1029401721470",
+      appId: "1:1029401721470:web:c75cb33423c7f567ec362f"
     };
+
+    // वैकल्पिक: एडमिन ईमेल allowlist (आप चाहें तो बदलें/खाली छोड़ें)
+    const ADMIN_EMAILS = [
+      // "you@example.com"
+    ];
+
+    // === INIT APP ===
     firebase.initializeApp(firebaseConfig);
-    const db=firebase.database();
+    const auth = firebase.auth();
+    const db   = firebase.database();
 
-    const gallery=document.getElementById("gallery");
-    const online=document.getElementById("online");
-    const fileInput=document.getElementById("fileInput");
-    const progress=document.getElementById("progress");
-    const previewImg=document.getElementById("previewImg");
-    const loading=document.getElementById("loading");
+    // LOCAL persistence = auto-login on refresh
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
 
-    // 🔹 Unique userId
-    let userId=localStorage.getItem("userId");
-    if(!userId){
-      userId="user_"+Math.random().toString(36).substr(2,9);
-      localStorage.setItem("userId",userId);
-    }
-
-    // 🔹 Online presence
-    const userRef=db.ref("onlineUsers/"+userId);
-    userRef.set(true); userRef.onDisconnect().remove();
-    db.ref("onlineUsers").on("value",snap=>{
-      online.textContent="👥 Online Users: "+(snap.numChildren()||0);
-    });
-
-    // 🔹 Load all photos realtime
-    db.ref("photos").on("value",async snap=>{
-      const data=snap.val()||{};
-      gallery.innerHTML="";
-      loading.style.display="block";
-
-      const keys=Object.keys(data);
-      for(let i=0;i<keys.length;i++){
-        const key=keys[i];
-        const val=data[key];
-        const chunks=val.chunks||{};
-        const ordered=Object.keys(chunks).sort((a,b)=>+a-+b).map(k=>chunks[k]);
-        const base64=ordered.join("");
-        const url=`data:${val.mime||"image/jpeg"};base64,${base64}`;
-
-        const card=document.createElement("div");
-        card.className="card";
-        card.innerHTML=`
-          <img src="${url}" alt="${val.name}"/>
-          <div>${val.name||"photo"}</div>
-          <button onclick="downloadPhoto('${url}','${val.name||"photo.jpg"}')">⬇ Download</button>
-          <button class="delete" onclick="deletePhoto('${key}')">🗑 Delete</button>
-        `;
-        gallery.appendChild(card);
-
-        // थोड़ा delay ताकि बड़े data पर UI smooth रहे
-        await new Promise(r=>setTimeout(r,50));
+    // --- Smart ENV detect: localhost पर हों तो Emulator use करें (यदि चल रहा हो) ---
+    (function maybeUseEmulator(){
+      const host = location.hostname;
+      const onLocal = (host === 'localhost' || host === '127.0.0.1');
+      if(onLocal){
+        try {
+          db.useEmulator('localhost', 9000);
+          document.getElementById('envPill').textContent = 'Emulator';
+        } catch(e){ /* fallback silently */ }
       }
-      loading.style.display="none";
-    });
+    })();
 
-    // 🔹 Download function
-    function downloadPhoto(url,name){
-      const a=document.createElement("a");
-      a.href=url; a.download=name;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    // === UI refs ===
+    const btnLogout = document.getElementById('btnLogout');
+    const btnAdmin  = document.getElementById('btnAdmin');
+
+    const authCard  = document.getElementById('authCard');
+    const adminCard = document.getElementById('adminCard');
+
+    const authBox   = document.getElementById('authBox');
+    const profileBox= document.getElementById('profileBox');
+    const authErr   = document.getElementById('authErr');
+
+    const userName  = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
+    const userUid   = document.getElementById('userUid');
+    const avatar    = document.getElementById('avatar');
+    const userCodeEl= document.getElementById('userCode');
+
+    const googleBtn = document.getElementById('googleBtn');
+    const copyCode  = document.getElementById('copyCode');
+    const regenCode = document.getElementById('regenCode');
+
+    const searchInp = document.getElementById('search');
+    const tblBody   = document.querySelector('#tbl tbody');
+    const countEl   = document.getElementById('count');
+    const exportCsv = document.getElementById('exportCsv');
+
+    function show(el){ el.classList.remove('hidden') }
+    function hide(el){ el.classList.add('hidden') }
+    function setErr(msg){ if(!msg){hide(authErr)} else { authErr.textContent=msg; show(authErr);} }
+
+    // === 6-char code ===
+    function generate6Code(){
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      const bytes = new Uint8Array(6); crypto.getRandomValues(bytes);
+      let out=''; for(let i=0;i<6;i++) out += alphabet[bytes[i]%alphabet.length];
+      return out;
     }
 
-    // 🔹 Delete photo (Admin only)
-    function deletePhoto(key){
-      if(confirm("क्या आप यह फोटो हटाना चाहते हैं?")){
-        db.ref("photos/"+key).remove();
-      }
-    }
-
-    // 🔹 Upload photo
-    function uploadPhoto(){
-      const file=fileInput.files[0];
-      if(!file){alert("कृपया फोटो चुनें");return;}
-      const reader=new FileReader();
-      reader.onload=async function(e){
-        const base64=e.target.result.split(",")[1]; 
-        previewImg.src=e.target.result;
-
-        const chunkSize=50000;
-        let chunks={};
-        for(let i=0;i<base64.length;i+=chunkSize){
-          chunks[i/chunkSize]=base64.substr(i,chunkSize);
-          progress.textContent=`Uploading... ${Math.min(base64.length,i+chunkSize)} / ${base64.length}`;
-          await new Promise(r=>setTimeout(r,20));
+    async function ensureUserCode(uid){
+      const snap = await db.ref(`users/${uid}/code`).get();
+      if(snap.exists()) return snap.val();
+      for(let i=0;i<10;i++){
+        const code = generate6Code();
+        const res = await db.ref(`codes/${code}`).transaction(cur=>{ if(cur===null) return uid; });
+        if(res.committed && res.snapshot.val()===uid){
+          await db.ref(`users/${uid}/code`).set(code);
+          return code;
         }
-
-        const key=db.ref("photos").push().key;
-        db.ref("photos/"+key).set({
-          name:file.name,
-          mime:file.type,
-          chunks:chunks
-        });
-        progress.textContent="✅ Upload Done!";
-        fileInput.value="";
-      };
-      reader.readAsDataURL(file);
+      }
+      throw new Error('कोड बनाने में दिक्कत — फिर प्रयास करें');
     }
-  </script>
-</body>
+
+    async function saveProfile(user){
+      const profile = {
+        displayName: user.displayName || null,
+        email: user.email || null,
+        photoURL: user.photoURL || null,
+        lastLoginAt: Date.now(),
+      };
+      await db.ref(`users/${user.uid}/profile`).update(profile);
+    }
+
+    async function maybeGrantAdmin(user){
+      if(ADMIN_EMAILS.includes(user.email)){
+        await db.ref(`admins/${user.uid}`).set(true);
+      }
+    }
+
+    async function isAdmin(uid){
+      const snap = await db.ref(`admins/${uid}`).get();
+      return !!(snap.exists() && snap.val());
+    }
+
+    function fillProfileUI(user, code){
+      userName.textContent = user.displayName || (user.email? user.email.split('@')[0] : 'यूज़र');
+      userEmail.textContent= user.email || '';
+      userUid.textContent  = user.uid;
+      avatar.src = user.photoURL || '';
+      avatar.style.display = user.photoURL? 'block':'none';
+      userCodeEl.textContent = code || '------';
+    }
+
+    async function handleSignedIn(user){
+      try{
+        await saveProfile(user);
+        await maybeGrantAdmin(user);
+        const code = await ensureUserCode(user.uid);
+        fillProfileUI(user, code);
+        hide(authBox); show(profileBox); show(btnLogout);
+        // admin?
+        if(await isAdmin(user.uid)){ show(btnAdmin); } else { hide(btnAdmin); }
+      }catch(e){
+        setErr(e.message||String(e));
+        show(authBox); hide(profileBox);
+      }
+    }
+
+    function handleSignedOut(){
+      hide(btnLogout); hide(btnAdmin);
+      show(authBox); hide(profileBox);
+      hide(adminCard);
+    }
+
+    // === Auth flow ===
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    async function signIn(){
+      setErr('');
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      try{ isMobile ? await auth.signInWithRedirect(provider) : await auth.signInWithPopup(provider); }
+      catch(e){ setErr(e.message); }
+    }
+
+    auth.getRedirectResult().catch(e=>setErr(e.message));
+    auth.onAuthStateChanged(user=>{ user? handleSignedIn(user) : handleSignedOut(); });
+
+    btnLogout.addEventListener('click', ()=> auth.signOut());
+    googleBtn.addEventListener('click', signIn);
+
+    copyCode.addEventListener('click', ()=>{
+      const code = userCodeEl.textContent.trim();
+      navigator.clipboard?.writeText(code);
+      copyCode.textContent = 'कॉपी हो गया';
+      setTimeout(()=> copyCode.textContent='कोड कॉपी करें',1200);
+    });
+
+    regenCode.addEventListener('click', async ()=>{
+      const user = auth.currentUser; if(!user) return;
+      if(!confirm('पुराना कोड हटकर नया बनेगा. जारी रखें?')) return;
+      try{
+        // पुराना हटाएँ
+        const old = await db.ref(`users/${user.uid}/code`).get();
+        if(old.exists()) await db.ref(`codes/${old.val()}`).remove();
+        await db.ref(`users/${user.uid}/code`).remove();
+        const fresh = await ensureUserCode(user.uid);
+        userCodeEl.textContent = fresh;
+      }catch(e){ alert(e.message); }
+    });
+
+    // === Admin panel ===
+    btnAdmin.addEventListener('click', ()=>{
+      adminCard.classList.toggle('hidden');
+      if(!adminCard.classList.contains('hidden')) loadAdmin();
+    });
+
+    let rows = [];
+    async function loadAdmin(){
+      rows = [];
+      tblBody.innerHTML = '<tr><td colspan="4" class="muted">Loading…</td></tr>';
+      const codesSnap = await db.ref('codes').get();
+      if(!codesSnap.exists()){ tblBody.innerHTML=''; countEl.textContent='0 items'; return; }
+      const entries = Object.entries(codesSnap.val()); // [code, uid]
+      for(const [code, uid] of entries){
+        let email = '', name = '';
+        try{
+          const prof = await db.ref(`users/${uid}/profile`).get();
+          if(prof.exists()){ email = prof.val().email||''; name = prof.val().displayName||''; }
+        }catch{}
+        rows.push({code, email, name, uid});
+      }
+      renderRows();
+    }
+
+    function renderRows(){
+      const q = (searchInp.value||'').toLowerCase();
+      const filtered = rows.filter(r=> (r.code||'').toLowerCase().includes(q) || (r.email||'').toLowerCase().includes(q) || (r.uid||'').toLowerCase().includes(q));
+      tblBody.innerHTML = filtered.map(r=>`<tr>
+        <td><span class="kbd">${r.code}</span></td>
+        <td>${r.email||'<span class="muted">—</span>'}</td>
+        <td>${r.name||'<span class="muted">—</span>'}</td>
+        <td class="muted">${r.uid}</td>
+      </tr>`).join('');
+      countEl.textContent = `${filtered.length} items`;
+    }
+
+    searchInp.addEventListener('input', renderRows);
+
+    exportCsv.addEventListener('click', ()=>{
+      const header = ['code','email','name','uid'];
+      const q = (searchInp.value||'').toLowerCase();
+      const filtered = rows.filter(r=> (r.code||'').toLowerCase().includes(q) || (r.email||'').toLowerCase().includes(q) || (r.uid||'').toLowerCase().includes(q));
+      const lines = [header.join(',')].concat(filtered.map(r=> [r.code,r.email,r.name,r.uid].map(s=>`"${(s||'').replaceAll('"','""')}"`).join(',')));
+      const blob = new Blob(["﻿"+lines.join('
+')], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='users.csv'; a.click(); URL.revokeObjectURL(url);
+    });
+  </script></body>
 </html>
