@@ -1,5 +1,4 @@
 <!doctype html>
-
 <html lang="hi">
 <head>
   <meta charset="utf-8" />
@@ -54,57 +53,64 @@
         <button id="btnAdmin" class="btn btn-ghost hidden">Admin</button>
         <button id="btnLogout" class="btn btn-danger hidden">लॉगआउट</button>
       </div>
-    </header><main class="grid" style="margin-top:16px">
-  <section class="card" id="authCard">
-    <h1>🔐 Gmail से लॉगिन</h1>
-    <p>पहली लॉगिन पर 6-कैरेक्टर यूनिक कोड ऑटो-जनरेट होकर सेव होगा। अगली बार ऑटो-लॉगिन।</p>
-    <div id="authBox" class="row">
-      <button id="googleBtn" class="btn btn-primary flex center" style="justify-content:center">
-        <img alt="G" width="20" height="20" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"/>
-        Continue with Google
-      </button>
-      <div id="authErr" class="pill hidden"></div>
-    </div>
+    </header>
 
-    <div id="profileBox" class="row hidden">
-      <div class="flex">
-        <img id="avatar" class="avatar" alt="avatar" src=""/>
-        <div>
-          <h2 id="userName">यूज़र</h2>
-          <div id="userEmail" class="muted"></div>
-          <div id="userUid" class="badge"></div>
+    <main class="grid" style="margin-top:16px">
+      <section class="card" id="authCard">
+        <h1>🔐 Gmail से लॉगिन</h1>
+        <p>पहली लॉगिन पर 6-कैरेक्टर यूनिक कोड ऑटो-जनरेट होकर सेव होगा। अगली बार ऑटो-लॉगिन।</p>
+        <div id="authBox" class="row">
+          <button id="googleBtn" class="btn btn-primary flex center" style="justify-content:center">
+            <img alt="G" width="20" height="20" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"/>
+            Continue with Google
+          </button>
+          <div id="authErr" class="pill hidden"></div>
         </div>
-      </div>
-      <div>
-        <div class="codebox" id="userCode">------</div>
-        <p class="muted center">यह आपकी ऑटो-जनरेटेड यूनिक ID है।</p>
-        <div class="flex" style="justify-content:center">
-          <button id="copyCode" class="btn">कोड कॉपी करें</button>
-          <button id="regenCode" class="btn btn-ghost">नया कोड</button>
+
+        <div id="profileBox" class="row hidden">
+          <div class="flex">
+            <img id="avatar" class="avatar" alt="avatar" src=""/>
+            <div>
+              <h2 id="userName">यूज़र</h2>
+              <div id="userEmail" class="muted"></div>
+              <div id="userUid" class="badge"></div>
+            </div>
+          </div>
+          <div>
+            <div class="codebox" id="userCode">------</div>
+            <p class="muted center">यह आपकी ऑटो-जनरेटेड यूनिक ID है।</p>
+            <div class="flex" style="justify-content:center">
+              <button id="copyCode" class="btn">कोड कॉपी करें</button>
+              <button id="regenCode" class="btn btn-ghost">नया कोड</button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </section>
+      </section>
 
-  <section class="card hidden" id="adminCard">
-    <h1>🛡️ Admin Panel</h1>
-    <p>यूज़र कोड्स की लिस्ट, सर्च और एक्सपोर्ट।</p>
-    <div class="row">
-      <input id="search" type="search" placeholder="Search: code, email, uid"/>
-      <div class="flex">
-        <button id="exportCsv" class="btn">Export CSV</button>
-        <span class="badge" id="count">0 items</span>
-      </div>
-      <div style="overflow:auto">
-        <table id="tbl"><thead>
-          <tr><th>Code</th><th>Email</th><th>Name</th><th>UID</th></tr>
-        </thead><tbody></tbody></table>
-      </div>
-    </div>
-  </section>
-</main>
+      <section class="card hidden" id="adminCard">
+        <h1>🛡️ Admin Panel</h1>
+        <p>यूज़र कोड्स की लिस्ट, सर्च और एक्सपोर्ट।</p>
+        <div class="row">
+          <input id="search" type="search" placeholder="Search: code, email, uid"/>
+          <div class="flex">
+            <button id="exportCsv" class="btn">Export CSV</button>
+            <span class="badge" id="count">0 items</span>
+          </div>
+          <div style="overflow:auto">
+            <table id="tbl"><thead>
+              <tr><th>Code</th><th>Email</th><th>Name</th><th>UID</th></tr>
+            </thead><tbody></tbody></table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 
-  </div>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>  <script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAa-r7rwMxNMZGKucXtwdHimKq77iX7MpM",
       authDomain: "grsc-chet.firebaseapp.com",
