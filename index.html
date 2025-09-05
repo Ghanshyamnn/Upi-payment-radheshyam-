@@ -1,174 +1,293 @@
-<!DOCTYPE html><html lang="hi">
+<!DOCTYPE html>
+<html lang="hi">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>📷 कैमरा ऐप (अपडेटेड फुल)</title>
+  <title>📷 कैमरा प्रो</title>
+  <!-- PWA Manifest Link -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b1020">
   <style>
     :root{--bg:#0b1020;--fg:#eaf2ff;--muted:#90a0c0;--accent:#5ac8fa;--danger:#ff5e57;--ok:#34c759}
-    *{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Ubuntu,Cantarell,"Helvetica Neue",Arial}
+    *{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Ubuntu,Cantarell,"Helvetica Neue",Arial; overscroll-behavior: none;}
     .app{display:grid;grid-template-rows:auto 1fr auto;min-height:100%;}
-    header,footer{backdrop-filter: blur(12px);background:rgba(15,20,40,.6);padding:8px 12px;border-bottom:1px solid #1c223a}
+    header,footer{backdrop-filter: blur(12px);-webkit-backdrop-filter: blur(12px);background:rgba(15,20,40,.7);padding:8px 12px;border-bottom:1px solid #1c223a}
     footer{border-top:1px solid #1c223a;border-bottom:none;}
     .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    button,select,input[type="range"]{appearance:none;border:none;padding:10px 12px;border-radius:12px;background:#18203a;color:var(--fg);font-weight:600;cursor:pointer}
+    button,select,input[type="range"]{appearance:none;-webkit-appearance:none;border:none;padding:10px 12px;border-radius:12px;background:#18203a;color:var(--fg);font-weight:600;cursor:pointer}
     button:disabled{opacity:.5;cursor:not-allowed}
-    .btn{display:inline-flex;align-items:center;gap:8px}
-    .primary{background:linear-gradient(180deg,#2c6dfd,#234fe0)}
-    .danger{background:linear-gradient(180deg,#ff6a6a,#e64545)}
-    .ok{background:linear-gradient(180deg,#36d27a,#29b365)}
-    .ghost{background:transparent;border:1px solid #2a3558}
-    .pill{border-radius:999px;padding:8px 14px}.stage{position:relative;background:#000;display:grid;place-items:center;overflow:hidden}
-video{max-width:100%;max-height:100vh;width:100%;height:100%;object-fit:contain;background:#000}
-canvas{display:none}
-.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
-.flash.show{opacity:0.85;animation:flash .25s ease-out forwards}
-@keyframes flash{to{opacity:0}}
-
-.overlay{position:absolute;inset:0;pointer-events:none}
-.grid{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0,transparent calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% + .5px)),repeating-linear-gradient(90deg,transparent 0,transparent calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% + .5px));opacity:.75;display:none}
-.grid.on{display:block}
-
-.toolbar{position:absolute;inset-inline:0;bottom:16px;display:flex;justify-content:center;gap:12px;pointer-events:auto}
-.tb-btn{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-weight:900}
-
-.gallery{display:flex;gap:8px;overflow:auto;padding:8px}
-.thumb{width:72px;height:72px;border-radius:10px;overflow:hidden;border:1px solid #2a3558;flex:0 0 auto}
-.thumb img, .thumb video{width:100%;height:100%;object-fit:cover;display:block}
-
-.panel{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.hint{color:var(--muted);font-size:13px}
-.error{color:#ffd5d2}
-.spacer{flex:1}
-
+    .primary{background:linear-gradient(180deg,#2c6dfd,#234fe0)}.danger{background:linear-gradient(180deg,#ff6a6a,#e64545)}.ok{background:linear-gradient(180deg,#36d27a,#29b365)}.ghost{background:transparent;border:1px solid #2a3558}.pill{border-radius:999px;padding:8px 14px}
+    .stage{position:relative;background:#000;display:grid;place-items:center;overflow:hidden}
+    video{max-width:100%;max-height:100vh;width:100%;height:100%;object-fit:contain;background:#000}
+    canvas{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
+    .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}.flash.show{opacity:0.85;animation:flash .25s ease-out forwards}
+    @keyframes flash{to{opacity:0}}
+    .overlay{position:absolute;inset:0;pointer-events:none}
+    .grid{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0,transparent calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% + .5px)),repeating-linear-gradient(90deg,transparent 0,transparent calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% + .5px));opacity:.75;display:none}.grid.on{display:block}
+    .toolbar{position:absolute;inset-inline:0;bottom:16px;display:flex;justify-content:center;align-items:center;gap:12px;pointer-events:auto}
+    .tb-btn{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-weight:900}
+    .gallery{display:flex;gap:8px;overflow:auto;padding:8px}
+    .thumb{position:relative; width:72px;height:72px;border-radius:10px;overflow:hidden;border:1px solid #2a3558;flex:0 0 auto}.thumb img, .thumb video{width:100%;height:100%;object-fit:cover;display:block}
+    .thumb .actions{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;gap:4px;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}.thumb:hover .actions{opacity:1}
+    .thumb .actions a, .thumb .actions button{color:white;text-decoration:none;padding:4px;background:rgba(0,0,0,.5);border-radius:50%;border:none;cursor:pointer;font-size:18px;width:30px;height:30px;display:grid;place-items:center;}
+    .panel{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.hint{color:var(--muted);font-size:13px}.error{color:#ffd5d2}.spacer{flex:1}
+    #recTimer{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:rgba(255,94,87,.8);color:white;padding:4px 8px;border-radius:8px;font-weight:bold;display:none;}
   </style>
 </head>
 <body>
   <div class="app">
     <header>
       <div class="row">
-        <strong>📷 कैमरा ऐप</strong>
-        <span class="hint">— अपडेटेड फीचर्स के साथ</span>
-        <span class="spacer"></span>
-        <button id="btnFullscreen" class="ghost pill" title="फुलस्क्रीन">⛶</button>
+        <strong>📷 कैमरा प्रो</strong><span class="spacer"></span>
+        <button id="btnQR" class="ghost pill" title="QR स्कैनर">🔲</button>
         <button id="btnGrid" class="ghost pill" title="ग्रिड">#️⃣</button>
-        <label class="ghost pill" title="रिज़ॉल्यूशन">
-          <span>🔧</span>
-          <select id="selRes">
-            <option value="1280x720">1280×720</option>
-            <option value="1920x1080" selected>1920×1080</option>
-            <option value="2560x1440">2560×1440</option>
-            <option value="640x480">640×480</option>
-          </select>
-        </label>
-        <label class="ghost pill" title="फ्रेमरेट">
-          <span>🎞️</span>
-          <select id="selFps">
-            <option>30</option>
-            <option selected>60</option>
-            <option>24</option>
-            <option>15</option>
-          </select>
-        </label>
-        <button id="btnStart" class="primary pill">कैमरा शुरू करें</button>
-        <button id="btnStop" class="danger pill" disabled>बंद</button>
+        <label class="ghost pill" title="रिज़ॉल्यूशन">🔧<select id="selRes"><option value="1920x1080" selected>1080p</option><option value="1280x720">720p</option><option value="3840x2160">4K</option><option value="640x480">480p</option></select></label>
+        <button id="btnStart" class="primary pill">शुरू करें</button><button id="btnStop" class="danger pill" disabled>बंद करें</button>
       </div>
       <div class="row" style="margin-top:6px">
-        <button id="btnFlip" class="ghost pill" title="फ्रंट/बैक">🔄 कैमरा बदलें</button>
+        <button id="btnFlip" class="ghost pill" title="कैमरा बदलें">🔄</button>
         <button id="btnTorch" class="ghost pill" title="टॉर्च">🔦</button>
-        <label class="ghost pill" title="ज़ूम">
-          🔍 <input id="rngZoom" type="range" min="1" max="1" step="0.1" value="1" style="width:160px">
-        </label>
-        <label class="ghost pill" title="टाइमर">
-          ⏱️ <select id="selTimer">
-            <option value="0" selected>ऑफ</option>
-            <option value="3">3s</option>
-            <option value="5">5s</option>
-          </select>
-        </label>
+        <label class="ghost pill" title="ज़ूम">🔍 <input id="rngZoom" type="range" min="1" max="1" step="0.1" value="1"></label>
         <span id="capabilities" class="hint"></span>
       </div>
-    </header><main class="stage" id="stage">
-  <video id="vid" playsinline autoplay muted></video>
-  <div class="overlay">
-    <div id="grid" class="grid"></div>
-    <div id="flash" class="flash"></div>
+    </header>
+    <main class="stage" id="stage">
+      <video id="vid" playsinline autoplay muted></video>
+      <div class="overlay"><div id="grid" class="grid"></div><div id="flash" class="flash"></div><div id="recTimer">00:00</div></div>
+      <canvas id="canv"></canvas>
+    </main>
+    <div class="toolbar">
+      <select id="selTimer" class="ghost pill" style="pointer-events:auto">
+        <option value="0" selected>⏱️ ऑफ</option><option value="3">3s</option><option value="5">5s</option>
+      </select>
+      <button id="btnSnap" class="tb-btn ok" title="फोटो लें">◉</button>
+      <button id="btnRec" class="tb-btn primary" title="वीडियो रिकॉर्ड">⏺</button>
+    </div>
+    <footer>
+      <div class="panel"><strong>📁 गैलरी</strong><span class="spacer"></span><button id="btnClear" class="ghost pill" title="गैलरी साफ़ करें">🗑️</button></div>
+      <div id="gallery" class="gallery"></div>
+      <div id="msg" class="hint"></div>
+    </footer>
   </div>
-  <div class="toolbar">
-    <button id="btnSnap" class="tb-btn ok" title="फोटो लें">●</button>
-    <button id="btnRec" class="tb-btn primary" title="वीडियो रिकॉर्ड">⏺</button>
-  </div>
-  <canvas id="canv"></canvas>
-</main>
+<script>
+(async function(){
+  // Element Refs
+  const $ = id => document.getElementById(id);
+  const vid = $('vid'), canv = $('canv'), msg = $('msg'), flash = $('flash'), grid = $('grid'), gallery = $('gallery'), stage = $('stage');
+  const btnStart = $('btnStart'), btnStop = $('btnStop'), btnFlip = $('btnFlip'), btnTorch = $('btnTorch'), btnSnap = $('btnSnap'), btnRec = $('btnRec'), btnGrid = $('btnGrid'), btnClear = $('btnClear'), btnQR = $('btnQR');
+  const selRes = $('selRes'), selTimer = $('selTimer'), rngZoom = $('rngZoom');
+  const capabilitiesEl = $('capabilities'), recTimerEl = $('recTimer');
+  const ctx = canv.getContext('2d');
 
-<footer>
-  <div class="panel">
-    <strong>📁 गैलरी</strong>
-    <span class="hint">— कैप्चर/रिकॉर्ड के बाद यहाँ सेव हो जाएगी। थम्ब पर टैप करके डाउनलोड करें।</span>
-    <span class="spacer"></span>
-    <button id="btnClear" class="ghost pill" title="गैलरी साफ़">🗑️</button>
-  </div>
-  <div id="gallery" class="gallery"></div>
-  <div id="msg" class="hint"></div>
-</footer>
+  // State
+  let stream=null, track=null, usingFront=false, mediaRec=null, chunks=[], recInterval=null, qrScanner=null, isScanningQR=false;
 
-  </div><script>
-// Same JS code from previous version (camera permission + features)
-// कोई भी अतिरिक्त बदलाव: अब अनुमति के लिए सीधा मैसेज दिखाया जाएगा।
-(function(){
-  const vid=document.getElementById('vid');
-  const canv=document.getElementById('canv');
-  const ctx=canv.getContext('2d');
-  const msg=document.getElementById('msg');
-  const flash=document.getElementById('flash');
-  const grid=document.getElementById('grid');
-  const gallery=document.getElementById('gallery');
-
-  const btnStart=document.getElementById('btnStart');
-  const btnStop=document.getElementById('btnStop');
-  const btnFlip=document.getElementById('btnFlip');
-  const btnTorch=document.getElementById('btnTorch');
-  const btnSnap=document.getElementById('btnSnap');
-  const btnRec=document.getElementById('btnRec');
-  const btnGrid=document.getElementById('btnGrid');
-  const btnFullscreen=document.getElementById('btnFullscreen');
-  const btnClear=document.getElementById('btnClear');
-
-  const selRes=document.getElementById('selRes');
-  const selFps=document.getElementById('selFps');
-  const selTimer=document.getElementById('selTimer');
-  const rngZoom=document.getElementById('rngZoom');
-  const capabilitiesEl=document.getElementById('capabilities');
-
-  let stream=null;let usingFront=false;let mediaRec=null;let chunks=[];let track=null;let imageCapture=null;
-  function log(t){msg.textContent=t;}
-  function error(e){console.error(e);msg.innerHTML=`<span class="error">⚠️ ${e.message||e}</span>`;}
-
-  async function startCamera(){
-    try{
+  // Logging
+  const log = t => msg.textContent = t;
+  const error = e => { console.error(e); msg.innerHTML = `<span class="error">⚠️ ${e.name}: ${e.message}</span>`; }
+  
+  // Camera Control
+  const startCamera = async () => {
+    try {
+      if (isScanningQR) await toggleQRScan();
       stopCamera();
-      const [w,h]=selRes.value.split('x').map(Number);
-      const fps=Number(selFps.value);
-      const constraints={audio:false,video:{width:{ideal:w},height:{ideal:h},frameRate:{ideal:fps,max:fps},facingMode:usingFront?'user':'environment'}};
+      const [w, h] = selRes.value.split('x').map(Number);
+      const constraints = { audio: false, video: { width: { ideal: w }, height: { ideal: h }, facingMode: usingFront ? 'user' : 'environment' } };
       log('📢 कैमरा अनुमति माँगी जा रही है…');
-      stream=await navigator.mediaDevices.getUserMedia(constraints);
-      vid.srcObject=stream;track=stream.getVideoTracks()[0];
-      try{imageCapture=new ImageCapture(track);}catch(e){imageCapture=null;}
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      vid.srcObject = stream;
+      track = stream.getVideoTracks()[0];
       setupCapabilities();
-      btnStart.disabled=true;btnStop.disabled=false;btnSnap.disabled=false;btnRec.disabled=false;btnFlip.disabled=false;btnTorch.disabled=false;rngZoom.disabled=false;
+      setControlsState(true);
       log('✅ कैमरा चालू है');
-    }catch(e){error(e);}
+    } catch(e) { error(e); }
+  };
+
+  const stopCamera = () => {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = track = null;
+    setControlsState(false);
+  };
+  
+  const setControlsState = (enabled) => {
+    [btnStop, btnSnap, btnRec, btnFlip, btnTorch, rngZoom, btnQR].forEach(el => el.disabled = !enabled);
+    btnStart.disabled = enabled;
   }
-  function stopCamera(){if(stream){stream.getTracks().forEach(t=>t.stop());}stream=null;track=null;imageCapture=null;btnStart.disabled=false;btnStop.disabled=true;btnSnap.disabled=true;btnRec.disabled=true;btnTorch.disabled=true;rngZoom.disabled=true;}
-  function setupCapabilities(){const cap=track?.getCapabilities?.()||{};const settings=track?.getSettings?.()||{};if(cap.zoom){rngZoom.min=cap.zoom.min;rngZoom.max=cap.zoom.max;rngZoom.step=cap.zoom.step||0.1;rngZoom.value=settings.zoom||cap.zoom.min||1;rngZoom.disabled=false;}else{rngZoom.min=1;rngZoom.max=1;rngZoom.value=1;rngZoom.disabled=true;}const torch=!!cap.torch;btnTorch.disabled=!torch;const fps=settings.frameRate?Math.round(settings.frameRate):selFps.value;capabilitiesEl.textContent=`कैमरा: ${settings.width||'-'}×${settings.height||'-'} @ ${fps}fps ${torch?'· टॉर्च':''} ${cap.zoom?'· ज़ूम':''}`;}
-  function doFlash(){flash.classList.remove('show');void flash.offsetWidth;flash.classList.add('show');}
-  function addToGallery(el,filename){const wrap=document.createElement('a');wrap.className='thumb';wrap.download=filename;wrap.href=(el.tagName==='IMG')?el.src:URL.createObjectURL(el.blob||new Blob());wrap.appendChild(el);gallery.prepend(wrap);}
-  async function snap(){try{const delay=Number(selTimer.value);if(delay>0){log(`${delay}s में फोटो ली जाएगी…`);await new Promise(r=>setTimeout(r,delay*1000));}if(!stream)throw new Error('कैमरा चालू नहीं है');const settings=track.getSettings();canv.width=settings.width||vid.videoWidth||1920;canv.height=settings.height||vid.videoHeight||1080;ctx.drawImage(vid,0,0,canv.width,canv.height);doFlash();const blob=await new Promise(r=>canv.toBlob(r,'image/jpeg',0.92));const url=URL.createObjectURL(blob);const img=new Image();img.src=url;img.alt='photo';img.onload=()=>URL.revokeObjectURL(url);img.blob=blob;const name=`photo_${new Date().toISOString().replace(/[:.]/g,'-')}.jpg`;addToGallery(img,name);log('📷 फोटो सेव हो गई।');}catch(e){error(e);}}
-  function toggleRecord(){try{if(!stream)throw new Error('कैमरा चालू नहीं है');if(mediaRec&&mediaRec.state==='recording'){mediaRec.stop();btnRec.textContent='⏺';btnRec.classList.remove('danger');btnRec.classList.add('primary');log('⏹ रिकॉर्डिंग रोकी गई।');}else{const mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm;codecs=vp8';mediaRec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:4000000});chunks=[];mediaRec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};mediaRec.onstop=()=>{const blob=new Blob(chunks,{type:mediaRec.mimeType});const v=document.createElement('video');v.src=URL.createObjectURL(blob);v.controls=true;v.loop=true;v.muted=true;v.blob=blob;const name=`video_${new Date().toISOString().replace(/[:.]/g,'-')}.webm`;addToGallery(v,name);log('🎞️ वीडियो सेव हो गया।');};mediaRec.start();btnRec.textContent='⏹';btnRec.classList.remove('primary');btnRec.classList.add('danger');log('🔴 रिकॉर्डिंग चालू…');}}catch(e){error(e);}}
-  async function toggleTorch(){try{if(!track)return;const cap=track.getCapabilities?.()||{};if(!cap.torch)return;const settings=track.getSettings?.()||{};const newTorch=!settings.torch;await track.applyConstraints({advanced:[{torch:newTorch}]});log(newTorch?'💡 टॉर्च ऑन':'💡 टॉर्च ऑफ');}catch(e){error(e);}}
-  async function setZoom(v){try{if(!track)return;const cap=track.getCapabilities?.()||{};if(!cap.zoom)return;await track.applyConstraints({advanced:[{zoom:Number(v)}]});log(`🔍 ज़ूम: ${Number(v).toFixed(1)}×`);}catch(e){error(e);}}
-  function toggleFullscreen(){const el=document.documentElement;if(!document.fullscreenElement){el.requestFullscreen?.();}else{document.exitFullscreen?.();}}
-  btnStart.addEventListener('click',startCamera);btnStop.addEventListener('click',stopCamera);btnFlip.addEventListener('click',()=>{usingFront=!usingFront;startCamera();});btnTorch.addEventListener('click',toggleTorch);btnSnap.addEventListener('click',snap);btnRec.addEventListener('click',toggleRecord);btnGrid.addEventListener('click',()=>grid.classList.toggle('on'));btnFullscreen.addEventListener('click',toggleFullscreen);btnClear.addEventListener('click',()=>{gallery.innerHTML='';});rngZoom.addEventListener('input',e=>setZoom(e.target.value));selRes.addEventListener('change',startCamera);selFps.addEventListener('change',startCamera);
-  let lastDist=0;stage.addEventListener('touchstart',e=>{if(e.touches.length===2){lastDist=dist(e.touches[0],e.touches[1]);}},{passive:true});stage.addEventListener('touchmove',e=>{if(e.touches.length===2&&track){const d=dist(e.touches[0],e.touches[1]);const cap=track.getCapabilities?.()||{};if(cap.zoom){const delta=(d-lastDist)/200;const cur=Number(rngZoom.value);let next=Math.min(cap.zoom.max,Math.max(cap.zoom.min,cur+delta));rngZoom.value=next;setZoom(next);lastDist=d;}}},{passive:true});function dist(a,b){const dx=a.clientX-b.clientX,dy=a.clientY-b.clientY;return Math.hypot(dx,dy);}if(navigator.permissions&&navigator.permissions.query){navigator.permissions.query({name:'camera'}).then(p=>{if(p.state==='granted')startCamera();}).catch(()=>{});} 
+  
+  // Features
+  const setupCapabilities = () => {
+    const cap = track?.getCapabilities?.() || {};
+    const settings = track?.getSettings?.() || {};
+    rngZoom.min = cap.zoom?.min || 1; rngZoom.max = cap.zoom?.max || 1; rngZoom.step = cap.zoom?.step || 0.1; rngZoom.value = settings.zoom || 1;
+    rngZoom.disabled = !cap.zoom; btnTorch.disabled = !cap.torch;
+    let capText = `${settings.width||'-'}×${settings.height||'-'}`;
+    if (cap.torch) capText += ' · 🔦 टॉर्च';
+    if (cap.zoom) capText += ' · 🔍 ज़ूम';
+    capabilitiesEl.textContent = capText;
+  };
+  
+  const snap = async () => {
+    try {
+      const delay = Number(selTimer.value);
+      if(delay > 0) { log(`${delay}s में फोटो ली जाएगी…`); await new Promise(r => setTimeout(r, delay*1000)); }
+      if (!stream) throw new Error('कैमरा चालू नहीं है');
+      canv.width = vid.videoWidth; canv.height = vid.videoHeight;
+      ctx.drawImage(vid, 0, 0, canv.width, canv.height);
+      flash.classList.remove('show'); void flash.offsetWidth; flash.classList.add('show');
+      const blob = await new Promise(r => canv.toBlob(r, 'image/jpeg', 0.9));
+      const name = `photo_${new Date().toISOString().replace(/[:.]/g,'-')}.jpg`;
+      const img = new Image(); img.src = URL.createObjectURL(blob); img.blob = blob;
+      addToGallery(img, name, blob);
+      log('📷 फोटो सेव हो गई।');
+    } catch(e) { error(e); }
+  };
+  
+  const toggleRecord = () => {
+    try {
+      if (!stream) throw new Error('कैमरा चालू नहीं है');
+      if (mediaRec && mediaRec.state === 'recording') {
+        mediaRec.stop();
+        btnRec.textContent = '⏺'; btnRec.classList.remove('danger');
+      } else {
+        const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+        mediaRec = new MediaRecorder(stream, { mimeType: mime });
+        chunks = [];
+        mediaRec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+        mediaRec.onstop = () => {
+          clearInterval(recInterval); recTimerEl.style.display = 'none';
+          const blob = new Blob(chunks, { type: mediaRec.mimeType });
+          const v = document.createElement('video'); v.src = URL.createObjectURL(blob);
+          v.controls = true; v.loop = true; v.muted = true;
+          const name = `video_${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
+          addToGallery(v, name, blob);
+          log('🎞️ वीडियो सेव हो गया।');
+        };
+        mediaRec.start();
+        btnRec.textContent = '⏹'; btnRec.classList.add('danger');
+        let startTime = Date.now();
+        recTimerEl.style.display = 'block';
+        recInterval = setInterval(() => {
+            const seconds = Math.floor((Date.now() - startTime) / 1000);
+            recTimerEl.textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+        }, 1000);
+        log('🔴 रिकॉर्डिंग चालू…');
+      }
+    } catch (e) { error(e); }
+  };
+
+  const toggleTorch = async () => { try { await track.applyConstraints({ advanced: [{ torch: !track.getSettings().torch }] }); } catch(e) { error(e); } };
+  const setZoom = async (v) => { try { await track.applyConstraints({ advanced: [{ zoom: v }] }); } catch(e) { error(e); } };
+  const toggleQRScan = async () => {
+    if(!('BarcodeDetector' in window)) return error(new Error('QR स्कैनर इस ब्राउज़र पर सपोर्टेड नहीं है।'));
+    isScanningQR = !isScanningQR;
+    btnQR.classList.toggle('primary', isScanningQR);
+    if(isScanningQR) {
+        if (!stream) await startCamera();
+        qrScanner = new BarcodeDetector({ formats: ['qr_code', 'ean_13', 'codabar', 'code_128'] });
+        scanQRCodes();
+        log('🔳 QR स्कैनर चालू है...');
+    } else {
+        log('✅ कैमरा मोड');
+        ctx.clearRect(0,0,canv.width,canv.height);
+    }
+  };
+
+  const scanQRCodes = async () => {
+    if (!isScanningQR || !qrScanner) return;
+    try {
+        const barcodes = await qrScanner.detect(vid);
+        canv.width = vid.videoWidth; canv.height = vid.videoHeight;
+        ctx.clearRect(0,0,canv.width,canv.height);
+        if (barcodes.length > 0) {
+            barcodes.forEach(barcode => {
+                log(`स्कैन हुआ: ${barcode.rawValue}`);
+                const { x, y, width, height } = barcode.boundingBox;
+                ctx.strokeStyle = '#34c759'; ctx.lineWidth = 4;
+                ctx.strokeRect(x, y, width, height);
+            });
+        }
+    } catch (e) { error(e); }
+    requestAnimationFrame(scanQRCodes);
+  };
+  
+  // Gallery
+  const addToGallery = (el, filename, blob) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'thumb';
+    thumb.appendChild(el);
+
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    
+    const dl = document.createElement('a');
+    dl.href = el.src; dl.download = filename; dl.textContent = '📥'; dl.title = 'डाउनलोड';
+    actions.appendChild(dl);
+
+    if (navigator.share) {
+        const shareBtn = document.createElement('button');
+        shareBtn.textContent = '📤'; shareBtn.title = 'शेयर';
+        shareBtn.onclick = () => shareMedia(filename, blob);
+        actions.appendChild(shareBtn);
+    }
+    
+    thumb.appendChild(actions);
+    gallery.prepend(thumb);
+  };
+  
+  const shareMedia = async (filename, blob) => {
+      try {
+          const file = new File([blob], filename, { type: blob.type });
+          if(navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                  files: [file],
+                  title: 'कैमरा से कैप्चर',
+                  text: filename
+              });
+              log('✅ सफलतापूर्वक शेयर किया गया।');
+          } else {
+              throw new Error('यह फ़ाइल शेयर नहीं की जा सकती।');
+          }
+      } catch(e) {
+        if(e.name !== 'AbortError') error(e);
+      }
+  };
+  
+  // Event Listeners
+  btnStart.onclick = startCamera;
+  btnStop.onclick = stopCamera;
+  btnFlip.onclick = () => { usingFront = !usingFront; startCamera(); };
+  btnTorch.onclick = toggleTorch;
+  btnSnap.onclick = snap;
+  btnRec.onclick = toggleRecord;
+  btnGrid.onclick = () => grid.classList.toggle('on');
+  btnClear.onclick = () => { gallery.innerHTML = ''; log('गैलरी साफ़ हो गई।') };
+  btnQR.onclick = toggleQRScan;
+  rngZoom.oninput = e => setZoom(e.target.value);
+  selRes.onchange = startCamera;
+  
+  // Pinch to Zoom
+  let lastDist = 0;
+  const dist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  stage.addEventListener('touchstart', e => { if (e.touches.length === 2) lastDist = dist(e.touches[0], e.touches[1]); }, { passive: true });
+  stage.addEventListener('touchmove', e => {
+    if (e.touches.length === 2 && track) {
+        const cap = track.getCapabilities?.() || {};
+        if (cap.zoom) {
+            const d = dist(e.touches[0], e.touches[1]);
+            const delta = (d - lastDist) / 200;
+            const cur = Number(rngZoom.value);
+            rngZoom.value = Math.min(cap.zoom.max, Math.max(cap.zoom.min, cur + delta));
+            setZoom(rngZoom.value);
+            lastDist = d;
+        }
+    }
+  }, { passive: true });
+  
+  // PWA Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(err => console.error('Service worker registration failed:', err));
+  }
 })();
-</script></body>
+</script>
+</body>
 </html>
