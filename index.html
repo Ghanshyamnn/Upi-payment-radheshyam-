@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Image → Base64 converter — 500KB Target</title>
+  <title>Image → Base64 converter — Custom Target Size</title>
   <style>
     :root{font-family:Inter,system-ui,Segoe UI,Roboto,'Noto Sans','Helvetica Neue',Arial;}
     body{margin:0;background:#0f172a;color:#e6eef8;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:10px}
@@ -20,7 +20,7 @@
     .thumb img{max-width:100%;max-height:100%;display:block}
     .meta{display:flex;flex-direction:column;gap:8px}
     label.row{display:flex;gap:6px;align-items:center;font-size:14px}
-    select,input[type=range]{background:transparent;color:inherit;border:1px solid rgba(255,255,255,.06);padding:6px;border-radius:6px;font-size:14px}
+    select,input[type=range],input[type=number]{background:transparent;color:inherit;border:1px solid rgba(255,255,255,.06);padding:6px;border-radius:6px;font-size:14px}
     textarea{width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.06);background:rgba(2,6,23,.6);color:inherit;font-family:monospace;font-size:12px}
     .btn{background:#0ea5e9;border:none;padding:10px 14px;border-radius:8px;color:#04233a;cursor:pointer;font-size:14px}
     .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.12);color:inherit}
@@ -40,8 +40,8 @@
 <body>
   <div class="card">
     <div class="topbar">
-      <h1>Image → Base64 (Target ~500KB)</h1>
-      <p class="lead">इमेज अपलोड करें — यह टूल आउटपुट Base64 को लगभग 500 KB के आसपास एडजस्ट कर देगा।</p>
+      <h1>Image → Base64 (Custom Target Size)</h1>
+      <p class="lead">इमेज अपलोड करें — यह टूल आउटपुट Base64 को आपकी चुनी हुई साइज (KB) के आसपास एडजस्ट कर देगा।</p>
       <div class="chips">
         <small class="hint">Single-file • Offline • कोई अपलोड नहीं</small>
       </div>
@@ -51,6 +51,10 @@
     <div style="margin-top:4px;color:#9fb0cf;font-size:12px">PNG / JPEG / WebP सपोर्ट — 50MB तक</div>
     <input id="fileInput" type="file" accept="image/*">
   </label>
+</div>
+
+<div class="row">
+  <label>Target Size (KB): <input type="number" id="targetSize" value="500" min="50" step="50"></label>
 </div>
 
 <div class="preview">
@@ -74,7 +78,7 @@
 </div>
 
 <footer>
-  <small>आउटपुट Base64 लगभग 500 KB होगा (±20 KB)। कॉपी या डाउनलोड कर सकते हैं।</small>
+  <small>आप Target Size बदल सकते हैं (50KB से ऊपर)। आउटपुट Base64 उसी के आसपास होगा।</small>
 </footer>
 
   </div>  <script>
@@ -89,24 +93,30 @@
     const copyBtn=document.getElementById('copyBtn');
     const downloadBtn=document.getElementById('downloadBtn');
     const downloadUriBtn=document.getElementById('downloadUriBtn');
+    const targetInput=document.getElementById('targetSize');
 
     function humanFileSize(b){const t=1024;if(Math.abs(b)<t)return b+' B';const u=['KB','MB','GB'];let i=-1;do{b/=t;++i;}while(Math.abs(b)>=t&&i<u.length-1);return b.toFixed(1)+' '+u[i];}
     function showThumb(u){thumb.innerHTML='';const i=document.createElement('img');i.src=u;thumb.appendChild(i);}
 
-    async function handleFile(f){if(!f)return;nameEl.textContent=f.name;sizeEl.textContent=humanFileSize(f.size);mtypeEl.textContent=f.type||'—';const r=new FileReader();r.onload=async e=>{const d=e.target.result;showThumb(d);const im=new Image();im.onload=()=>{dimEl.textContent=im.width+'×'+im.height;};im.src=d;const nd=await makeApprox500KB(d);setOut(nd);};r.readAsDataURL(f);} 
+    async function handleFile(f){if(!f)return;nameEl.textContent=f.name;sizeEl.textContent=humanFileSize(f.size);mtypeEl.textContent=f.type||'—';const r=new FileReader();r.onload=async e=>{const d=e.target.result;showThumb(d);const im=new Image();im.onload=()=>{dimEl.textContent=im.width+'×'+im.height;};im.src=d;const nd=await makeApproxSize(d,parseInt(targetInput.value,10));setOut(nd);};r.readAsDataURL(f);} 
 
     function setOut(d){out.value=d;}
 
-    function reencode(d,m,q){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const x=c.getContext('2d');x.drawImage(i,0,0);try{res(c.toDataURL(m,q));}catch(e){rej(e);}};i.onerror=rej;i.src=d;});}
+    function reencode(d,m,q,newW,newH){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=newW||i.width;c.height=newH||i.height;const x=c.getContext('2d');x.drawImage(i,0,0,c.width,c.height);try{res(c.toDataURL(m,q));}catch(e){rej(e);}};i.onerror=rej;i.src=d;});}
 
-    async function makeApprox500KB(imgSrc){
+    async function makeApproxSize(imgSrc,targetKB){
       let q=0.9; let outData;
-      for(let i=0;i<12;i++){
+      const targetBytes=Math.max(50,targetKB)*1024*0.75; // target binary size
+      let scale=1.0;
+      for(let i=0;i<15;i++){
         outData=await reencode(imgSrc,"image/jpeg",q);
         const size=Math.ceil((outData.length*3)/4);
-        if(Math.abs(size-384000)<20000) break; // target ~375KB binary ≈ 500KB base64
-        if(size>384000) q-=0.05; else q+=0.05;
-        if(q<0.05) q=0.05; if(q>1) q=1;
+        if(Math.abs(size-targetBytes)<20000) break;
+        if(size>targetBytes){
+          q-=0.05; if(q<0.1){q=0.3; scale*=0.8;} 
+        } else {
+          q+=0.05; if(q>1) q=1;
+        }
       }
       return outData;
     }
