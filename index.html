@@ -1,113 +1,128 @@
 <!doctype html>
+
 <html lang="hi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>1MB Base64 Generator (ZIP)</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Image → Base64 converter — 1MB Target</title>
   <style>
-    body {
-      font-family: sans-serif;
-      background: #0f172a;
-      color: #e6eef8;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      gap: 20px;
-      margin: 0;
-      padding: 20px;
+    :root{font-family:Inter,system-ui,Segoe UI,Roboto,'Noto Sans','Helvetica Neue',Arial;}
+    body{margin:0;background:#0f172a;color:#e6eef8;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:10px}
+    .card{width:100%;max-width:640px;background:linear-gradient(180deg,#04102a 0%, #071530 60%);border-radius:12px;padding:16px;box-shadow:0 6px 30px rgba(2,6,23,.6);display:flex;flex-direction:column;gap:12px}
+    h1{margin:0 0 6px;font-size:18px;line-height:1.3}
+    p.lead{margin:0 0 12px;color:#9fb0cf;font-size:14px;line-height:1.4}
+    .controls{display:flex;flex-direction:column;gap:12px;margin-bottom:8px}
+    .drop{border:2px dashed rgba(148,163,184,.15);padding:16px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;min-height:100px;text-align:center}
+    .drop.dragover{border-color:#60a5fa;background:linear-gradient(180deg, rgba(96,165,250,.05), transparent)}
+    input[type=file]{display:none}
+    .preview{display:flex;flex-direction:column;gap:12px}
+    .thumb{width:100%;max-height:220px;border-radius:8px;overflow:hidden;background:#071022;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)}
+    .thumb img{max-width:100%;max-height:100%;display:block}
+    .meta{display:flex;flex-direction:column;gap:8px}
+    label.row{display:flex;gap:6px;align-items:center;font-size:14px}
+    select,input[type=range]{background:transparent;color:inherit;border:1px solid rgba(255,255,255,.06);padding:6px;border-radius:6px;font-size:14px}
+    textarea{width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.06);background:rgba(2,6,23,.6);color:inherit;font-family:monospace;font-size:12px}
+    .btn{background:#0ea5e9;border:none;padding:10px 14px;border-radius:8px;color:#04233a;cursor:pointer;font-size:14px}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.12);color:inherit}
+    .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    small.hint{color:#9fb0cf;font-size:12px}
+    footer{margin-top:8px;color:#9fb0cf;font-size:12px;line-height:1.4}
+    .topbar{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+    .chips{display:flex;gap:6px;flex-wrap:wrap}
+    @media(min-width:600px){
+      .controls{flex-direction:row;justify-content:space-between;align-items:flex-start}
+      .preview{flex-direction:row}
+      .thumb{flex:0 0 220px;height:160px}
+      .meta{flex:1}
     }
-    h1 { font-size: 1.5rem; color:#f1f5f9; }
-    button {
-      padding: 12px 20px;
-      border-radius: 8px;
-      border: none;
-      background: #0ea5e9;
-      color: #04233a;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:hover { background: #38bdf8; }
-    #status { font-size:14px; color:#9fb0cf; white-space:pre-line; }
-    .loader {
-      border: 4px solid #334155;
-      border-top: 4px solid #0ea5e9;
-      border-radius: 50%;
-      width: 24px; height: 24px;
-      animation: spin 1s linear infinite;
-      display:none;
-    }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <h1>1 MB Base64 Generator (ZIP)</h1>
+  <div class="card">
+    <div class="topbar">
+      <h1>Image → Base64 (Target ~1MB)</h1>
+      <p class="lead">इमेज अपलोड करें — यह टूल आउटपुट Base64 को लगभग 1 MB के आसपास एडजस्ट कर देगा।</p>
+      <div class="chips">
+        <small class="hint">Single-file • Offline • कोई अपलोड नहीं</small>
+      </div>
+    </div><div class="controls">
+  <label class="drop" id="dropArea">
+    <strong>इमेज ड्रैग & ड्रॉप करें या टैप करें</strong>
+    <div style="margin-top:4px;color:#9fb0cf;font-size:12px">PNG / JPEG / WebP सपोर्ट — 50MB तक</div>
+    <input id="fileInput" type="file" accept="image/*">
+  </label>
+</div>
 
-  <button id="optA">Option A: Base64 टेक्स्ट = 1MB (.b64 in zip)</button>
-  <button id="optB">Option B: Decoded Binary = 1MB (.bin + .b64 in zip)</button>
+<div class="preview">
+  <div class="thumb" id="thumb">No image</div>
+  <div class="meta">
+    <div class="row" style="justify-content:space-between">
+      <strong id="name">—</strong>
+      <div class="row">
+        <button class="btn" id="copyBtn">Copy</button>
+        <button class="btn ghost" id="downloadBtn">.b64</button>
+        <button class="btn ghost" id="downloadUriBtn">.datauri</button>
+      </div>
+    </div>
+    <div class="row">
+      <small class="hint">Size:</small> <small id="size">—</small>
+      <small class="hint">Dimensions:</small> <small id="dim">—</small>
+      <small class="hint">Type:</small> <small id="mtype">—</small>
+    </div>
+    <textarea id="out" placeholder="Base64 output..." readonly></textarea>
+  </div>
+</div>
 
-  <div class="loader" id="loader"></div>
-  <pre id="status"></pre>
+<footer>
+  <small>आउटपुट Base64 लगभग 1 MB होगा (±20 KB)। कॉपी या डाउनलोड कर सकते हैं।</small>
+</footer>
 
-<script>
-function downloadZip(name, zip){
-  zip.generateAsync({type:"blob"}).then(blob=>{
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(a.href);
-    document.getElementById('loader').style.display = "none";
-  });
-}
+  </div>  <script>
+    const drop=document.getElementById('dropArea');
+    const fileInput=document.getElementById('fileInput');
+    const thumb=document.getElementById('thumb');
+    const nameEl=document.getElementById('name');
+    const sizeEl=document.getElementById('size');
+    const dimEl=document.getElementById('dim');
+    const mtypeEl=document.getElementById('mtype');
+    const out=document.getElementById('out');
+    const copyBtn=document.getElementById('copyBtn');
+    const downloadBtn=document.getElementById('downloadBtn');
+    const downloadUriBtn=document.getElementById('downloadUriBtn');
 
-async function makeBase64FromBlob(blob) {
-  return await new Promise(res=>{
-    const r = new FileReader();
-    r.onload = ()=>res(r.result.split(',')[1]);
-    r.readAsDataURL(blob);
-  });
-}
+    function humanFileSize(b){const t=1024;if(Math.abs(b)<t)return b+' B';const u=['KB','MB','GB'];let i=-1;do{b/=t;++i;}while(Math.abs(b)>=t&&i<u.length-1);return b.toFixed(1)+' '+u[i];}
+    function showThumb(u){thumb.innerHTML='';const i=document.createElement('img');i.src=u;thumb.appendChild(i);}
 
-document.getElementById('optA').onclick = async ()=>{
-  const status = document.getElementById('status');
-  const loader = document.getElementById('loader');
-  loader.style.display = "block";
-  status.textContent = "Option A: Base64 टेक्स्ट (1 MB) बना रहे हैं...";
-  
-  const S = 786430; // decoded bytes → base64 length = 1,048,576
-  const arr = new Uint8Array(S);
-  const blob = new Blob([arr]);
-  const base64 = await makeBase64FromBlob(blob);
+    async function handleFile(f){if(!f)return;nameEl.textContent=f.name;sizeEl.textContent=humanFileSize(f.size);mtypeEl.textContent=f.type||'—';const r=new FileReader();r.onload=async e=>{const d=e.target.result;showThumb(d);const im=new Image();im.onload=()=>{dimEl.textContent=im.width+'×'+im.height;};im.src=d;const nd=await makeApprox1MB(d);setOut(nd);};r.readAsDataURL(f);} 
 
-  status.textContent = "✓ Base64 length: " + base64.length + " bytes\nअब ZIP बना रहे हैं...";
-  const zip = new JSZip();
-  zip.file("one_mb_base64.b64", base64);
-  downloadZip("one_mb_base64.zip", zip);
-  status.textContent += "\nडाउनलोड तैयार!";
-};
+    function setOut(d){out.value=d;}
 
-document.getElementById('optB').onclick = async ()=>{
-  const status = document.getElementById('status');
-  const loader = document.getElementById('loader');
-  loader.style.display = "block";
-  status.textContent = "Option B: 1 MB Binary + Base64 बना रहे हैं...";
-  
-  const S = 1024*1024; // 1MB binary
-  const arr = new Uint8Array(S);
-  const blob = new Blob([arr]);
-  const base64 = await makeBase64FromBlob(blob);
+    function reencode(d,m,q){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const x=c.getContext('2d');x.drawImage(i,0,0);try{res(c.toDataURL(m,q));}catch(e){rej(e);}};i.onerror=rej;i.src=d;});}
 
-  status.textContent = "✓ Binary size: " + S + " bytes\n✓ Base64 length: " + base64.length + " bytes\nअब ZIP बना रहे हैं...";
-  const zip = new JSZip();
-  zip.file("binary_1mb.bin", arr);
-  zip.file("binary_1mb.b64", base64);
-  downloadZip("decoded_1mb.zip", zip);
-  status.textContent += "\nडाउनलोड तैयार!";
-};
-</script>
-</body>
+    async function makeApprox1MB(imgSrc){
+      let q=0.9; let outData;
+      for(let i=0;i<12;i++){
+        outData=await reencode(imgSrc,"image/jpeg",q);
+        const size=Math.ceil((outData.length*3)/4);
+        if(Math.abs(size-786432)<20000) break;
+        if(size>786432) q-=0.05; else q+=0.05;
+        if(q<0.05) q=0.05; if(q>1) q=1;
+      }
+      return outData;
+    }
+
+    ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('dragover');}));
+    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('dragover');}));
+    drop.addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)handleFile(f);});
+    drop.addEventListener('click',()=>fileInput.click());
+    fileInput.addEventListener('change',()=>handleFile(fileInput.files[0]));
+
+    copyBtn.addEventListener('click',async()=>{if(!out.value)return alert('पहले इमेज अपलोड करें');try{await navigator.clipboard.writeText(out.value);copyBtn.textContent='Copied ✓';setTimeout(()=>copyBtn.textContent='Copy',1200);}catch{alert('कॉपी नहीं हुआ, मैन्युअल कॉपी करें।');}});
+
+    downloadBtn.addEventListener('click',()=>{if(!out.value)return alert('पहले इमेज अपलोड करें');const raw=(out.value.indexOf(',')>0)? out.value.substring(out.value.indexOf(',')+1):out.value;const blob=new Blob([raw],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;const baseName=(nameEl.textContent? nameEl.textContent.replace(/\.[^.]+$/,''):'image');a.download=baseName+'.b64';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);});
+
+    downloadUriBtn.addEventListener('click',()=>{if(!out.value)return alert('पहले इमेज अपलोड करें');let payload=out.value;if(payload.indexOf(',')<0){payload='data:image/jpeg;base64,'+out.value;}const blob=new Blob([payload],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;const baseName=(nameEl.textContent? nameEl.textContent.replace(/\.[^.]+$/,''):'image');a.download=baseName+'.datauri.txt';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);});
+
+    window.addEventListener('paste',e=>{const it=e.clipboardData&&e.clipboardData.items;if(!it)return;for(const t of it){if(t.type&&t.type.startsWith('image')){handleFile(t.getAsFile());break;}}});
+  </script></body>
 </html>
