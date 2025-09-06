@@ -1,337 +1,223 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="hi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>📷 कैमरा प्रो (XML सक्षम)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Image → Base64 converter — Mobile Friendly (Full .b64 Download)</title>
   <style>
-    :root{--bg:#0b1020;--fg:#eaf2ff;--muted:#90a0c0;--accent:#5ac8fa;--danger:#ff5e57;--ok:#34c759}
-    *{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Ubuntu,Cantarell,"Helvetica Neue",Arial; overscroll-behavior: none;}
-    .app{display:grid;grid-template-rows:auto 1fr auto;min-height:100%;}
-    header,footer{backdrop-filter: blur(12px);-webkit-backdrop-filter: blur(12px);background:rgba(15,20,40,.7);padding:8px 12px;border-bottom:1px solid #1c223a}
-    footer{border-top:1px solid #1c223a;border-bottom:none;}
-    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    button,select,input[type="range"]{appearance:none;-webkit-appearance:none;border:none;padding:10px 12px;border-radius:12px;background:#18203a;color:var(--fg);font-weight:600;cursor:pointer}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    .primary{background:linear-gradient(180deg,#2c6dfd,#234fe0)}.danger{background:linear-gradient(180deg,#ff6a6a,#e64545)}.ok{background:linear-gradient(180deg,#36d27a,#29b365)}.ghost{background:transparent;border:1px solid #2a3558}.pill{border-radius:999px;padding:8px 14px}
-    .stage{position:relative;background:#000;display:grid;place-items:center;overflow:hidden}
-    video{max-width:100%;max-height:100vh;width:100%;height:100%;object-fit:contain;background:#000}
-    canvas{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
-    .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}.flash.show{opacity:0.85;animation:flash .25s ease-out forwards}
-    @keyframes flash{to{opacity:0}}
-    .overlay{position:absolute;inset:0;pointer-events:none}
-    .grid{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0,transparent calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% + .5px)),repeating-linear-gradient(90deg,transparent 0,transparent calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% - .5px),rgba(255,255,255,.15) calc(33.333% + .5px));opacity:.75;display:none}.grid.on{display:block}
-    .toolbar{position:absolute;inset-inline:0;bottom:16px;display:flex;justify-content:center;align-items:center;gap:12px;pointer-events:auto}
-    .tb-btn{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-weight:900}
-    .gallery{display:flex;gap:8px;overflow:auto;padding:8px}
-    .thumb{position:relative; width:72px;height:72px;border-radius:10px;overflow:hidden;border:1px solid #2a3558;flex:0 0 auto}.thumb img, .thumb video{width:100%;height:100%;object-fit:cover;display:block}
-    .thumb .actions{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;gap:4px;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}.thumb:hover .actions{opacity:1}
-    .thumb .actions a, .thumb .actions button{color:white;text-decoration:none;padding:4px;background:rgba(0,0,0,.5);border-radius:50%;border:none;cursor:pointer;font-size:18px;width:30px;height:30px;display:grid;place-items:center;}
-    .panel{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.hint{color:var(--muted);font-size:13px}.error{color:#ffd5d2}.spacer{flex:1}
-    #recTimer{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:rgba(255,94,87,.8);color:white;padding:4px 8px;border-radius:8px;font-weight:bold;display:none;}
+    :root{font-family:Inter,system-ui,Segoe UI,Roboto,'Noto Sans','Helvetica Neue',Arial;}
+    body{margin:0;background:#0f172a;color:#e6eef8;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:10px}
+    .card{width:100%;max-width:640px;background:linear-gradient(180deg,#04102a 0%, #071530 60%);border-radius:12px;padding:16px;box-shadow:0 6px 30px rgba(2,6,23,.6);display:flex;flex-direction:column;gap:12px}
+    h1{margin:0 0 6px;font-size:18px;line-height:1.3}
+    p.lead{margin:0 0 12px;color:#9fb0cf;font-size:14px;line-height:1.4}
+    .controls{display:flex;flex-direction:column;gap:12px;margin-bottom:8px}
+    .drop{border:2px dashed rgba(148,163,184,.15);padding:16px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;min-height:100px;text-align:center}
+    .drop.dragover{border-color:#60a5fa;background:linear-gradient(180deg, rgba(96,165,250,.05), transparent)}
+    input[type=file]{display:none}
+    .preview{display:flex;flex-direction:column;gap:12px}
+    .thumb{width:100%;max-height:220px;border-radius:8px;overflow:hidden;background:#071022;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)}
+    .thumb img{max-width:100%;max-height:100%;display:block}
+    .meta{display:flex;flex-direction:column;gap:8px}
+    label.row{display:flex;gap:6px;align-items:center;font-size:14px}
+    select,input[type=range]{background:transparent;color:inherit;border:1px solid rgba(255,255,255,.06);padding:6px;border-radius:6px;font-size:14px}
+    textarea{width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.06);background:rgba(2,6,23,.6);color:inherit;font-family:monospace;font-size:12px}
+    .btn{background:#0ea5e9;border:none;padding:10px 14px;border-radius:8px;color:#04233a;cursor:pointer;font-size:14px}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.12);color:inherit}
+    .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    small.hint{color:#9fb0cf;font-size:12px}
+    footer{margin-top:8px;color:#9fb0cf;font-size:12px;line-height:1.4}
+    .topbar{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+    .chips{display:flex;gap:6px;flex-wrap:wrap}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    @media(min-width:600px){
+      .controls{flex-direction:row;justify-content:space-between;align-items:flex-start}
+      .preview{flex-direction:row}
+      .thumb{flex:0 0 220px;height:160px}
+      .meta{flex:1}
+    }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <div class="row">
-        <strong>📷 कैमरा प्रो</strong><span class="spacer"></span>
-        <input type="file" id="xmlUpload" accept=".xml,application/xml" style="display:none;">
-        <button id="btnUploadXml" class="ghost pill" title="XML सेटिंग्स लोड करें">⚙️ XML</button>
-        <button id="btnQR" class="ghost pill" title="QR स्कैनर">🔲</button>
-        <button id="btnGrid" class="ghost pill" title="ग्रिड">#️⃣</button>
-        <label class="ghost pill" title="रिज़ॉल्यूशन">🔧<select id="selRes"><option value="1920x1080" selected>1080p</option><option value="1280x720">720p</option><option value="3840x2160">4K</option><option value="640x480">480p</option></select></label>
-        <button id="btnStart" class="primary pill">शुरू करें</button><button id="btnStop" class="danger pill" disabled>बंद करें</button>
+  <div class="card">
+    <div class="topbar">
+      <h1>Image → Base64 (Offline)</h1>
+      <p class="lead">इमेज अपलोड करें — देखें और Base64 / data: URI कॉपी/डाउनलोड करें। अब Download ऑप्शन्स पूरी तरह वर्किंग — raw .b64, data-URI और reconstructed image।</p>
+      <div class="chips">
+        <small class="hint">Single-file • Offline • कोई अपलोड नहीं</small>
       </div>
-      <div class="row" style="margin-top:6px">
-        <button id="btnFlip" class="ghost pill" title="कैमरा बदलें">🔄</button>
-        <button id="btnTorch" class="ghost pill" title="टॉर्च">🔦</button>
-        <label class="ghost pill" title="ज़ूम">🔍 <input id="rngZoom" type="range" min="1" max="1" step="0.1" value="1"></label>
-        <span id="capabilities" class="hint"></span>
-      </div>
-    </header>
-    <main class="stage" id="stage">
-      <video id="vid" playsinline autoplay muted></video>
-      <div class="overlay"><div id="grid" class="grid"></div><div id="flash" class="flash"></div><div id="recTimer">00:00</div></div>
-      <canvas id="canv"></canvas>
-    </main>
-    <div class="toolbar">
-      <select id="selTimer" class="ghost pill" style="pointer-events:auto">
-        <option value="0" selected>⏱️ ऑफ</option><option value="3">3s</option><option value="5">5s</option>
+    </div><div class="controls">
+  <label class="drop" id="dropArea">
+    <strong>इमेज ड्रैग & ड्रॉप करें या टैप करें</strong>
+    <div style="margin-top:4px;color:#9fb0cf;font-size:12px">PNG / JPEG / GIF / WebP सपोर्ट — 50MB तक</div>
+    <input id="fileInput" type="file" accept="image/*">
+  </label>
+
+  <div class="row">
+    <label class="row">Output:
+      <select id="outType">
+        <option value="original">Original</option>
+        <option value="image/png">PNG</option>
+        <option value="image/jpeg">JPEG</option>
+        <option value="image/webp">WebP</option>
       </select>
-      <button id="btnSnap" class="tb-btn ok" title="फोटो लें">◉</button>
-      <button id="btnRec" class="tb-btn primary" title="वीडियो रिकॉर्ड">⏺</button>
-    </div>
-    <footer>
-      <div class="panel"><strong>📁 गैलरी</strong><span class="spacer"></span><button id="btnClear" class="ghost pill" title="गैलरी साफ़ करें">🗑️</button></div>
-      <div id="gallery" class="gallery"></div>
-      <div id="msg" class="hint"></div>
-    </footer>
+    </label>
+    <label class="row">Quality:
+      <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.92">
+    </label>
   </div>
-<script>
-(async function(){
-  // Element Refs
-  const $ = id => document.getElementById(id);
-  const vid = $('vid'), canv = $('canv'), msg = $('msg'), flash = $('flash'), grid = $('grid'), gallery = $('gallery'), stage = $('stage');
-  const btnStart = $('btnStart'), btnStop = $('btnStop'), btnFlip = $('btnFlip'), btnTorch = $('btnTorch'), btnSnap = $('btnSnap'), btnRec = $('btnRec'), btnGrid = $('btnGrid'), btnClear = $('btnClear'), btnQR = $('btnQR');
-  const selRes = $('selRes'), selTimer = $('selTimer'), rngZoom = $('rngZoom');
-  const btnUploadXml = $('btnUploadXml'), xmlUpload = $('xmlUpload');
-  const capabilitiesEl = $('capabilities'), recTimerEl = $('recTimer');
-  const ctx = canv.getContext('2d');
+</div>
 
-  // State
-  let stream=null, track=null, usingFront=false, mediaRec=null, chunks=[], recInterval=null, qrScanner=null, isScanningQR=false;
+<div class="preview">
+  <div class="thumb" id="thumb">No image</div>
+  <div class="meta">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <strong id="name">—</strong>
+      <div class="actions">
+        <button class="btn" id="copyBtn">Copy</button>
+        <button class="btn ghost" id="downloadB64">Download .b64</button>
+        <button class="btn ghost" id="downloadDataURI">Download data:URI</button>
+        <button class="btn" id="downloadImage">Download Image</button>
+      </div>
+    </div>
+    <div class="row">
+      <small class="hint">Size:</small> <small id="size">—</small>
+      <small class="hint">Dimensions:</small> <small id="dim">—</small>
+      <small class="hint">Type:</small> <small id="mtype">—</small>
+    </div>
+    <label class="row"><input type="checkbox" id="includePrefix" checked> data: prefix शामिल करें</label>
+    <textarea id="out" placeholder="Base64 output..." readonly></textarea>
+  </div>
+</div>
 
-  // Logging
-  const log = t => msg.textContent = t;
-  const error = e => { console.error(e); msg.innerHTML = `<span class="error">⚠️ ${e.name || 'Error'}: ${e.message}</span>`; }
-  
-  // Camera Control
-  const startCamera = async () => {
-    try {
-      if (isScanningQR) await toggleQRScan();
-      stopCamera();
-      const [w, h] = selRes.value.split('x').map(Number);
-      const constraints = { audio: false, video: { width: { ideal: w }, height: { ideal: h }, facingMode: usingFront ? 'user' : 'environment' } };
-      log('📢 कैमरा अनुमति माँगी जा रही है…');
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-      vid.srcObject = stream;
-      track = stream.getVideoTracks()[0];
-      setupCapabilities();
-      setControlsState(true);
-      log('✅ कैमरा चालू है');
-    } catch(e) { error(e); }
-  };
+<footer>
+  <small>Download .b64 = raw Base64 (no prefix). Download data:URI = text file with full data:[mime];base64,... . Download Image = reconstructed binary image from Base64 (original or re-encoded) — सब लोकली होता है।</small>
+</footer>
 
-  const stopCamera = () => {
-    if (stream) stream.getTracks().forEach(t => t.stop());
-    stream = track = null;
-    setControlsState(false);
-  };
-  
-  const setControlsState = (enabled) => {
-    [btnStop, btnSnap, btnRec, btnFlip, btnTorch, rngZoom, btnQR, btnUploadXml].forEach(el => el.disabled = !enabled);
-    btnStart.disabled = enabled;
-    if (!enabled) { btnUploadXml.disabled = false; } // XML upload button should always be available initially
-  };
-  
-  // Features
-  const setupCapabilities = () => {
-    const cap = track?.getCapabilities?.() || {};
-    const settings = track?.getSettings?.() || {};
-    rngZoom.min = cap.zoom?.min || 1; rngZoom.max = cap.zoom?.max || 1; rngZoom.step = cap.zoom?.step || 0.1; rngZoom.value = settings.zoom || 1;
-    rngZoom.disabled = !cap.zoom; btnTorch.disabled = !cap.torch;
-    let capText = `${settings.width||'-'}×${settings.height||'-'}`;
-    if (cap.torch) capText += ' · 🔦 टॉर्च';
-    if (cap.zoom) capText += ' · 🔍 ज़ूम';
-    capabilitiesEl.textContent = capText;
-  };
-  
-  const snap = async () => {
-    try {
-      const delay = Number(selTimer.value);
-      if(delay > 0) { log(`${delay}s में फोटो ली जाएगी…`); await new Promise(r => setTimeout(r, delay*1000)); }
-      if (!stream) throw new Error('कैमरा चालू नहीं है');
-      canv.width = vid.videoWidth; canv.height = vid.videoHeight;
-      ctx.drawImage(vid, 0, 0, canv.width, canv.height);
-      flash.classList.remove('show'); void flash.offsetWidth; flash.classList.add('show');
-      const blob = await new Promise(r => canv.toBlob(r, 'image/jpeg', 0.9));
-      const name = `photo_${new Date().toISOString().replace(/[:.]/g,'-')}.jpg`;
-      const img = new Image(); img.src = URL.createObjectURL(blob);
-      addToGallery(img, name, blob);
-      log('📷 फोटो सेव हो गई।');
-    } catch(e) { error(e); }
-  };
-  
-  const toggleRecord = () => {
-    try {
-      if (!stream) throw new Error('कैमरा चालू नहीं है');
-      if (mediaRec && mediaRec.state === 'recording') {
-        mediaRec.stop();
-        btnRec.textContent = '⏺'; btnRec.classList.remove('danger');
-      } else {
-        const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
-        mediaRec = new MediaRecorder(stream, { mimeType: mime });
-        chunks = [];
-        mediaRec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-        mediaRec.onstop = () => {
-          clearInterval(recInterval); recTimerEl.style.display = 'none';
-          const blob = new Blob(chunks, { type: mediaRec.mimeType });
-          const v = document.createElement('video'); v.src = URL.createObjectURL(blob);
-          v.controls = true; v.loop = true; v.muted = true;
-          const name = `video_${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
-          addToGallery(v, name, blob);
-          log('🎞️ वीडियो सेव हो गया।');
-        };
-        mediaRec.start();
-        btnRec.textContent = '⏹'; btnRec.classList.add('danger');
-        let startTime = Date.now();
-        recTimerEl.style.display = 'block';
-        recInterval = setInterval(() => {
-            const seconds = Math.floor((Date.now() - startTime) / 1000);
-            recTimerEl.textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-        }, 1000);
-        log('🔴 रिकॉर्डिंग चालू…');
-      }
-    } catch (e) { error(e); }
-  };
+  </div>  <script>
+    const drop=document.getElementById('dropArea');
+    const fileInput=document.getElementById('fileInput');
+    const thumb=document.getElementById('thumb');
+    const nameEl=document.getElementById('name');
+    const sizeEl=document.getElementById('size');
+    const dimEl=document.getElementById('dim');
+    const mtypeEl=document.getElementById('mtype');
+    const out=document.getElementById('out');
+    const copyBtn=document.getElementById('copyBtn');
+    const downloadB64=document.getElementById('downloadB64');
+    const downloadDataURI=document.getElementById('downloadDataURI');
+    const downloadImage=document.getElementById('downloadImage');
+    const outType=document.getElementById('outType');
+    const quality=document.getElementById('quality');
+    const includePrefix=document.getElementById('includePrefix');
 
-  const toggleTorch = async () => { try { await track.applyConstraints({ advanced: [{ torch: !track.getSettings().torch }] }); } catch(e) { error(e); } };
-  const setZoom = async (v) => { try { await track.applyConstraints({ advanced: [{ zoom: v }] }); log(`🔍 ज़ूम: ${Number(v).toFixed(1)}×`);} catch(e) { error(e); } };
-  
-  const toggleQRScan = async () => {
-    if(!('BarcodeDetector' in window)) return error(new Error('QR स्कैनर इस ब्राउज़र पर सपोर्टेड नहीं है।'));
-    isScanningQR = !isScanningQR;
-    btnQR.classList.toggle('primary', isScanningQR);
-    if(isScanningQR) {
-        if (!stream) await startCamera();
-        qrScanner = new BarcodeDetector({ formats: ['qr_code', 'ean_13', 'codabar', 'code_128'] });
-        scanQRCodes();
-        log('🔳 QR स्कैनर चालू है...');
-    } else {
-        log('✅ कैमरा मोड');
-        ctx.clearRect(0,0,canv.width,canv.height);
-    }
-  };
+    function humanFileSize(b){const t=1024;if(Math.abs(b)<t)return b+' B';const u=['KB','MB','GB'];let i=-1;do{b/=t;++i;}while(Math.abs(b)>=t&&i<u.length-1);return b.toFixed(1)+' '+u[i];}
+    function showThumb(u){thumb.innerHTML='';const i=document.createElement('img');i.src=u;i.alt='preview';thumb.appendChild(i);}
 
-  const scanQRCodes = async () => {
-    if (!isScanningQR || !qrScanner) return;
-    try {
-        const barcodes = await qrScanner.detect(vid);
-        canv.width = vid.videoWidth; canv.height = vid.videoHeight;
-        ctx.clearRect(0,0,canv.width,canv.height);
-        if (barcodes.length > 0) {
-            barcodes.forEach(barcode => {
-                log(`स्कैन हुआ: ${barcode.rawValue}`);
-                const { x, y, width, height } = barcode.boundingBox;
-                ctx.strokeStyle = '#34c759'; ctx.lineWidth = 4;
-                ctx.strokeRect(x, y, width, height);
-            });
+    async function handleFile(f){if(!f) return;nameEl.textContent=f.name;sizeEl.textContent=humanFileSize(f.size);mtypeEl.textContent=f.type||'—';const r=new FileReader();r.onload=async e=>{const d=e.target.result;showThumb(d);const im=new Image();im.onload=()=>{dimEl.textContent=im.width+'×'+im.height;};im.src=d;if(outType.value==='original'){setOut(d);}else{try{const nd=await reencode(d,outType.value,parseFloat(quality.value));setOut(nd);}catch(err){console.error(err);alert('री-एन्कोडिंग में त्रुटि: '+err.message);} }};r.readAsDataURL(f);} 
+    function setOut(d){if(includePrefix.checked) out.value=d; else out.value=d.substring(d.indexOf(',')+1);} 
+    function reencode(d,m,q){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const x=c.getContext('2d');x.drawImage(i,0,0);try{res(c.toDataURL(m,q));}catch(e){rej(e);}};i.onerror=rej;i.src=d;});}
+
+    // Utility: create blob from base64 (raw or data URI)
+    function base64ToBlob(b64Data, contentType='application/octet-stream'){
+      // b64Data = raw base64 string (no prefix)
+      const sliceSize = 1024;
+      const byteCharacters = atob(b64Data);
+      const bytesLength = byteCharacters.length;
+      const slicesCount = Math.ceil(bytesLength / sliceSize);
+      const byteArrays = new Array(slicesCount);
+
+      for (let sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
+        const begin = sliceIndex * sliceSize;
+        const end = Math.min(begin + sliceSize, bytesLength);
+
+        const bytes = new Array(end - begin);
+        for (let offset = begin, i = 0; offset < end; ++i, ++offset) {
+          bytes[i] = byteCharacters.charCodeAt(offset);
         }
-    } catch (e) { error(e); }
-    requestAnimationFrame(scanQRCodes);
-  };
-  
-  // XML Upload Handling
-  const handleXmlUpload = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const xmlText = e.target.result;
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
-        if (xmlDoc.querySelector('parsererror')) throw new Error('अमान्य XML फ़ाइल।');
-        applySettingsFromXml(xmlDoc);
-      } catch (err) { error(err); }
-    };
-    reader.readAsText(file);
-    xmlUpload.value = ''; // Reset file input
-  };
+        byteArrays[sliceIndex] = new Uint8Array(bytes);
+      }
+      return new Blob(byteArrays, { type: contentType });
+    }
 
-  const applySettingsFromXml = (xmlDoc) => {
-    const resolution = xmlDoc.querySelector('resolution')?.textContent;
-    const zoom = xmlDoc.querySelector('zoom')?.textContent;
-    const gridOn = xmlDoc.querySelector('grid')?.textContent === 'on';
-
-    let restartRequired = false;
-    log('⚙️ XML सेटिंग्स लागू की जा रही हैं...');
-
-    if (resolution && selRes.querySelector(`option[value="${resolution}"]`)) {
-      if(selRes.value !== resolution) {
-          selRes.value = resolution;
-          restartRequired = true;
-          log(`XML से रिज़ॉल्यूशन सेट: ${resolution}`);
+    function getCurrentBase64(){
+      if(!out.value) return null;
+      const v = out.value;
+      if(v.indexOf(',')>0){
+        const prefix = v.substring(0, v.indexOf(',') );
+        const raw = v.substring(v.indexOf(',')+1);
+        const m = (prefix.match(/^data:([^;]+);base64$/) || [])[1] || 'application/octet-stream';
+        return { raw, mime: m, prefix };
+      } else {
+        return { raw: v, mime: 'application/octet-stream', prefix: null };
       }
     }
-    
-    if (grid.classList.contains('on') !== gridOn) {
-        grid.classList.toggle('on', gridOn);
-        log(`XML से ग्रिड सेट: ${gridOn ? 'On' : 'Off'}`);
+
+    function downloadBlob(blob, filename){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     }
 
-    if (restartRequired) {
-        startCamera().then(() => applyDelayedSettings(zoom));
-    } else {
-        applyDelayedSettings(zoom);
-    }
-  };
-  
-  const applyDelayedSettings = (zoom) => {
-      // Zoom needs to be applied after the camera stream is fully active
-      setTimeout(() => {
-          if (zoom && track && track.getCapabilities().zoom) {
-              const zoomValue = parseFloat(zoom);
-              if (zoomValue >= rngZoom.min && zoomValue <= rngZoom.max) {
-                  rngZoom.value = zoomValue;
-                  setZoom(zoomValue);
-              }
-          }
-      }, 500); // 500ms delay to ensure track is ready
-  }
+    // Button handlers
+    copyBtn.addEventListener('click', async ()=>{
+      if(!out.value) return alert('पहले इमेज अपलोड करें');
+      try{await navigator.clipboard.writeText(out.value);copyBtn.textContent='Copied ✓';setTimeout(()=>copyBtn.textContent='Copy',1200);}catch{alert('कॉपी नहीं हुआ — मैन्युअल कॉपी करें।');}
+    });
 
-  // Gallery
-  const addToGallery = (el, filename, blob) => {
-    const thumb = document.createElement('div');
-    thumb.className = 'thumb';
-    const actions = document.createElement('div');
-    actions.className = 'actions';
-    const dl = document.createElement('a');
-    dl.href = el.src; dl.download = filename; dl.textContent = '📥'; dl.title = 'डाउनलोड';
-    actions.appendChild(dl);
+    downloadB64.addEventListener('click', ()=>{
+      const cur = getCurrentBase64();
+      if(!cur) return alert('पहले इमेज अपलोड करें');
+      // save raw base64 (no prefix)
+      const filename = (nameEl.textContent?nameEl.textContent.replace(/\.[^.]+$/,''):'image') + '.b64';
+      const blob = new Blob([cur.raw], { type: 'text/plain' });
+      downloadBlob(blob, filename);
+    });
 
-    if (navigator.share) {
-        const shareBtn = document.createElement('button');
-        shareBtn.textContent = '📤'; shareBtn.title = 'शेयर';
-        shareBtn.onclick = () => shareMedia(filename, blob);
-        actions.appendChild(shareBtn);
-    }
-    
-    thumb.appendChild(el);
-    thumb.appendChild(actions);
-    gallery.prepend(thumb);
-  };
-  
-  const shareMedia = async (filename, blob) => {
-      try {
-          const file = new File([blob], filename, { type: blob.type });
-          await navigator.share({ files: [file], title: filename });
-          log('✅ सफलतापूर्वक शेयर किया गया।');
-      } catch(e) { if(e.name !== 'AbortError') error(e); }
-  };
-  
-  // Event Listeners
-  btnStart.onclick = startCamera;
-  btnStop.onclick = stopCamera;
-  btnFlip.onclick = () => { usingFront = !usingFront; startCamera(); };
-  btnTorch.onclick = toggleTorch;
-  btnSnap.onclick = snap;
-  btnRec.onclick = toggleRecord;
-  btnGrid.onclick = () => grid.classList.toggle('on');
-  btnClear.onclick = () => { gallery.innerHTML = ''; log('गैलरी साफ़ हो गई।') };
-  btnQR.onclick = toggleQRScan;
-  rngZoom.oninput = e => setZoom(e.target.value);
-  selRes.onchange = startCamera;
-  btnUploadXml.onclick = () => xmlUpload.click();
-  xmlUpload.onchange = handleXmlUpload;
+    downloadDataURI.addEventListener('click', ()=>{
+      const cur = getCurrentBase64();
+      if(!cur) return alert('पहले इमेज अपलोड करें');
+      // save full data URI (prefix + raw)
+      const datauri = cur.prefix ? (cur.prefix + ',' + cur.raw) : ('data:' + cur.mime + ';base64,' + cur.raw);
+      const filename = (nameEl.textContent?nameEl.textContent.replace(/\.[^.]+$/,''):'image') + '.datauri.txt';
+      const blob = new Blob([datauri], { type: 'text/plain' });
+      downloadBlob(blob, filename);
+    });
 
-  // Pinch to Zoom
-  let lastDist = 0;
-  const dist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-  stage.addEventListener('touchstart', e => { if (e.touches.length === 2) lastDist = dist(e.touches[0], e.touches[1]); }, { passive: true });
-  stage.addEventListener('touchmove', e => {
-    if (e.touches.length === 2 && track && track.getCapabilities().zoom) {
-        const d = dist(e.touches[0], e.touches[1]);
-        const delta = (d - lastDist) / 200;
-        const cur = Number(rngZoom.value);
-        rngZoom.value = Math.min(rngZoom.max, Math.max(rngZoom.min, cur + delta));
-        setZoom(rngZoom.value);
-        lastDist = d;
-    }
-  }, { passive: true });
-  
-})();
-</script>
-</body>
+    downloadImage.addEventListener('click', ()=>{
+      const cur = getCurrentBase64();
+      if(!cur) return alert('पहले इमेज अपलोड करें');
+      try{
+        const blob = base64ToBlob(cur.raw, cur.mime);
+        // use original filename extension if present, otherwise use mime to pick extension
+        let orig = nameEl.textContent || 'image';
+        if(!/\.[^.]+$/.test(orig)){
+          const ext = (cur.mime.split('/')[1] || 'bin');
+          orig += '.'+ext.split('+')[0];
+        }
+        downloadBlob(blob, orig);
+      }catch(err){
+        console.error(err);alert('इमेज डाउनलोड करते समय त्रुटि: '+err.message);
+      }
+    });
+
+    // drag & drop / file input
+    ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('dragover');}));
+    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('dragover');}));
+    drop.addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)handleFile(f);});
+    drop.addEventListener('click',()=>fileInput.click());
+    fileInput.addEventListener('change',()=>handleFile(fileInput.files[0]));
+
+    outType.addEventListener('change',()=>{const i=thumb.querySelector('img');if(i){if(outType.value==='original'){setOut(i.src);}else{reencode(i.src,outType.value,parseFloat(quality.value)).then(setOut).catch(()=>{});}}});
+    quality.addEventListener('input',()=>{if(outType.value!=='original'){const i=thumb.querySelector('img');if(i)reencode(i.src,outType.value,parseFloat(quality.value)).then(setOut).catch(()=>{});}});
+    includePrefix.addEventListener('change',()=>{if(!out.value) return; if(includePrefix.checked){const i=thumb.querySelector('img'); if(i&&i.src&&i.src.indexOf(',')>0) out.value = i.src; } else { const c = out.value.indexOf(','); if(c>=0) out.value = out.value.substring(c+1); }});
+
+    window.addEventListener('paste',e=>{const it=e.clipboardData&&e.clipboardData.items;if(!it) return; for(const t of it){ if(t.type&&t.type.startsWith('image')){ handleFile(t.getAsFile()); break; } }});
+
+  </script></body>
 </html>
