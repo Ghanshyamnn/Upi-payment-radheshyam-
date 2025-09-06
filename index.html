@@ -4,135 +4,111 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Image → Base64 converter — Custom Target Size</title>
+  <title>Image → Base64 converter — Resize + Target Size</title>
   <style>
-    :root{font-family:Inter,system-ui,Segoe UI,Roboto,'Noto Sans','Helvetica Neue',Arial;}
-    body{margin:0;background:#0f172a;color:#e6eef8;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:10px}
-    .card{width:100%;max-width:640px;background:linear-gradient(180deg,#04102a 0%, #071530 60%);border-radius:12px;padding:16px;box-shadow:0 6px 30px rgba(2,6,23,.6);display:flex;flex-direction:column;gap:12px}
-    h1{margin:0 0 6px;font-size:18px;line-height:1.3}
-    p.lead{margin:0 0 12px;color:#9fb0cf;font-size:14px;line-height:1.4}
-    .controls{display:flex;flex-direction:column;gap:12px;margin-bottom:8px}
-    .drop{border:2px dashed rgba(148,163,184,.15);padding:16px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;min-height:100px;text-align:center}
-    .drop.dragover{border-color:#60a5fa;background:linear-gradient(180deg, rgba(96,165,250,.05), transparent)}
+    body{margin:0;background:#0f172a;color:#e6eef8;font-family:system-ui,Segoe UI,Roboto,'Noto Sans','Helvetica Neue',Arial;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:10px}
+    .card{width:100%;max-width:680px;background:#071530;border-radius:12px;padding:16px;box-shadow:0 6px 30px rgba(2,6,23,.6);display:flex;flex-direction:column;gap:12px}
+    h1{margin:0;font-size:18px}
+    p{margin:0;font-size:14px;color:#9fb0cf}
+    .drop{border:2px dashed rgba(148,163,184,.25);padding:20px;border-radius:10px;text-align:center;cursor:pointer}
+    .drop.dragover{border-color:#38bdf8;background:rgba(56,189,248,.05)}
     input[type=file]{display:none}
-    .preview{display:flex;flex-direction:column;gap:12px}
-    .thumb{width:100%;max-height:220px;border-radius:8px;overflow:hidden;background:#071022;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)}
-    .thumb img{max-width:100%;max-height:100%;display:block}
-    .meta{display:flex;flex-direction:column;gap:8px}
-    label.row{display:flex;gap:6px;align-items:center;font-size:14px}
-    select,input[type=range],input[type=number]{background:transparent;color:inherit;border:1px solid rgba(255,255,255,.06);padding:6px;border-radius:6px;font-size:14px}
-    textarea{width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.06);background:rgba(2,6,23,.6);color:inherit;font-family:monospace;font-size:12px}
-    .btn{background:#0ea5e9;border:none;padding:10px 14px;border-radius:8px;color:#04233a;cursor:pointer;font-size:14px}
-    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.12);color:inherit}
+    .controls{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
+    label{font-size:14px;display:flex;gap:6px;align-items:center}
+    input[type=number],select{background:transparent;color:inherit;border:1px solid rgba(255,255,255,.2);padding:4px 6px;border-radius:6px;font-size:14px}
+    .preview{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+    .thumb{background:#0002;border:1px solid rgba(255,255,255,.1);border-radius:8px;min-height:120px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .thumb img{max-width:100%;max-height:200px}
+    textarea{width:100%;min-height:120px;background:#020617;border:1px solid rgba(255,255,255,.1);color:inherit;border-radius:8px;padding:8px;font-size:12px;font-family:monospace}
     .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-    small.hint{color:#9fb0cf;font-size:12px}
-    footer{margin-top:8px;color:#9fb0cf;font-size:12px;line-height:1.4}
-    .topbar{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
-    .chips{display:flex;gap:6px;flex-wrap:wrap}
-    @media(min-width:600px){
-      .controls{flex-direction:row;justify-content:space-between;align-items:flex-start}
-      .preview{flex-direction:row}
-      .thumb{flex:0 0 220px;height:160px}
-      .meta{flex:1}
-    }
+    .btn{background:#0ea5e9;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:14px;color:#021520}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.2);color:inherit}
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="topbar">
-      <h1>Image → Base64 (Custom Target Size)</h1>
-      <p class="lead">इमेज अपलोड करें — यह टूल आउटपुट Base64 को आपकी चुनी हुई साइज (KB) के आसपास एडजस्ट कर देगा।</p>
-      <div class="chips">
-        <small class="hint">Single-file • Offline • कोई अपलोड नहीं</small>
-      </div>
-    </div><div class="controls">
-  <label class="drop" id="dropArea">
-    <strong>इमेज ड्रैग & ड्रॉप करें या टैप करें</strong>
-    <div style="margin-top:4px;color:#9fb0cf;font-size:12px">PNG / JPEG / WebP सपोर्ट — 50MB तक</div>
-    <input id="fileInput" type="file" accept="image/*">
-  </label>
-</div>
+    <h1>Image → Base64 (Resize + Target)</h1>
+    <p>इमेज अपलोड करें और Target Size (KB) + Resize % सेट करें।</p><label class="drop" id="dropArea">इमेज ड्रैग & ड्रॉप करें या टैप करें<input id="fileInput" type="file" accept="image/*"></label>
 
-<div class="row">
+<div class="controls">
   <label>Target Size (KB): <input type="number" id="targetSize" value="500" min="50" step="50"></label>
+  <label>Resize %:
+    <select id="resizePercent">
+      <option value="100">100%</option>
+      <option value="75">75%</option>
+      <option value="50">50%</option>
+      <option value="25">25%</option>
+      <option value="10">10%</option>
+    </select>
+  </label>
 </div>
 
 <div class="preview">
   <div class="thumb" id="thumb">No image</div>
-  <div class="meta">
-    <div class="row" style="justify-content:space-between">
-      <strong id="name">—</strong>
-      <div class="row">
-        <button class="btn" id="copyBtn">Copy</button>
-        <button class="btn ghost" id="downloadBtn">.b64</button>
-        <button class="btn ghost" id="downloadUriBtn">.datauri</button>
-      </div>
-    </div>
-    <div class="row">
-      <small class="hint">Size:</small> <small id="size">—</small>
-      <small class="hint">Dimensions:</small> <small id="dim">—</small>
-      <small class="hint">Type:</small> <small id="mtype">—</small>
-    </div>
-    <textarea id="out" placeholder="Base64 output..." readonly></textarea>
+  <div class="row">
+    <strong id="name">—</strong>
+    <small id="dim">—</small>
+    <small id="mtype">—</small>
+    <small id="size">—</small>
   </div>
+  <div class="row">
+    <button class="btn" id="copyBtn">Copy</button>
+    <button class="btn ghost" id="downloadBtn">.b64</button>
+    <button class="btn ghost" id="downloadUriBtn">.datauri</button>
+  </div>
+  <textarea id="out" placeholder="Base64 output..." readonly></textarea>
 </div>
 
-<footer>
-  <small>आप Target Size बदल सकते हैं (50KB से ऊपर)। आउटपुट Base64 उसी के आसपास होगा।</small>
-</footer>
+  </div><script>
+const drop=document.getElementById('dropArea');
+const fileInput=document.getElementById('fileInput');
+const thumb=document.getElementById('thumb');
+const nameEl=document.getElementById('name');
+const sizeEl=document.getElementById('size');
+const dimEl=document.getElementById('dim');
+const mtypeEl=document.getElementById('mtype');
+const out=document.getElementById('out');
+const copyBtn=document.getElementById('copyBtn');
+const downloadBtn=document.getElementById('downloadBtn');
+const downloadUriBtn=document.getElementById('downloadUriBtn');
+const targetInput=document.getElementById('targetSize');
+const resizeSelect=document.getElementById('resizePercent');
 
-  </div>  <script>
-    const drop=document.getElementById('dropArea');
-    const fileInput=document.getElementById('fileInput');
-    const thumb=document.getElementById('thumb');
-    const nameEl=document.getElementById('name');
-    const sizeEl=document.getElementById('size');
-    const dimEl=document.getElementById('dim');
-    const mtypeEl=document.getElementById('mtype');
-    const out=document.getElementById('out');
-    const copyBtn=document.getElementById('copyBtn');
-    const downloadBtn=document.getElementById('downloadBtn');
-    const downloadUriBtn=document.getElementById('downloadUriBtn');
-    const targetInput=document.getElementById('targetSize');
+function humanFileSize(b){const t=1024;if(Math.abs(b)<t)return b+' B';const u=['KB','MB','GB'];let i=-1;do{b/=t;++i;}while(Math.abs(b)>=t&&i<u.length-1);return b.toFixed(1)+' '+u[i];}
+function showThumb(u){thumb.innerHTML='';const i=document.createElement('img');i.src=u;thumb.appendChild(i);}
 
-    function humanFileSize(b){const t=1024;if(Math.abs(b)<t)return b+' B';const u=['KB','MB','GB'];let i=-1;do{b/=t;++i;}while(Math.abs(b)>=t&&i<u.length-1);return b.toFixed(1)+' '+u[i];}
-    function showThumb(u){thumb.innerHTML='';const i=document.createElement('img');i.src=u;thumb.appendChild(i);}
+async function handleFile(f){if(!f)return;nameEl.textContent=f.name;sizeEl.textContent=humanFileSize(f.size);mtypeEl.textContent=f.type||'—';const r=new FileReader();r.onload=async e=>{const d=e.target.result;showThumb(d);const im=new Image();im.onload=()=>{dimEl.textContent=im.width+'×'+im.height;};im.src=d;const nd=await makeApproxSize(d,parseInt(targetInput.value,10),parseInt(resizeSelect.value,10));setOut(nd);};r.readAsDataURL(f);} 
 
-    async function handleFile(f){if(!f)return;nameEl.textContent=f.name;sizeEl.textContent=humanFileSize(f.size);mtypeEl.textContent=f.type||'—';const r=new FileReader();r.onload=async e=>{const d=e.target.result;showThumb(d);const im=new Image();im.onload=()=>{dimEl.textContent=im.width+'×'+im.height;};im.src=d;const nd=await makeApproxSize(d,parseInt(targetInput.value,10));setOut(nd);};r.readAsDataURL(f);} 
+function setOut(d){out.value=d;}
 
-    function setOut(d){out.value=d;}
+function reencode(d,m,q,newW,newH){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=newW||i.width;c.height=newH||i.height;const x=c.getContext('2d');x.drawImage(i,0,0,c.width,c.height);try{res(c.toDataURL(m,q));}catch(e){rej(e);}};i.onerror=rej;i.src=d;});}
 
-    function reencode(d,m,q,newW,newH){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=newW||i.width;c.height=newH||i.height;const x=c.getContext('2d');x.drawImage(i,0,0,c.width,c.height);try{res(c.toDataURL(m,q));}catch(e){rej(e);}};i.onerror=rej;i.src=d;});}
+async function makeApproxSize(imgSrc,targetKB,resizePercent){
+  let q=0.9; let outData;
+  const targetBytes=Math.max(50,targetKB)*1024*0.75;
+  let scale=resizePercent/100;
+  for(let i=0;i<15;i++){
+    const temp=await new Promise((res,rej)=>{const img=new Image();img.onload=()=>{res(reencode(imgSrc,"image/jpeg",q,img.width*scale,img.height*scale));};img.onerror=rej;img.src=imgSrc;});
+    outData=await temp;
+    const size=Math.ceil((outData.length*3)/4);
+    if(Math.abs(size-targetBytes)<20000) break;
+    if(size>targetBytes){q-=0.05;if(q<0.1)q=0.1;} else {q+=0.05;if(q>1)q=1;}
+  }
+  return outData;
+}
 
-    async function makeApproxSize(imgSrc,targetKB){
-      let q=0.9; let outData;
-      const targetBytes=Math.max(50,targetKB)*1024*0.75; // target binary size
-      let scale=1.0;
-      for(let i=0;i<15;i++){
-        outData=await reencode(imgSrc,"image/jpeg",q);
-        const size=Math.ceil((outData.length*3)/4);
-        if(Math.abs(size-targetBytes)<20000) break;
-        if(size>targetBytes){
-          q-=0.05; if(q<0.1){q=0.3; scale*=0.8;} 
-        } else {
-          q+=0.05; if(q>1) q=1;
-        }
-      }
-      return outData;
-    }
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('dragover');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('dragover');}));
+drop.addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)handleFile(f);});
+drop.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',()=>handleFile(fileInput.files[0]));
 
-    ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('dragover');}));
-    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('dragover');}));
-    drop.addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)handleFile(f);});
-    drop.addEventListener('click',()=>fileInput.click());
-    fileInput.addEventListener('change',()=>handleFile(fileInput.files[0]));
+copyBtn.addEventListener('click',async()=>{if(!out.value)return alert('पहले इमेज अपलोड करें');try{await navigator.clipboard.writeText(out.value);copyBtn.textContent='Copied ✓';setTimeout(()=>copyBtn.textContent='Copy',1200);}catch{alert('कॉपी नहीं हुआ, मैन्युअल कॉपी करें।');}});
 
-    copyBtn.addEventListener('click',async()=>{if(!out.value)return alert('पहले इमेज अपलोड करें');try{await navigator.clipboard.writeText(out.value);copyBtn.textContent='Copied ✓';setTimeout(()=>copyBtn.textContent='Copy',1200);}catch{alert('कॉपी नहीं हुआ, मैन्युअल कॉपी करें।');}});
+downloadBtn.addEventListener('click',()=>{if(!out.value)return alert('पहले इमेज अपलोड करें');const raw=(out.value.indexOf(',')>0)? out.value.substring(out.value.indexOf(',')+1):out.value;const blob=new Blob([raw],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=(nameEl.textContent||'image')+'.b64';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);});
 
-    downloadBtn.addEventListener('click',()=>{if(!out.value)return alert('पहले इमेज अपलोड करें');const raw=(out.value.indexOf(',')>0)? out.value.substring(out.value.indexOf(',')+1):out.value;const blob=new Blob([raw],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;const baseName=(nameEl.textContent? nameEl.textContent.replace(/\.[^.]+$/,''):'image');a.download=baseName+'.b64';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);});
+downloadUriBtn.addEventListener('click',()=>{if(!out.value)return alert('पहले इमेज अपलोड करें');let payload=out.value;if(payload.indexOf(',')<0){payload='data:image/jpeg;base64,'+out.value;}const blob=new Blob([payload],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=(nameEl.textContent||'image')+'.datauri.txt';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);});
 
-    downloadUriBtn.addEventListener('click',()=>{if(!out.value)return alert('पहले इमेज अपलोड करें');let payload=out.value;if(payload.indexOf(',')<0){payload='data:image/jpeg;base64,'+out.value;}const blob=new Blob([payload],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;const baseName=(nameEl.textContent? nameEl.textContent.replace(/\.[^.]+$/,''):'image');a.download=baseName+'.datauri.txt';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);});
-
-    window.addEventListener('paste',e=>{const it=e.clipboardData&&e.clipboardData.items;if(!it)return;for(const t of it){if(t.type&&t.type.startsWith('image')){handleFile(t.getAsFile());break;}}});
-  </script></body>
+window.addEventListener('paste',e=>{const it=e.clipboardData&&e.clipboardData.items;if(!it)return;for(const t of it){if(t.type&&t.type.startsWith('image')){handleFile(t.getAsFile());break;}}});
+</script></body>
 </html>
