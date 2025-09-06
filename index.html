@@ -1,223 +1,71 @@
 <!doctype html>
-
 <html lang="hi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Image → Base64 converter — Mobile Friendly (Full .b64 Download)</title>
-  <style>
-    :root{font-family:Inter,system-ui,Segoe UI,Roboto,'Noto Sans','Helvetica Neue',Arial;}
-    body{margin:0;background:#0f172a;color:#e6eef8;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:10px}
-    .card{width:100%;max-width:640px;background:linear-gradient(180deg,#04102a 0%, #071530 60%);border-radius:12px;padding:16px;box-shadow:0 6px 30px rgba(2,6,23,.6);display:flex;flex-direction:column;gap:12px}
-    h1{margin:0 0 6px;font-size:18px;line-height:1.3}
-    p.lead{margin:0 0 12px;color:#9fb0cf;font-size:14px;line-height:1.4}
-    .controls{display:flex;flex-direction:column;gap:12px;margin-bottom:8px}
-    .drop{border:2px dashed rgba(148,163,184,.15);padding:16px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;min-height:100px;text-align:center}
-    .drop.dragover{border-color:#60a5fa;background:linear-gradient(180deg, rgba(96,165,250,.05), transparent)}
-    input[type=file]{display:none}
-    .preview{display:flex;flex-direction:column;gap:12px}
-    .thumb{width:100%;max-height:220px;border-radius:8px;overflow:hidden;background:#071022;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)}
-    .thumb img{max-width:100%;max-height:100%;display:block}
-    .meta{display:flex;flex-direction:column;gap:8px}
-    label.row{display:flex;gap:6px;align-items:center;font-size:14px}
-    select,input[type=range]{background:transparent;color:inherit;border:1px solid rgba(255,255,255,.06);padding:6px;border-radius:6px;font-size:14px}
-    textarea{width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.06);background:rgba(2,6,23,.6);color:inherit;font-family:monospace;font-size:12px}
-    .btn{background:#0ea5e9;border:none;padding:10px 14px;border-radius:8px;color:#04233a;cursor:pointer;font-size:14px}
-    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.12);color:inherit}
-    .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-    small.hint{color:#9fb0cf;font-size:12px}
-    footer{margin-top:8px;color:#9fb0cf;font-size:12px;line-height:1.4}
-    .topbar{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
-    .chips{display:flex;gap:6px;flex-wrap:wrap}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
-    @media(min-width:600px){
-      .controls{flex-direction:row;justify-content:space-between;align-items:flex-start}
-      .preview{flex-direction:row}
-      .thumb{flex:0 0 220px;height:160px}
-      .meta{flex:1}
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Generate 1MB Base64 in ZIP</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
-<body>
-  <div class="card">
-    <div class="topbar">
-      <h1>Image → Base64 (Offline)</h1>
-      <p class="lead">इमेज अपलोड करें — देखें और Base64 / data: URI कॉपी/डाउनलोड करें। अब Download ऑप्शन्स पूरी तरह वर्किंग — raw .b64, data-URI और reconstructed image।</p>
-      <div class="chips">
-        <small class="hint">Single-file • Offline • कोई अपलोड नहीं</small>
-      </div>
-    </div><div class="controls">
-  <label class="drop" id="dropArea">
-    <strong>इमेज ड्रैग & ड्रॉप करें या टैप करें</strong>
-    <div style="margin-top:4px;color:#9fb0cf;font-size:12px">PNG / JPEG / GIF / WebP सपोर्ट — 50MB तक</div>
-    <input id="fileInput" type="file" accept="image/*">
-  </label>
+<body style="font-family:sans-serif; background:#0f172a; color:#e6eef8; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:20px;">
 
-  <div class="row">
-    <label class="row">Output:
-      <select id="outType">
-        <option value="original">Original</option>
-        <option value="image/png">PNG</option>
-        <option value="image/jpeg">JPEG</option>
-        <option value="image/webp">WebP</option>
-      </select>
-    </label>
-    <label class="row">Quality:
-      <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.92">
-    </label>
-  </div>
-</div>
+  <h1>1 MB Base64 Generator (ZIP)</h1>
+  <button id="optA" style="padding:12px 20px; border-radius:8px; border:none; background:#0ea5e9; color:#04233a; font-size:16px; cursor:pointer;">
+    Option A: Base64 टेक्स्ट = 1MB (.b64 in zip)
+  </button>
 
-<div class="preview">
-  <div class="thumb" id="thumb">No image</div>
-  <div class="meta">
-    <div class="row" style="justify-content:space-between;align-items:center">
-      <strong id="name">—</strong>
-      <div class="actions">
-        <button class="btn" id="copyBtn">Copy</button>
-        <button class="btn ghost" id="downloadB64">Download .b64</button>
-        <button class="btn ghost" id="downloadDataURI">Download data:URI</button>
-        <button class="btn" id="downloadImage">Download Image</button>
-      </div>
-    </div>
-    <div class="row">
-      <small class="hint">Size:</small> <small id="size">—</small>
-      <small class="hint">Dimensions:</small> <small id="dim">—</small>
-      <small class="hint">Type:</small> <small id="mtype">—</small>
-    </div>
-    <label class="row"><input type="checkbox" id="includePrefix" checked> data: prefix शामिल करें</label>
-    <textarea id="out" placeholder="Base64 output..." readonly></textarea>
-  </div>
-</div>
+  <button id="optB" style="padding:12px 20px; border-radius:8px; border:none; background:#0ea5e9; color:#04233a; font-size:16px; cursor:pointer;">
+    Option B: Decoded Binary = 1MB (.bin + .b64 in zip)
+  </button>
 
-<footer>
-  <small>Download .b64 = raw Base64 (no prefix). Download data:URI = text file with full data:[mime];base64,... . Download Image = reconstructed binary image from Base64 (original or re-encoded) — सब लोकली होता है।</small>
-</footer>
+  <pre id="status" style="margin-top:20px; font-size:14px; color:#9fb0cf;"></pre>
 
-  </div>  <script>
-    const drop=document.getElementById('dropArea');
-    const fileInput=document.getElementById('fileInput');
-    const thumb=document.getElementById('thumb');
-    const nameEl=document.getElementById('name');
-    const sizeEl=document.getElementById('size');
-    const dimEl=document.getElementById('dim');
-    const mtypeEl=document.getElementById('mtype');
-    const out=document.getElementById('out');
-    const copyBtn=document.getElementById('copyBtn');
-    const downloadB64=document.getElementById('downloadB64');
-    const downloadDataURI=document.getElementById('downloadDataURI');
-    const downloadImage=document.getElementById('downloadImage');
-    const outType=document.getElementById('outType');
-    const quality=document.getElementById('quality');
-    const includePrefix=document.getElementById('includePrefix');
+<script>
+function downloadZip(name, zip){
+  zip.generateAsync({type:"blob"}).then(blob=>{
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+  });
+}
 
-    function humanFileSize(b){const t=1024;if(Math.abs(b)<t)return b+' B';const u=['KB','MB','GB'];let i=-1;do{b/=t;++i;}while(Math.abs(b)>=t&&i<u.length-1);return b.toFixed(1)+' '+u[i];}
-    function showThumb(u){thumb.innerHTML='';const i=document.createElement('img');i.src=u;i.alt='preview';thumb.appendChild(i);}
+document.getElementById('optA').onclick = async ()=>{
+  const status = document.getElementById('status');
+  status.textContent = "Generating Option A...";
+  const S = 786430; // decoded bytes → base64 length = 1,048,576
+  const arr = new Uint8Array(S); // zeros
+  const blob = new Blob([arr]);
+  const dataUrl = await new Promise(res=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.readAsDataURL(blob);
+  });
+  const base64 = dataUrl.split(',')[1]; // strip prefix
+  status.textContent = "Base64 length: " + base64.length + " bytes";
+  const zip = new JSZip();
+  zip.file("one_mb_base64.b64", base64);
+  downloadZip("one_mb_base64.zip", zip);
+};
 
-    async function handleFile(f){if(!f) return;nameEl.textContent=f.name;sizeEl.textContent=humanFileSize(f.size);mtypeEl.textContent=f.type||'—';const r=new FileReader();r.onload=async e=>{const d=e.target.result;showThumb(d);const im=new Image();im.onload=()=>{dimEl.textContent=im.width+'×'+im.height;};im.src=d;if(outType.value==='original'){setOut(d);}else{try{const nd=await reencode(d,outType.value,parseFloat(quality.value));setOut(nd);}catch(err){console.error(err);alert('री-एन्कोडिंग में त्रुटि: '+err.message);} }};r.readAsDataURL(f);} 
-    function setOut(d){if(includePrefix.checked) out.value=d; else out.value=d.substring(d.indexOf(',')+1);} 
-    function reencode(d,m,q){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const x=c.getContext('2d');x.drawImage(i,0,0);try{res(c.toDataURL(m,q));}catch(e){rej(e);}};i.onerror=rej;i.src=d;});}
-
-    // Utility: create blob from base64 (raw or data URI)
-    function base64ToBlob(b64Data, contentType='application/octet-stream'){
-      // b64Data = raw base64 string (no prefix)
-      const sliceSize = 1024;
-      const byteCharacters = atob(b64Data);
-      const bytesLength = byteCharacters.length;
-      const slicesCount = Math.ceil(bytesLength / sliceSize);
-      const byteArrays = new Array(slicesCount);
-
-      for (let sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
-        const begin = sliceIndex * sliceSize;
-        const end = Math.min(begin + sliceSize, bytesLength);
-
-        const bytes = new Array(end - begin);
-        for (let offset = begin, i = 0; offset < end; ++i, ++offset) {
-          bytes[i] = byteCharacters.charCodeAt(offset);
-        }
-        byteArrays[sliceIndex] = new Uint8Array(bytes);
-      }
-      return new Blob(byteArrays, { type: contentType });
-    }
-
-    function getCurrentBase64(){
-      if(!out.value) return null;
-      const v = out.value;
-      if(v.indexOf(',')>0){
-        const prefix = v.substring(0, v.indexOf(',') );
-        const raw = v.substring(v.indexOf(',')+1);
-        const m = (prefix.match(/^data:([^;]+);base64$/) || [])[1] || 'application/octet-stream';
-        return { raw, mime: m, prefix };
-      } else {
-        return { raw: v, mime: 'application/octet-stream', prefix: null };
-      }
-    }
-
-    function downloadBlob(blob, filename){
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    // Button handlers
-    copyBtn.addEventListener('click', async ()=>{
-      if(!out.value) return alert('पहले इमेज अपलोड करें');
-      try{await navigator.clipboard.writeText(out.value);copyBtn.textContent='Copied ✓';setTimeout(()=>copyBtn.textContent='Copy',1200);}catch{alert('कॉपी नहीं हुआ — मैन्युअल कॉपी करें।');}
-    });
-
-    downloadB64.addEventListener('click', ()=>{
-      const cur = getCurrentBase64();
-      if(!cur) return alert('पहले इमेज अपलोड करें');
-      // save raw base64 (no prefix)
-      const filename = (nameEl.textContent?nameEl.textContent.replace(/\.[^.]+$/,''):'image') + '.b64';
-      const blob = new Blob([cur.raw], { type: 'text/plain' });
-      downloadBlob(blob, filename);
-    });
-
-    downloadDataURI.addEventListener('click', ()=>{
-      const cur = getCurrentBase64();
-      if(!cur) return alert('पहले इमेज अपलोड करें');
-      // save full data URI (prefix + raw)
-      const datauri = cur.prefix ? (cur.prefix + ',' + cur.raw) : ('data:' + cur.mime + ';base64,' + cur.raw);
-      const filename = (nameEl.textContent?nameEl.textContent.replace(/\.[^.]+$/,''):'image') + '.datauri.txt';
-      const blob = new Blob([datauri], { type: 'text/plain' });
-      downloadBlob(blob, filename);
-    });
-
-    downloadImage.addEventListener('click', ()=>{
-      const cur = getCurrentBase64();
-      if(!cur) return alert('पहले इमेज अपलोड करें');
-      try{
-        const blob = base64ToBlob(cur.raw, cur.mime);
-        // use original filename extension if present, otherwise use mime to pick extension
-        let orig = nameEl.textContent || 'image';
-        if(!/\.[^.]+$/.test(orig)){
-          const ext = (cur.mime.split('/')[1] || 'bin');
-          orig += '.'+ext.split('+')[0];
-        }
-        downloadBlob(blob, orig);
-      }catch(err){
-        console.error(err);alert('इमेज डाउनलोड करते समय त्रुटि: '+err.message);
-      }
-    });
-
-    // drag & drop / file input
-    ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('dragover');}));
-    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('dragover');}));
-    drop.addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)handleFile(f);});
-    drop.addEventListener('click',()=>fileInput.click());
-    fileInput.addEventListener('change',()=>handleFile(fileInput.files[0]));
-
-    outType.addEventListener('change',()=>{const i=thumb.querySelector('img');if(i){if(outType.value==='original'){setOut(i.src);}else{reencode(i.src,outType.value,parseFloat(quality.value)).then(setOut).catch(()=>{});}}});
-    quality.addEventListener('input',()=>{if(outType.value!=='original'){const i=thumb.querySelector('img');if(i)reencode(i.src,outType.value,parseFloat(quality.value)).then(setOut).catch(()=>{});}});
-    includePrefix.addEventListener('change',()=>{if(!out.value) return; if(includePrefix.checked){const i=thumb.querySelector('img'); if(i&&i.src&&i.src.indexOf(',')>0) out.value = i.src; } else { const c = out.value.indexOf(','); if(c>=0) out.value = out.value.substring(c+1); }});
-
-    window.addEventListener('paste',e=>{const it=e.clipboardData&&e.clipboardData.items;if(!it) return; for(const t of it){ if(t.type&&t.type.startsWith('image')){ handleFile(t.getAsFile()); break; } }});
-
-  </script></body>
+document.getElementById('optB').onclick = async ()=>{
+  const status = document.getElementById('status');
+  status.textContent = "Generating Option B...";
+  const S = 1024*1024; // 1MB binary
+  const arr = new Uint8Array(S);
+  const blob = new Blob([arr]);
+  const dataUrl = await new Promise(res=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.readAsDataURL(blob);
+  });
+  const base64 = dataUrl.split(',')[1];
+  status.textContent = "Binary size: " + S + " bytes, Base64 length: " + base64.length;
+  const zip = new JSZip();
+  zip.file("binary_1mb.bin", arr);
+  zip.file("binary_1mb.b64", base64);
+  downloadZip("decoded_1mb.zip", zip);
+};
+</script>
+</body>
 </html>
