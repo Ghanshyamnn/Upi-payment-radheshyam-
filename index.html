@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Image → Base64 converter — 1MB Target</title>
+  <title>Image → Base64 converter — 500KB Target</title>
   <style>
     :root{font-family:Inter,system-ui,Segoe UI,Roboto,'Noto Sans','Helvetica Neue',Arial;}
     body{margin:0;background:#0f172a;color:#e6eef8;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:10px}
@@ -40,8 +40,8 @@
 <body>
   <div class="card">
     <div class="topbar">
-      <h1>Image → Base64 (Target ~1MB)</h1>
-      <p class="lead">इमेज अपलोड करें — यह टूल आउटपुट Base64 को लगभग 1 MB के आसपास एडजस्ट कर देगा।</p>
+      <h1>Image → Base64 (Target ~500KB)</h1>
+      <p class="lead">इमेज अपलोड करें — यह टूल आउटपुट Base64 को लगभग 500 KB के आसपास एडजस्ट कर देगा।</p>
       <div class="chips">
         <small class="hint">Single-file • Offline • कोई अपलोड नहीं</small>
       </div>
@@ -74,7 +74,7 @@
 </div>
 
 <footer>
-  <small>आउटपुट Base64 लगभग 1 MB होगा (±20 KB)। कॉपी या डाउनलोड कर सकते हैं।</small>
+  <small>आउटपुट Base64 लगभग 500 KB होगा (±20 KB)। कॉपी या डाउनलोड कर सकते हैं।</small>
 </footer>
 
   </div>  <script>
@@ -93,19 +93,19 @@
     function humanFileSize(b){const t=1024;if(Math.abs(b)<t)return b+' B';const u=['KB','MB','GB'];let i=-1;do{b/=t;++i;}while(Math.abs(b)>=t&&i<u.length-1);return b.toFixed(1)+' '+u[i];}
     function showThumb(u){thumb.innerHTML='';const i=document.createElement('img');i.src=u;thumb.appendChild(i);}
 
-    async function handleFile(f){if(!f)return;nameEl.textContent=f.name;sizeEl.textContent=humanFileSize(f.size);mtypeEl.textContent=f.type||'—';const r=new FileReader();r.onload=async e=>{const d=e.target.result;showThumb(d);const im=new Image();im.onload=()=>{dimEl.textContent=im.width+'×'+im.height;};im.src=d;const nd=await makeApprox1MB(d);setOut(nd);};r.readAsDataURL(f);} 
+    async function handleFile(f){if(!f)return;nameEl.textContent=f.name;sizeEl.textContent=humanFileSize(f.size);mtypeEl.textContent=f.type||'—';const r=new FileReader();r.onload=async e=>{const d=e.target.result;showThumb(d);const im=new Image();im.onload=()=>{dimEl.textContent=im.width+'×'+im.height;};im.src=d;const nd=await makeApprox500KB(d);setOut(nd);};r.readAsDataURL(f);} 
 
     function setOut(d){out.value=d;}
 
     function reencode(d,m,q){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=i.width;c.height=i.height;const x=c.getContext('2d');x.drawImage(i,0,0);try{res(c.toDataURL(m,q));}catch(e){rej(e);}};i.onerror=rej;i.src=d;});}
 
-    async function makeApprox1MB(imgSrc){
+    async function makeApprox500KB(imgSrc){
       let q=0.9; let outData;
       for(let i=0;i<12;i++){
         outData=await reencode(imgSrc,"image/jpeg",q);
         const size=Math.ceil((outData.length*3)/4);
-        if(Math.abs(size-786432)<20000) break;
-        if(size>786432) q-=0.05; else q+=0.05;
+        if(Math.abs(size-384000)<20000) break; // target ~375KB binary ≈ 500KB base64
+        if(size>384000) q-=0.05; else q+=0.05;
         if(q<0.05) q=0.05; if(q>1) q=1;
       }
       return outData;
