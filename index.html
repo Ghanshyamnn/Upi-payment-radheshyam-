@@ -4,28 +4,28 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Image → Base64 converter — Auto 10× Shrink</title>
+  <title>Image → Base64 — Auto 10× Shrink</title>
   <style>
     body{margin:0;background:#0f172a;color:#e6eef8;font-family:system-ui,Segoe UI,Roboto,'Noto Sans','Helvetica Neue',Arial;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:10px}
-    .card{width:100%;max-width:680px;background:#071530;border-radius:12px;padding:16px;box-shadow:0 6px 30px rgba(2,6,23,.6);display:flex;flex-direction:column;gap:12px}
+    .card{width:100%;max-width:700px;background:#071530;border-radius:14px;padding:18px;box-shadow:0 6px 30px rgba(2,6,23,.6);display:flex;flex-direction:column;gap:14px}
     h1{margin:0;font-size:18px}
     p{margin:0;font-size:14px;color:#9fb0cf}
-    .drop{border:2px dashed rgba(148,163,184,.25);padding:20px;border-radius:10px;text-align:center;cursor:pointer}
+    .drop{border:2px dashed rgba(148,163,184,.25);padding:24px;border-radius:12px;text-align:center;cursor:pointer}
     .drop.dragover{border-color:#38bdf8;background:rgba(56,189,248,.05)}
     input[type=file]{display:none}
-    .preview{display:flex;flex-direction:column;gap:12px;margin-top:10px}
-    .thumb{background:#0002;border:1px solid rgba(255,255,255,.1);border-radius:8px;min-height:120px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-    .thumb img{max-width:100%;max-height:200px}
-    textarea{width:100%;min-height:120px;background:#020617;border:1px solid rgba(255,255,255,.1);color:inherit;border-radius:8px;padding:8px;font-size:12px;font-family:monospace}
-    .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-    .btn{background:#0ea5e9;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:14px;color:#021520}
+    .preview{display:flex;flex-direction:column;gap:14px;margin-top:12px}
+    .thumb{background:#0002;border:1px solid rgba(255,255,255,.1);border-radius:10px;min-height:120px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .thumb img{max-width:100%;max-height:220px}
+    textarea{width:100%;min-height:140px;background:#020617;border:1px solid rgba(255,255,255,.1);color:inherit;border-radius:10px;padding:8px;font-size:12px;font-family:monospace}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .btn{background:#0ea5e9;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:14px;color:#021520}
     .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.2);color:inherit}
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Image → Base64 (Auto Shrink ×10)</h1>
-    <p>अपलोड करें — आउटपुट अपने-आप Original Size ÷10 होगा।</p><label class="drop" id="dropArea">इमेज ड्रैग & ड्रॉप करें या टैप करें<input id="fileInput" type="file" accept="image/*"></label>
+    <h1>Image → Base64 (Auto 10× Shrink)</h1>
+    <p>अपलोड करें — आउटपुट अपने-आप Original Size ÷10 होगा और डाउनलोड भी हो जाएगा।</p><label class="drop" id="dropArea">इमेज ड्रैग & ड्रॉप करें या टैप करें<input id="fileInput" type="file" accept="image/*"></label>
 
 <div class="preview">
   <div class="thumb" id="thumb">No image</div>
@@ -70,7 +70,7 @@ function showThumb(u){thumb.innerHTML='';const i=document.createElement('img');i
 async function handleFile(f){if(!f)return;nameEl.textContent=f.name;sizeEl.textContent=humanFileSize(f.size);originalSize=f.size; mtypeEl.textContent=f.type||'—';
   const r=new FileReader();r.onload=async e=>{const d=e.target.result;showThumb(d);const im=new Image();im.onload=()=>{dimEl.textContent=im.width+'×'+im.height;};im.src=d;
     const target=Math.max(50,Math.floor((originalSize/1024)/10));targetSizeEl.textContent=target;
-    const nd=await makeApproxSize(d,target);setOut(nd);
+    const nd=await makeApproxSize(d,target);setOut(nd);autoDownload(nd,f.name);
   };r.readAsDataURL(f);} 
 
 function setOut(d){out.value=d;const size=Math.ceil((d.length*3)/4/1024);finalSizeEl.textContent=size;}
@@ -90,6 +90,8 @@ async function makeApproxSize(imgSrc,targetKB){
   }
   return outData;
 }
+
+function autoDownload(data,filename){const raw=(data.indexOf(',')>0)? data.substring(data.indexOf(',')+1):data;const blob=new Blob([raw],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=(filename||'image')+'.b64';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
 
 ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('dragover');}));
 ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('dragover');}));
