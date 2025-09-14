@@ -2,18 +2,37 @@
 <html lang="hi">
 <head>
   <meta charset="utf-8" />
-  <title>Notification Demo (ServiceWorker only)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Notification Permission — Final Updated Demo</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; max-width: 600px; margin:auto; line-height:1.5; }
+    h1 { font-size: 1.4rem; margin-bottom: 10px; }
+    button { padding: 10px 16px; margin: 6px; border-radius: 6px; border: 1px solid #ccc; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #log { margin-top:16px; padding:12px; border-radius:6px; background:#f9f9f9; border:1px solid #ddd; min-height:40px; }
+  </style>
 </head>
 <body>
+  <h1>🔔 Notification Demo (Final Updated)</h1>
+  <p>यह demo केवल <b>ServiceWorkerRegistration.showNotification()</b> से notification दिखाता है।</p>
+
   <button id="btn-request">नोटिफिकेशन अनुमति माँगे</button>
   <button id="btn-test" disabled>टेस्ट नोटिफिकेशन भेजें</button>
+  <button id="btn-perm">वर्तमान अनुमति देखें</button>
+
+  <div id="log">लॉग यहाँ दिखेगा…</div>
 
 <script>
 (async function(){
-  const btnRequest = document.getElementById('btn-request');
-  const btnTest = document.getElementById('btn-test');
+  const logEl = document.getElementById('log');
+  const $ = id => document.getElementById(id);
 
-  // Inline Service Worker बनाओ
+  function log(...msg){
+    logEl.innerText = new Date().toLocaleTimeString() + " — " + msg.join(' ');
+    console.log(...msg);
+  }
+
+  // --- Service Worker को blob से register करें ---
   const swCode = `
     self.addEventListener('install', e => self.skipWaiting());
     self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
@@ -23,31 +42,67 @@
     });
   `;
   const swUrl = URL.createObjectURL(new Blob([swCode], {type:'text/javascript'}));
-  const registration = await navigator.serviceWorker.register(swUrl);
+  let registration = null;
+  try {
+    registration = await navigator.serviceWorker.register(swUrl);
+    log("Service Worker registered:", registration.scope);
+  } catch(err) {
+    log("Service Worker error:", err);
+  }
+
+  // SVG icon data URL (notification icon)
+  const svgIcon = encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">' +
+    '<rect width="100%" height="100%" fill="#3b82f6"/>' +
+    '<text x="50%" y="54%" font-size="60" text-anchor="middle" fill="white">🔔</text>' +
+    '</svg>'
+  );
+  const iconUrl = 'data:image/svg+xml;utf8,' + svgIcon;
 
   function updateUI(){
-    btnRequest.disabled = (Notification.permission === 'granted');
-    btnTest.disabled = (Notification.permission !== 'granted');
+    const perm = Notification.permission;
+    $('btn-request').disabled = (perm === 'granted');
+    $('btn-test').disabled = (perm !== 'granted');
+    log("Permission:", perm);
   }
   updateUI();
 
-  btnRequest.onclick = async () => {
+  // Permission request
+  $('btn-request').onclick = async () => {
     const result = await Notification.requestPermission();
     updateUI();
     if(result === 'granted'){
-      await registration.showNotification('धन्यवाद!', {
-        body: 'आपने अनुमति दे दी।',
-        icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAI0lEQVQYV2N8+vTpPwMDAwMjI+NfEAzEgBjoAGoY2gAAawUCpK9FYXQAAAAASUVORK5CYII='
+      await registration.showNotification("धन्यवाद!", {
+        body: "आपने नोटिफिकेशन की अनुमति दे दी ✅",
+        icon: iconUrl,
+        badge: iconUrl,
+        vibrate: [200,100,200]
       });
+    } else {
+      log("User ने अनुमति नहीं दी:", result);
     }
   };
 
-  btnTest.onclick = async () => {
-    await registration.showNotification('हैलो!', {
-      body: 'यह आपका टेस्ट नोटिफिकेशन है।',
-      tag: 'demo'
+  // Test notification
+  $('btn-test').onclick = async () => {
+    await registration.showNotification("टेस्ट नोटिफिकेशन", {
+      body: "यह ServiceWorker से भेजा गया एक टेस्ट है।",
+      icon: iconUrl,
+      badge: iconUrl,
+      tag: "demo",
+      actions: [
+        {action:"open", title:"Open"},
+        {action:"dismiss", title:"Dismiss"}
+      ]
     });
+    log("टेस्ट नोटिफिकेशन भेजा गया।");
   };
+
+  // Show current permission
+  $('btn-perm').onclick = () => {
+    log("Current permission:", Notification.permission);
+  };
+
 })();
 </script>
 </body>
