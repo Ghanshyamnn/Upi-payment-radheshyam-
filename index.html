@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Notification Permission — Final Updated Demo</title>
+  <title>Final Notification Demo</title>
   <style>
     body { font-family: sans-serif; padding: 24px; max-width: 600px; margin:auto; line-height:1.5; }
-    h1 { font-size: 1.4rem; margin-bottom: 10px; }
+    h1 { font-size: 1.5rem; margin-bottom: 12px; }
     button { padding: 10px 16px; margin: 6px; border-radius: 6px; border: 1px solid #ccc; cursor: pointer; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
-    #log { margin-top:16px; padding:12px; border-radius:6px; background:#f9f9f9; border:1px solid #ddd; min-height:40px; }
+    #log { margin-top:16px; padding:12px; border-radius:6px; background:#f9f9f9; border:1px solid #ddd; min-height:40px; white-space:pre-line; }
   </style>
 </head>
 <body>
-  <h1>🔔 Notification Demo (Final Updated)</h1>
-  <p>यह demo केवल <b>ServiceWorkerRegistration.showNotification()</b> से notification दिखाता है।</p>
+  <h1>🔔 Notification Demo (Final)</h1>
+  <p>यह demo केवल <b>ServiceWorkerRegistration.showNotification()</b> से काम करता है।</p>
 
   <button id="btn-request">नोटिफिकेशन अनुमति माँगे</button>
   <button id="btn-test" disabled>टेस्ट नोटिफिकेशन भेजें</button>
@@ -28,11 +28,12 @@
   const $ = id => document.getElementById(id);
 
   function log(...msg){
-    logEl.innerText = new Date().toLocaleTimeString() + " — " + msg.join(' ');
+    const line = new Date().toLocaleTimeString() + " — " + msg.join(' ');
+    logEl.innerText = line + "\n" + logEl.innerText;
     console.log(...msg);
   }
 
-  // --- Service Worker को blob से register करें ---
+  // --- Service Worker (inline) ---
   const swCode = `
     self.addEventListener('install', e => self.skipWaiting());
     self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
@@ -50,24 +51,23 @@
     log("Service Worker error:", err);
   }
 
-  // SVG icon data URL (notification icon)
-  const svgIcon = encodeURIComponent(
+  // Notification icon (SVG data URL)
+  const iconUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">' +
     '<rect width="100%" height="100%" fill="#3b82f6"/>' +
     '<text x="50%" y="54%" font-size="60" text-anchor="middle" fill="white">🔔</text>' +
     '</svg>'
   );
-  const iconUrl = 'data:image/svg+xml;utf8,' + svgIcon;
 
   function updateUI(){
     const perm = Notification.permission;
     $('btn-request').disabled = (perm === 'granted');
     $('btn-test').disabled = (perm !== 'granted');
-    log("Permission:", perm);
+    log("Current permission:", perm);
   }
   updateUI();
 
-  // Permission request
+  // अनुमति माँगना
   $('btn-request').onclick = async () => {
     const result = await Notification.requestPermission();
     updateUI();
@@ -83,7 +83,7 @@
     }
   };
 
-  // Test notification
+  // टेस्ट नोटिफिकेशन
   $('btn-test').onclick = async () => {
     await registration.showNotification("टेस्ट नोटिफिकेशन", {
       body: "यह ServiceWorker से भेजा गया एक टेस्ट है।",
@@ -98,10 +98,19 @@
     log("टेस्ट नोटिफिकेशन भेजा गया।");
   };
 
-  // Show current permission
+  // Permission status दिखाना
   $('btn-perm').onclick = () => {
     log("Current permission:", Notification.permission);
   };
+
+  // Auto refresh every 2 seconds
+  let lastPerm = Notification.permission;
+  setInterval(() => {
+    if(Notification.permission !== lastPerm){
+      lastPerm = Notification.permission;
+      updateUI();
+    }
+  }, 2000);
 
 })();
 </script>
