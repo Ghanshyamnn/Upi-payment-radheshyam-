@@ -2,185 +2,52 @@
 <html lang="hi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Notification Permission — Single File Demo</title>
-  <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; padding: 28px; max-width: 680px; margin: auto; line-height: 1.5; }
-    h1 { font-size: 1.4rem; margin-bottom: 8px; }
-    button { padding: 10px 14px; margin-right: 8px; border-radius: 8px; border: 1px solid #ccc; background:#f6f6f6; cursor:pointer; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    pre { background:#111; color:#0f0; padding:12px; border-radius:8px; overflow:auto; }
-    .log { margin-top:12px; padding:10px; border-radius:8px; background:#fafafa; border:1px solid #eee; min-height:40px;}
-  </style>
+  <title>Notification Demo (ServiceWorker only)</title>
 </head>
 <body>
-  <h1>नोटिफिकेशन अनुमति — Single File (फ़ुल वर्किंग)</h1>
-  <p>बटन दबाकर अनुमति माँगे और फिर टेस्ट नोटिफिकेशन भेजें।</p>
-
-  <div>
-    <button id="btn-request">नोटिफिकेशन अनुमति माँगे</button>
-    <button id="btn-test" disabled>टेस्ट नोटिफिकेशन भेजें</button>
-    <button id="btn-perm">वर्तमान अनुमति देखें</button>
-  </div>
-
-  <div class="log" id="log">लॉग दिखेगा यहाँ…</div>
+  <button id="btn-request">नोटिफिकेशन अनुमति माँगे</button>
+  <button id="btn-test" disabled>टेस्ट नोटिफिकेशन भेजें</button>
 
 <script>
 (async function(){
-  const logEl = document.getElementById('log');
-  const $ = id => document.getElementById(id);
+  const btnRequest = document.getElementById('btn-request');
+  const btnTest = document.getElementById('btn-test');
 
-  function log(...args){
-    const t = new Date().toLocaleTimeString();
-    logEl.innerText = t + " — " + args.join(' ');
-    console.log(...args);
-  }
-
-  // 1) Inline service-worker बनाते हैं (Blob के जरिए) — ताकि यह एक single-file solution हो.
+  // Inline Service Worker बनाओ
   const swCode = `
-self.addEventListener('install', event => {
-  self.skipWaiting();
-});
-self.addEventListener('activate', event => {
-  event.waitUntil(self.clients.claim());
-});
-// notification click handling
-self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-  // किसी टैब को फोकस/ओपन करना
-  event.waitUntil(
-    clients.matchAll({type: 'window'}).then(windowClients => {
-      for (let client of windowClients) {
-        if ('focus' in client) return client.focus();
-      }
-      if (clients.openWindow) return clients.openWindow('/');
-    })
-  );
-});
-`;
+    self.addEventListener('install', e => self.skipWaiting());
+    self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+    self.addEventListener('notificationclick', e => {
+      e.notification.close();
+      e.waitUntil(clients.openWindow('/'));
+    });
+  `;
+  const swUrl = URL.createObjectURL(new Blob([swCode], {type:'text/javascript'}));
+  const registration = await navigator.serviceWorker.register(swUrl);
 
-  // create blob URL for SW
-  const blob = new Blob([swCode], {type: 'text/javascript'});
-  const swUrl = URL.createObjectURL(blob);
-
-  let registration = null;
-  if ('serviceWorker' in navigator) {
-    try {
-      registration = await navigator.serviceWorker.register(swUrl);
-      log('Service Worker registered (inline blob). scope=' + registration.scope);
-    } catch (e) {
-      log('Service Worker रजिस्टर करने में एरर:', e);
-    }
-  } else {
-    log('Service Worker सपोर्ट नहीं है इस ब्राउज़र में।');
+  function updateUI(){
+    btnRequest.disabled = (Notification.permission === 'granted');
+    btnTest.disabled = (Notification.permission !== 'granted');
   }
+  updateUI();
 
-  // data URL icon (small SVG) — कोई external assets नहीं चाहिए
-  const svgIcon = encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">' +
-    '<rect width="100%" height="100%" fill="#3b82f6"/>' +
-    '<text x="50%" y="54%" font-size="60" text-anchor="middle" fill="white" style="font-family: Arial, Helvetica, sans-serif">🔔</text>' +
-    '</svg>'
-  );
-  const iconUrl = 'data:image/svg+xml;utf8,' + svgIcon;
-
-  // Helper: check permission and update UI
-  function updateUIByPermission() {
-    const perm = Notification.permission;
-    $('btn-request').disabled = (perm === 'granted');
-    $('btn-test').disabled = (perm !== 'granted');
-    log('Current permission:', perm);
-  }
-
-  updateUIByPermission();
-
-  // Request permission button
-  $('btn-request').addEventListener('click', async () => {
-    if (!('Notification' in window)) {
-      log('यह ब्राउज़र Notifications API को सपोर्ट नहीं करता।');
-      return;
+  btnRequest.onclick = async () => {
+    const result = await Notification.requestPermission();
+    updateUI();
+    if(result === 'granted'){
+      await registration.showNotification('धन्यवाद!', {
+        body: 'आपने अनुमति दे दी।',
+        icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAI0lEQVQYV2N8+vTpPwMDAwMjI+NfEAzEgBjoAGoY2gAAawUCpK9FYXQAAAAASUVORK5CYII='
+      });
     }
+  };
 
-    try {
-      const result = await Notification.requestPermission();
-      log('requestPermission result:', result);
-      updateUIByPermission();
-
-      if (result === 'granted') {
-        // optional: तुरंत एक नोटिफिकेशन दिखाएँ
-        showTestNotification('धन्यवाद!', { body: 'नोटिफिकेशन की अनुमति मिल गयी है।', requireInteraction: false });
-      } else if (result === 'denied') {
-        log('यूज़र ने अनुमति मना कर दी। ब्राउज़र सेटिंग्स से बदला जा सकता है।');
-      } else {
-        log('यूज़र ने विकल्प छोड़ा / default।');
-      }
-    } catch (err) {
-      log('permission माँगते समय error:', err);
-    }
-  });
-
-  // Show notification function (tries ServiceWorker registration first)
-  async function showTestNotification(title = 'टेस्ट नोटिफिकेशन', options = {}) {
-    const opts = Object.assign({
-      body: 'यह एक टेक्स्ट टेस्ट नोटिफिकेशन है।',
-      icon: iconUrl,
-      badge: iconUrl,
-      vibrate: [100,50,100],
-      tag: 'single-file-demo',
-      data: { time: Date.now() },
-      requireInteraction: false, // true रखोगे तो नोटिफ़ कीबोर्ड/क्लोज तक रहेगा
-      actions: [
-        {action: 'open', title: 'Open', icon: iconUrl},
-        {action: 'dismiss', title: 'Dismiss'}
-      ]
-    }, options);
-
-    if (registration && registration.showNotification) {
-      try {
-        await registration.showNotification(title, opts);
-        log('Notification shown via Service Worker:', title);
-        return;
-      } catch (e) {
-        console.warn('registration.showNotification failed, fallback to new Notification', e);
-      }
-    }
-
-    // Fallback: direct Notification (works on main thread in many browsers)
-    try {
-      const n = new Notification(title, opts);
-      log('Notification shown via new Notification():', title);
-      // optional click handler (only works on some browsers for main-thread notifications)
-      n.onclick = (ev) => {
-        window.focus();
-        n.close();
-      };
-    } catch (err) {
-      log('Notification दिखाने में एरर:', err);
-    }
-  }
-
-  // Test button
-  $('btn-test').addEventListener('click', () => {
-    showTestNotification('हैलो!', { body: 'यह आपका टेस्ट नोटिफिकेशन है — Single-file example.' });
-  });
-
-  // Show current permission
-  $('btn-perm').addEventListener('click', () => {
-    log('Permission:', Notification.permission);
-  });
-
-  // Auto update UI if permission changes (some browsers fire permissionchange? fallback: poll)
-  // Polling every 2s for visibility only when tab active (lightweight)
-  let lastPerm = Notification.permission;
-  setInterval(() => {
-    if (Notification.permission !== lastPerm) {
-      lastPerm = Notification.permission;
-      updateUIByPermission();
-    }
-  }, 2000);
-
-  // Final log
-  log('Demo ready. Permission:', Notification.permission);
+  btnTest.onclick = async () => {
+    await registration.showNotification('हैलो!', {
+      body: 'यह आपका टेस्ट नोटिफिकेशन है।',
+      tag: 'demo'
+    });
+  };
 })();
 </script>
 </body>
