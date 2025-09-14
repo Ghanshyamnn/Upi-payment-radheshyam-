@@ -2,116 +2,61 @@
 <html lang="hi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Final Notification Demo</title>
-  <style>
-    body { font-family: sans-serif; padding: 24px; max-width: 600px; margin:auto; line-height:1.5; }
-    h1 { font-size: 1.5rem; margin-bottom: 12px; }
-    button { padding: 10px 16px; margin: 6px; border-radius: 6px; border: 1px solid #ccc; cursor: pointer; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    #log { margin-top:16px; padding:12px; border-radius:6px; background:#f9f9f9; border:1px solid #ddd; min-height:40px; white-space:pre-line; }
-  </style>
+  <title>Single File Notification Demo</title>
 </head>
 <body>
-  <h1>🔔 Notification Demo (Final)</h1>
-  <p>यह demo केवल <b>ServiceWorkerRegistration.showNotification()</b> से काम करता है।</p>
-
+  <h1>🔔 Single File Notification Demo</h1>
   <button id="btn-request">नोटिफिकेशन अनुमति माँगे</button>
   <button id="btn-test" disabled>टेस्ट नोटिफिकेशन भेजें</button>
-  <button id="btn-perm">वर्तमान अनुमति देखें</button>
-
   <div id="log">लॉग यहाँ दिखेगा…</div>
+
+<script id="sw" type="javascript/worker">
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.openWindow('/'));
+});
+</script>
 
 <script>
 (async function(){
   const logEl = document.getElementById('log');
-  const $ = id => document.getElementById(id);
+  function log(msg){ logEl.innerText = msg; console.log(msg); }
 
-  function log(...msg){
-    const line = new Date().toLocaleTimeString() + " — " + msg.join(' ');
-    logEl.innerText = line + "\n" + logEl.innerText;
-    console.log(...msg);
-  }
+  // Service Worker को inline script से निकालना
+  const swBlob = new Blob([document.getElementById('sw').textContent], {type:'text/javascript'});
+  const swUrl = URL.createObjectURL(swBlob);
 
-  // --- Service Worker (inline) ---
-  const swCode = `
-    self.addEventListener('install', e => self.skipWaiting());
-    self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-    self.addEventListener('notificationclick', e => {
-      e.notification.close();
-      e.waitUntil(clients.openWindow('/'));
-    });
-  `;
-  const swUrl = URL.createObjectURL(new Blob([swCode], {type:'text/javascript'}));
   let registration = null;
   try {
     registration = await navigator.serviceWorker.register(swUrl);
-    log("Service Worker registered:", registration.scope);
-  } catch(err) {
-    log("Service Worker error:", err);
+    log("Service Worker registered ✅");
+  } catch(err){
+    log("SW error: " + err);
+    return;
   }
 
-  // Notification icon (SVG data URL)
-  const iconUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">' +
-    '<rect width="100%" height="100%" fill="#3b82f6"/>' +
-    '<text x="50%" y="54%" font-size="60" text-anchor="middle" fill="white">🔔</text>' +
-    '</svg>'
-  );
-
   function updateUI(){
-    const perm = Notification.permission;
-    $('btn-request').disabled = (perm === 'granted');
-    $('btn-test').disabled = (perm !== 'granted');
-    log("Current permission:", perm);
+    document.getElementById('btn-request').disabled = (Notification.permission === 'granted');
+    document.getElementById('btn-test').disabled = (Notification.permission !== 'granted');
+    log("Permission: " + Notification.permission);
   }
   updateUI();
 
-  // अनुमति माँगना
-  $('btn-request').onclick = async () => {
-    const result = await Notification.requestPermission();
+  document.getElementById('btn-request').onclick = async () => {
+    const perm = await Notification.requestPermission();
     updateUI();
-    if(result === 'granted'){
-      await registration.showNotification("धन्यवाद!", {
-        body: "आपने नोटिफिकेशन की अनुमति दे दी ✅",
-        icon: iconUrl,
-        badge: iconUrl,
-        vibrate: [200,100,200]
-      });
-    } else {
-      log("User ने अनुमति नहीं दी:", result);
+    if(perm === 'granted'){
+      registration.showNotification("धन्यवाद!", { body:"आपने अनुमति दे दी ✅" });
     }
   };
 
-  // टेस्ट नोटिफिकेशन
-  $('btn-test').onclick = async () => {
+  document.getElementById('btn-test').onclick = async () => {
     await registration.showNotification("टेस्ट नोटिफिकेशन", {
-      body: "यह ServiceWorker से भेजा गया एक टेस्ट है।",
-      icon: iconUrl,
-      badge: iconUrl,
-      tag: "demo",
-      actions: [
-        {action:"open", title:"Open"},
-        {action:"dismiss", title:"Dismiss"}
-      ]
+      body:"यह ServiceWorker से भेजा गया नोटिफिकेशन है।"
     });
-    log("टेस्ट नोटिफिकेशन भेजा गया।");
   };
-
-  // Permission status दिखाना
-  $('btn-perm').onclick = () => {
-    log("Current permission:", Notification.permission);
-  };
-
-  // Auto refresh every 2 seconds
-  let lastPerm = Notification.permission;
-  setInterval(() => {
-    if(Notification.permission !== lastPerm){
-      lastPerm = Notification.permission;
-      updateUI();
-    }
-  }, 2000);
-
 })();
 </script>
 </body>
